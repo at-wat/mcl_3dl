@@ -87,6 +87,11 @@ namespace pf
 					}
 				}
 				else*/
+				if(it == particles_dup.end())
+				{
+					p.state = it_prev->state;
+				}
+				else
 				{
 					p.state = p0.state;
 				}
