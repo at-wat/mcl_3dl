@@ -33,6 +33,7 @@ private:
 	ros::Subscriber sub_odom;
 	ros::Publisher pub_particle;
 	ros::Publisher pub_debug;
+	ros::Publisher pub_mapcloud;
 
 	tf::TransformListener tfl;
 
@@ -95,7 +96,7 @@ private:
 	std::shared_ptr<pf::particle_filter<state>> pf;
 
 	pcl::PointCloud<pcl::PointXYZ>::Ptr pc_map;
-	pcl::KdTreeFLANN<pcl::PointXYZ> kdtree;
+	pcl::KdTreeFLANN<pcl::PointXYZ>::Ptr kdtree;
 	void cb_mapcloud(const sensor_msgs::PointCloud2::ConstPtr &msg)
 	{
 		ROS_INFO("map received");
@@ -107,11 +108,14 @@ private:
 		ds.setInputCloud(pc_tmp.makeShared());
 		ds.setLeafSize(0.1, 0.1, 0.1);
 		ds.filter(*pc_map);
-		kdtree.setInputCloud(pc_map);
+		kdtree.reset(new  pcl::KdTreeFLANN<pcl::PointXYZ>);
+		kdtree->setInputCloud(pc_map);
 		pc_local_accum.reset(new pcl::PointCloud<pcl::PointXYZ>);
 		frame_num = 0;
 		has_map = true;
 	}
+
+	bool update_map;
 
 	ros::Time odom_last;
 	bool has_map;
@@ -196,18 +200,17 @@ private:
 		pcl::PointCloud<pcl::PointXYZ>::Ptr pc_particle(new pcl::PointCloud<pcl::PointXYZ>);
 		pcl::PointCloud<pcl::PointXYZ>::Ptr pc_dummy(new pcl::PointCloud<pcl::PointXYZ>);
 
+		std::vector<int> id(1);
+		std::vector<float> sqdist(1);
 		pf->measure([&](const state &s)->float
 				{
-					std::vector<int> id(1);
-					std::vector<float> sqdist(1);
-
 					float score = 0;
 					*pc_particle = *pc_local;
 					s.transform(*pc_particle);
 
 					for(auto &p: pc_particle->points)
 					{
-						if(kdtree.nearestKSearch(p, 1, id, sqdist))
+						if(kdtree->nearestKSearch(p, 1, id, sqdist))
 						{
 							if(sqdist[0] > 0.5*0.5) sqdist[0] = 0.5*0.5;
 							else if(sqdist[0] < 0.05*0.05) sqdist[0] = 0.05*0.05;
@@ -231,6 +234,17 @@ private:
 			pp.y = p.y;
 			pp.z = p.z;
 			pc.points.push_back(pp);
+			
+			if(update_map)
+			{
+				if(kdtree->nearestKSearch(p, 1, id, sqdist))
+				{
+					if(sqdist[0] > 1.0*1.0)
+					{
+						pc_map->insert(pc_map->end(), p);
+					}
+				}
+			}
 		}
 		pub_debug.publish(pc);
 
@@ -260,6 +274,9 @@ public:
 		sub_mapcloud = nh.subscribe("mapcloud", 1, &mcl_3dl_node::cb_mapcloud, this);
 		pub_particle = nh.advertise<geometry_msgs::PoseArray>("particles", 1, true);
 		pub_debug = nh.advertise<sensor_msgs::PointCloud>("debug", 5, true);
+		pub_mapcloud = nh.advertise<sensor_msgs::PointCloud2>("updated_map", 1, true);
+
+		nh.param("update_map", update_map, false);
 
 		pf.reset(new pf::particle_filter<state>(400));
 		
@@ -283,6 +300,7 @@ public:
 	void spin()
 	{
 		ros::Rate rate(5);
+		int cnt = 0;
 		while(ros::ok())
 		{
 			rate.sleep();
@@ -306,6 +324,20 @@ public:
 				pa.poses.push_back(pm);
 			}
 			pub_particle.publish(pa);
+
+			cnt ++;
+			if(update_map)
+			{
+				if(cnt % 10 == 0)
+				{
+					sensor_msgs::PointCloud2 out;
+					pcl::toROSMsg(*pc_map, out);
+					pub_mapcloud.publish(out);
+
+					kdtree.reset(new  pcl::KdTreeFLANN<pcl::PointXYZ>);
+					kdtree->setInputCloud(pc_map);
+				}
+			}
 		}
 	}
 };
