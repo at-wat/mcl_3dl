@@ -128,10 +128,10 @@ private:
 			pf->predict([&](state &s)
 					{
 						s.vel.lin.x = msg->twist.twist.linear.x;
-						s.vel.lin.y = 0;//msg->twist.twist.linear.y;
-						s.vel.lin.z = 0;//msg->twist.twist.linear.z;
-						s.vel.ang.x = 0;//msg->twist.twist.angular.x;
-						s.vel.ang.y = 0;//msg->twist.twist.angular.y;
+						s.vel.lin.y = msg->twist.twist.linear.y;
+						s.vel.lin.z = msg->twist.twist.linear.z;
+						s.vel.ang.x = msg->twist.twist.angular.x;
+						s.vel.ang.y = msg->twist.twist.angular.y;
 						s.vel.ang.z = msg->twist.twist.angular.z;
 
 						s.rot.normalize();
@@ -181,7 +181,7 @@ private:
 		pcl::PointCloud<pcl::PointXYZ>::Ptr pc_local(new pcl::PointCloud<pcl::PointXYZ>);
 		pcl::VoxelGrid<pcl::PointXYZ> ds;
 		ds.setInputCloud(pc_local_accum);
-		ds.setLeafSize(0.25, 0.25, 0.05);
+		ds.setLeafSize(0.5, 0.5, 0.1);
 		ds.filter(*pc_local);
 		pc_local_accum.reset(new pcl::PointCloud<pcl::PointXYZ>);
 
@@ -252,9 +252,9 @@ private:
 		pf->noise(
 				state(
 					vec3(0.01, 0.01, 0.001),
-					quat(0.000, 0.000, 0.01, 0.01),
-					vec3(0.0, 0.0, 0.0),
-					vec3(0.0, 0.0, 0.0)
+					quat(0.001, 0.001, 0.01, 0.01),
+					vec3(0.001, 0.001, 0.001),
+					vec3(0.001, 0.001, 0.001)
 					)
 				);	
 		
