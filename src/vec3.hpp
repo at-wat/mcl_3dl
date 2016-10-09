@@ -26,6 +26,10 @@ public:
 	{
 		return vec3(x-q.x, y-q.y, z-q.z);
 	}
+	vec3 operator-() const
+	{
+		return vec3(-x, -y, -z);
+	}
 	vec3 operator*(const float &s) const
 	{
 		return vec3(x*s, y*s, z*s);
