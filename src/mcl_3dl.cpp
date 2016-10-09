@@ -5,6 +5,7 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/PoseArray.h>
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
 
 #include <tf/transform_listener.h>
 #include <tf/transform_broadcaster.h>
@@ -31,11 +32,13 @@ private:
 	ros::Subscriber sub_cloud;
 	ros::Subscriber sub_mapcloud;
 	ros::Subscriber sub_odom;
+	ros::Subscriber sub_position;
 	ros::Publisher pub_particle;
 	ros::Publisher pub_debug;
 	ros::Publisher pub_mapcloud;
 
 	tf::TransformListener tfl;
+	tf::TransformBroadcaster tfb;
 
 	class state: public pf::particleBase<float>
 	{
@@ -96,6 +99,7 @@ private:
 	std::shared_ptr<pf::particle_filter<state>> pf;
 
 	pcl::PointCloud<pcl::PointXYZ>::Ptr pc_map;
+	pcl::PointCloud<pcl::PointXYZ>::Ptr pc_map2;
 	pcl::KdTreeFLANN<pcl::PointXYZ>::Ptr kdtree;
 	void cb_mapcloud(const sensor_msgs::PointCloud2::ConstPtr &msg)
 	{
@@ -104,6 +108,7 @@ private:
 		pcl::fromROSMsg(*msg, pc_tmp);
 
 		pc_map.reset(new pcl::PointCloud<pcl::PointXYZ>);
+		pc_map2.reset(new pcl::PointCloud<pcl::PointXYZ>);
 		pcl::VoxelGrid<pcl::PointXYZ> ds;
 		ds.setInputCloud(pc_tmp.makeShared());
 		ds.setLeafSize(0.1, 0.1, 0.1);
@@ -113,14 +118,81 @@ private:
 		pc_local_accum.reset(new pcl::PointCloud<pcl::PointXYZ>);
 		frame_num = 0;
 		has_map = true;
+		*pc_map2 = *pc_map;
+	}
+
+	void cb_position(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg)
+	{
+		geometry_msgs::PoseStamped pose_in, pose;
+		pose_in.header = msg->header;
+		pose_in.pose = msg->pose.pose;
+		try
+		{
+			tfl.waitForTransform("map", pose_in.header.frame_id, pose_in.header.stamp, ros::Duration(1.0));
+			tfl.transformPose("map", pose_in, pose);
+		}
+		catch(tf::TransformException &e)
+		{
+			return;
+		}
+		pf->init(
+				state(
+					vec3(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z + 0.5),
+					quat(pose.pose.orientation.x,
+						pose.pose.orientation.y,
+						pose.pose.orientation.z,
+						pose.pose.orientation.w),
+					vec3(0.0, 0.0, 0.0),
+					vec3(0.0, 0.0, 0.0)
+					), 
+				state(
+					vec3(0.2, 0.2, 0.1),
+					quat(0.0, 0.0, 0.1, 0.1),
+					vec3(0.0, 0.0, 0.0),
+					vec3(0.0, 0.0, 0.0)
+					));
+		
+		if(has_map)
+		{
+			*pc_map2 = *pc_map;
+			pc_map2->points.erase(
+					std::remove_if(pc_map2->points.begin(), pc_map2->points.end(),
+						[&](const pcl::PointXYZ &p)
+						{
+						if(p.z - pose.pose.position.z > 2.5) return true;
+						if(p.z - pose.pose.position.z < 0.4) return true;
+						return false;
+						}), pc_map2->points.end());
+			pc_map2->width = 1;
+			pc_map2->height = pc_map2->points.size();
+			kdtree.reset(new  pcl::KdTreeFLANN<pcl::PointXYZ>);
+			kdtree->setInputCloud(pc_map2);
+		}
 	}
 
 	bool update_map;
 
 	ros::Time odom_last;
 	bool has_map;
+	state odom;
 	void cb_odom(const nav_msgs::Odometry::ConstPtr &msg)
 	{
+		odom =
+			state(
+					vec3(msg->pose.pose.position.x,
+						msg->pose.pose.position.y,
+						msg->pose.pose.position.z),
+					quat(msg->pose.pose.orientation.x,
+						msg->pose.pose.orientation.y,
+						msg->pose.pose.orientation.z,
+						msg->pose.pose.orientation.w),
+					vec3(msg->twist.twist.linear.x,
+						msg->twist.twist.linear.y,
+						msg->twist.twist.linear.z),
+					vec3(msg->twist.twist.angular.x,
+						msg->twist.twist.angular.y,
+						msg->twist.twist.angular.z)
+				 );
 		if(odom_last != ros::Time(0))
 		{
 			float dt = (msg->header.stamp - odom_last).toSec();
@@ -128,12 +200,11 @@ private:
 			pf->predict([&](state &s)
 					{
 						s.vel.lin.x = msg->twist.twist.linear.x;
-						s.vel.lin.y = msg->twist.twist.linear.y;
-						s.vel.lin.z = msg->twist.twist.linear.z;
-						s.vel.ang.x = msg->twist.twist.angular.x;
-						s.vel.ang.y = msg->twist.twist.angular.y;
+						//s.vel.lin.y = msg->twist.twist.linear.y;
+						//s.vel.lin.z = msg->twist.twist.linear.z;
+						//s.vel.ang.x = msg->twist.twist.angular.x;
+						//s.vel.ang.y = msg->twist.twist.angular.y;
 						s.vel.ang.z = msg->twist.twist.angular.z;
-
 						s.rot.normalize();
 
 						s.pos += (s.rot * s.vel.lin) * dt;
@@ -181,7 +252,7 @@ private:
 		pcl::PointCloud<pcl::PointXYZ>::Ptr pc_local(new pcl::PointCloud<pcl::PointXYZ>);
 		pcl::VoxelGrid<pcl::PointXYZ> ds;
 		ds.setInputCloud(pc_local_accum);
-		ds.setLeafSize(0.5, 0.5, 0.1);
+		ds.setLeafSize(0.25, 0.25, 0.1);
 		ds.filter(*pc_local);
 		pc_local_accum.reset(new pcl::PointCloud<pcl::PointXYZ>);
 
@@ -192,7 +263,8 @@ private:
 					{
 						if(p.x*p.x + p.y*p.y > 8.0*8.0) return true;
 						if(p.x*p.x + p.y*p.y < 0.8*0.8) return true;
-						return ud(engine) > 0.1;
+						if(p.z < 0.0) return true;
+						return ud(engine) > 0.5;
 					}), pc_local->points.end());
 		pc_local->width = 1;
 		pc_local->height = pc_local->points.size();
@@ -208,20 +280,41 @@ private:
 					*pc_particle = *pc_local;
 					s.transform(*pc_particle);
 
+					size_t num = 0;
 					for(auto &p: pc_particle->points)
 					{
 						if(kdtree->nearestKSearch(p, 1, id, sqdist))
 						{
-							if(sqdist[0] > 0.5*0.5) sqdist[0] = 0.5*0.5;
-							else if(sqdist[0] < 0.05*0.05) sqdist[0] = 0.05*0.05;
-							score += sqdist[0];
+							float dist = sqrtf(sqdist[0]);
+							//if(sqdist[0] > 0.5*0.5) sqdist[0] = 0.5*0.5;
+							//else if(sqdist[0] < 0.05*0.05) sqdist[0] = 0.05*0.05;
+							dist = 0.6 - dist;
+							if(dist < 0.0) continue;
+							score += dist + 0.1;
+							num ++;
 						}
 					}
-					score /= pc_particle->points.size();
-					return 1.0 / sqrtf(score);
+					//score /= num;
+					//if(score > 0.6 * pc_particle->points.size() * 0.2)
+					//	score = 0.6 * pc_particle->points.size() * 0.2;
+					
+					return score;//sqrtf(score);
 				});
 		
 		auto e = pf->max();
+
+		vec3 map_pos;
+		quat map_rot;
+		map_pos = e.pos - e.rot * odom.rot.inv() * odom.pos;
+		map_rot = e.rot * odom.rot.inv();
+		tf::StampedTransform trans;
+		trans.stamp_ = msg->header.stamp + ros::Duration(0.5);
+		trans.frame_id_ = "map";
+		trans.child_frame_id_ = "odom";
+		trans.setOrigin(tf::Vector3(map_pos.x, map_pos.y, map_pos.z));
+		trans.setRotation(tf::Quaternion(map_rot.x, map_rot.y, map_rot.z, map_rot.w));
+		tfb.sendTransform(trans);
+
 		*pc_particle = *pc_local;
 		e.transform(*pc_particle);
 		sensor_msgs::PointCloud pc;
@@ -233,15 +326,19 @@ private:
 			pp.x = p.x;
 			pp.y = p.y;
 			pp.z = p.z;
-			pc.points.push_back(pp);
-			
-			if(update_map)
+
+			if(kdtree->nearestKSearch(p, 1, id, sqdist))
 			{
-				if(kdtree->nearestKSearch(p, 1, id, sqdist))
+				float dist = sqrtf(sqdist[0]);
+				dist = 0.6 - dist;
+				//if(dist < 0.0) continue;
+
+				pc.points.push_back(pp);
+				if(update_map)
 				{
 					if(sqdist[0] > 1.0*1.0)
 					{
-						pc_map->insert(pc_map->end(), p);
+						pc_map2->insert(pc_map2->end(), p);
 					}
 				}
 			}
@@ -251,12 +348,12 @@ private:
 		pf->resample();
 		pf->noise(
 				state(
-					vec3(0.01, 0.01, 0.001),
-					quat(0.001, 0.001, 0.01, 0.01),
-					vec3(0.001, 0.001, 0.001),
-					vec3(0.001, 0.001, 0.001)
+					vec3(0.05, 0.05, 0.001),
+					quat(0.00, 0.00, 0.01, 0.01),
+					vec3(0.00, 0.00, 0.00),
+					vec3(0.00, 0.00, 0.00)
 					)
-				);	
+				);
 		
 		const auto tnow = std::chrono::high_resolution_clock::now();
 		ROS_INFO("MCL (%0.3f sec.)",
@@ -272,13 +369,14 @@ public:
 		sub_cloud = nh.subscribe("cloud", 20, &mcl_3dl_node::cb_cloud, this);
 		sub_odom = nh.subscribe("odom", 1000, &mcl_3dl_node::cb_odom, this);
 		sub_mapcloud = nh.subscribe("mapcloud", 1, &mcl_3dl_node::cb_mapcloud, this);
+		sub_position = nh.subscribe("initialpose", 1, &mcl_3dl_node::cb_position, this);
 		pub_particle = nh.advertise<geometry_msgs::PoseArray>("particles", 1, true);
 		pub_debug = nh.advertise<sensor_msgs::PointCloud>("debug", 5, true);
 		pub_mapcloud = nh.advertise<sensor_msgs::PointCloud2>("updated_map", 1, true);
 
 		nh.param("update_map", update_map, false);
 
-		pf.reset(new pf::particle_filter<state>(400));
+		pf.reset(new pf::particle_filter<state>(128));
 		
 		pf->init(
 				state(
@@ -326,16 +424,16 @@ public:
 			pub_particle.publish(pa);
 
 			cnt ++;
-			if(update_map)
+			if(cnt % 10 == 0 && has_map)
 			{
-				if(cnt % 10 == 0)
-				{
-					sensor_msgs::PointCloud2 out;
-					pcl::toROSMsg(*pc_map, out);
-					pub_mapcloud.publish(out);
+				sensor_msgs::PointCloud2 out;
+				pcl::toROSMsg(*pc_map2, out);
+				pub_mapcloud.publish(out);
 
+				if(update_map)
+				{
 					kdtree.reset(new  pcl::KdTreeFLANN<pcl::PointXYZ>);
-					kdtree->setInputCloud(pc_map);
+					kdtree->setInputCloud(pc_map2);
 				}
 			}
 		}
