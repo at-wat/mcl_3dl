@@ -83,6 +83,10 @@ public:
 	{
 		return quat(-x, -y, -z, w);
 	}
+	quat inv() const
+	{
+		return conj() / dot(*this);
+	}
 };
 
 #endif
