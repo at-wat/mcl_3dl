@@ -77,12 +77,17 @@ private:
 		state()
 		{
 		};
-		state(const vec3 pos, const quat rot, const vec3 vel_lin, const vec3 vel_ang)
+		state(const vec3 pos, const quat rot)
 		{
 			this->pos = pos;
 			this->rot = rot;
-			this->vel.lin = vel_lin;
-			this->vel.ang = vel_ang;
+		};
+		state(const vec3 pos, const quat rot, const vec3 lin, const vec3 ang)
+		{
+			this->pos = pos;
+			this->rot = rot;
+			this->vel.lin = lin;
+			this->vel.ang = ang;
 		};
 		void transform(pcl::PointCloud<pcl::PointXYZ> &pc) const
 		{
@@ -100,7 +105,9 @@ private:
 
 	pcl::PointCloud<pcl::PointXYZ>::Ptr pc_map;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr pc_map2;
+	pcl::PointCloud<pcl::PointXYZ>::Ptr pc_update;
 	pcl::KdTreeFLANN<pcl::PointXYZ>::Ptr kdtree;
+	pcl::KdTreeFLANN<pcl::PointXYZ>::Ptr kdtree_orig;
 	void cb_mapcloud(const sensor_msgs::PointCloud2::ConstPtr &msg)
 	{
 		ROS_INFO("map received");
@@ -109,16 +116,19 @@ private:
 
 		pc_map.reset(new pcl::PointCloud<pcl::PointXYZ>);
 		pc_map2.reset(new pcl::PointCloud<pcl::PointXYZ>);
+		pc_update.reset(new pcl::PointCloud<pcl::PointXYZ>);
 		pcl::VoxelGrid<pcl::PointXYZ> ds;
 		ds.setInputCloud(pc_tmp.makeShared());
 		ds.setLeafSize(0.1, 0.1, 0.1);
 		ds.filter(*pc_map);
-		kdtree.reset(new  pcl::KdTreeFLANN<pcl::PointXYZ>);
-		kdtree->setInputCloud(pc_map);
 		pc_local_accum.reset(new pcl::PointCloud<pcl::PointXYZ>);
 		frame_num = 0;
 		has_map = true;
 		*pc_map2 = *pc_map;
+		kdtree.reset(new  pcl::KdTreeFLANN<pcl::PointXYZ>);
+		kdtree->setInputCloud(pc_map2);
+		kdtree_orig.reset(new  pcl::KdTreeFLANN<pcl::PointXYZ>);
+		kdtree_orig->setInputCloud(pc_map);
 	}
 
 	void cb_position(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg)
@@ -141,40 +151,22 @@ private:
 					quat(pose.pose.orientation.x,
 						pose.pose.orientation.y,
 						pose.pose.orientation.z,
-						pose.pose.orientation.w),
-					vec3(0.0, 0.0, 0.0),
-					vec3(0.0, 0.0, 0.0)
+						pose.pose.orientation.w)
 					), 
 				state(
-					vec3(0.2, 0.2, 0.1),
-					quat(0.0, 0.0, 0.1, 0.1),
-					vec3(0.0, 0.0, 0.0),
-					vec3(0.0, 0.0, 0.0)
+					vec3(0.0, 0.0, 0.05),
+					quat(0.0, 0.0, 0.1, 0.1)
 					));
-		
-		if(has_map)
-		{
-			*pc_map2 = *pc_map;
-			pc_map2->points.erase(
-					std::remove_if(pc_map2->points.begin(), pc_map2->points.end(),
-						[&](const pcl::PointXYZ &p)
-						{
-						if(p.z - pose.pose.position.z > 2.5) return true;
-						if(p.z - pose.pose.position.z < 0.4) return true;
-						return false;
-						}), pc_map2->points.end());
-			pc_map2->width = 1;
-			pc_map2->height = pc_map2->points.size();
-			kdtree.reset(new  pcl::KdTreeFLANN<pcl::PointXYZ>);
-			kdtree->setInputCloud(pc_map2);
-		}
+		pc_update.reset(new pcl::PointCloud<pcl::PointXYZ>);
 	}
 
 	bool update_map;
 
 	ros::Time odom_last;
 	bool has_map;
+	bool has_odom;
 	state odom;
+	state odom_prev;
 	void cb_odom(const nav_msgs::Odometry::ConstPtr &msg)
 	{
 		odom =
@@ -185,35 +177,33 @@ private:
 					quat(msg->pose.pose.orientation.x,
 						msg->pose.pose.orientation.y,
 						msg->pose.pose.orientation.z,
-						msg->pose.pose.orientation.w),
-					vec3(msg->twist.twist.linear.x,
-						msg->twist.twist.linear.y,
-						msg->twist.twist.linear.z),
-					vec3(msg->twist.twist.angular.x,
-						msg->twist.twist.angular.y,
-						msg->twist.twist.angular.z)
+						msg->pose.pose.orientation.w)
 				 );
-		if(odom_last != ros::Time(0))
+		if(has_odom)
 		{
 			float dt = (msg->header.stamp - odom_last).toSec();
-			//ROS_INFO("odom %0.3f", dt);
-			pf->predict([&](state &s)
-					{
-						s.vel.lin.x = msg->twist.twist.linear.x;
-						//s.vel.lin.y = msg->twist.twist.linear.y;
-						//s.vel.lin.z = msg->twist.twist.linear.z;
-						//s.vel.ang.x = msg->twist.twist.angular.x;
-						//s.vel.ang.y = msg->twist.twist.angular.y;
-						s.vel.ang.z = msg->twist.twist.angular.z;
-						s.rot.normalize();
 
-						s.pos += (s.rot * s.vel.lin) * dt;
-						s.rot = s.rot * (quat(vec3(1.0, 0.0, 0.0), s.vel.ang.x * dt)
-								* quat(vec3(0.0, 1.0, 0.0), s.vel.ang.y * dt)
-								* quat(vec3(0.0, 0.0, 1.0), s.vel.ang.z * dt));
-					});
+			if(dt > 0.05)
+			{
+			//	ROS_INFO("dt %0.3f", dt);
+				vec3 v = odom_prev.rot.inv() * (odom.pos - odom_prev.pos);
+				quat r = odom_prev.rot.inv() * odom.rot;
+				pf->predict([&](state &s)
+						{
+							s.rot.normalize();
+							s.rot = r * s.rot;
+							s.pos += s.rot * (v * (vec3(1.0, 1.0, 1.0) + s.vel.lin));
+						});
+				odom_last = msg->header.stamp;
+				odom_prev = odom;
+			}
 		}
-		odom_last = msg->header.stamp;
+		else
+		{
+			odom_prev = odom;
+			odom_last = msg->header.stamp;
+			has_odom = true;
+		}
 	}
 	std::random_device seed_gen;
 	std::default_random_engine engine;
@@ -252,7 +242,7 @@ private:
 		pcl::PointCloud<pcl::PointXYZ>::Ptr pc_local(new pcl::PointCloud<pcl::PointXYZ>);
 		pcl::VoxelGrid<pcl::PointXYZ> ds;
 		ds.setInputCloud(pc_local_accum);
-		ds.setLeafSize(0.25, 0.25, 0.1);
+		ds.setLeafSize(0.2, 0.2, 0.1);
 		ds.filter(*pc_local);
 		pc_local_accum.reset(new pcl::PointCloud<pcl::PointXYZ>);
 
@@ -264,7 +254,7 @@ private:
 						if(p.x*p.x + p.y*p.y > 8.0*8.0) return true;
 						if(p.x*p.x + p.y*p.y < 0.8*0.8) return true;
 						if(p.z < 0.0) return true;
-						return ud(engine) > 0.5;
+						return ud(engine) > 0.25;
 					}), pc_local->points.end());
 		pc_local->width = 1;
 		pc_local->height = pc_local->points.size();
@@ -276,6 +266,12 @@ private:
 		std::vector<float> sqdist(1);
 		pf->measure([&](const state &s)->float
 				{
+					pcl::PointXYZ p0 = pcl::PointXYZ(s.pos.x, s.pos.y, s.pos.z + 0.3);
+					if(kdtree_orig->nearestKSearch(p0, 1, id, sqdist))
+					{
+						if(sqdist[0] < 0.2*0.2) return 0.0;
+					}
+
 					float score = 0;
 					*pc_particle = *pc_local;
 					s.transform(*pc_particle);
@@ -285,23 +281,27 @@ private:
 					{
 						if(kdtree->nearestKSearch(p, 1, id, sqdist))
 						{
-							float dist = sqrtf(sqdist[0]);
-							//if(sqdist[0] > 0.5*0.5) sqdist[0] = 0.5*0.5;
-							//else if(sqdist[0] < 0.05*0.05) sqdist[0] = 0.05*0.05;
-							dist = 0.6 - dist;
+							/*auto pm = pc_map2->points[id[0]];
+							auto diff = pcl::PointXYZ(pm.x - p.x, pm.y - p.y, pm.z - p.z);
+							
+							float dist = powf(diff.x, 2.0)
+								+ powf(diff.y, 2.0) + powf(diff.z, 2.0);*/
+							
+							float dist = sqdist[0];
+							dist = 0.2 - sqrtf(dist);
 							if(dist < 0.0) continue;
-							score += dist + 0.1;
+							score += dist;
 							num ++;
 						}
 					}
-					//score /= num;
-					//if(score > 0.6 * pc_particle->points.size() * 0.2)
-					//	score = 0.6 * pc_particle->points.size() * 0.2;
 					
-					return score;//sqrtf(score);
+					return score;
 				});
 		
 		auto e = pf->max();
+		e.rot.x = 0.0;
+		e.rot.y = 0.0;
+		e.rot.normalize();
 
 		vec3 map_pos;
 		quat map_rot;
@@ -327,31 +327,28 @@ private:
 			pp.y = p.y;
 			pp.z = p.z;
 
-			if(kdtree->nearestKSearch(p, 1, id, sqdist))
+			if(kdtree_orig->nearestKSearch(p, 1, id, sqdist))
 			{
 				float dist = sqrtf(sqdist[0]);
 				dist = 0.6 - dist;
-				//if(dist < 0.0) continue;
-
+			
 				pc.points.push_back(pp);
 				if(update_map)
 				{
-					if(sqdist[0] > 1.0*1.0)
+					if(sqdist[0] > 0.6 * 0.6)
 					{
-						pc_map2->insert(pc_map2->end(), p);
+						pc_update->insert(pc_update->end(), p);
 					}
 				}
 			}
 		}
 		pub_debug.publish(pc);
 
-		pf->resample();
-		pf->noise(
-				state(
-					vec3(0.05, 0.05, 0.001),
-					quat(0.00, 0.00, 0.01, 0.01),
-					vec3(0.00, 0.00, 0.00),
-					vec3(0.00, 0.00, 0.00)
+		pf->resample(state(
+					vec3(0.05, 0.05, 0.005),
+					quat(0.025, 0.025, 0.025, 0.025),
+					vec3(0.2, 0.01, 0.01),
+					vec3(0.0025, 0.0025, 0.005)
 					)
 				);
 		
@@ -381,16 +378,13 @@ public:
 		pf->init(
 				state(
 					vec3(-0.5, 1.0, 3.2),
-					quat(0.0, 0.0, 0.0, 1.0),
-					vec3(0.0, 0.0, 0.0),
-					vec3(0.0, 0.0, 0.0)
+					quat(0.0, 0.0, 0.0, 1.0)
 					), 
 				state(
 					vec3(0.5, 0.5, 0.1),
-					quat(0.0, 0.0, 0.2, 0.2),
-					vec3(0.0, 0.0, 0.0),
-					vec3(0.0, 0.0, 0.0)
+					quat(0.0, 0.0, 0.2, 0.2)
 					));
+		has_odom = has_map = false;
 	}
 	~mcl_3dl_node()
 	{
@@ -426,15 +420,26 @@ public:
 			cnt ++;
 			if(cnt % 10 == 0 && has_map)
 			{
+				auto e = pf->expectation(0.5);
+				*pc_map2 = *pc_map;
+				if(update_map)
+					*pc_map2 += *pc_update;
+				pc_map2->points.erase(
+						std::remove_if(pc_map2->points.begin(), pc_map2->points.end(),
+							[&](const pcl::PointXYZ &p)
+							{
+							if(p.z - e.pos.z > 2.0) return true;
+							if(p.z - e.pos.z < -0.2) return true;
+							return false;
+							}), pc_map2->points.end());
+				pc_map2->width = 1;
+				pc_map2->height = pc_map2->points.size();
+				kdtree.reset(new  pcl::KdTreeFLANN<pcl::PointXYZ>);
+				kdtree->setInputCloud(pc_map2);
+				
 				sensor_msgs::PointCloud2 out;
 				pcl::toROSMsg(*pc_map2, out);
 				pub_mapcloud.publish(out);
-
-				if(update_map)
-				{
-					kdtree.reset(new  pcl::KdTreeFLANN<pcl::PointXYZ>);
-					kdtree->setInputCloud(pc_map2);
-				}
 			}
 		}
 	}
