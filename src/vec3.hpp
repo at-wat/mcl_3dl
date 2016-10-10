@@ -43,6 +43,15 @@ public:
 		*this = *this + q;
 		return *this;
 	}
+	vec3 operator*(const vec3 &q) const
+	{
+		return vec3(x * q.x, y * q.y, z * q.z);
+	}
+	vec3 &operator*=(const vec3 &q)
+	{
+		*this = *this * q;
+		return *this;
+	}
 	float dot(const vec3 &q) const
 	{
 		return x*q.x + y*q.y + z*q.z;
