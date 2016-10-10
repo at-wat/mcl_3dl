@@ -41,7 +41,7 @@ namespace pf
 				p.probability = 1.0 / particles.size();
 			}
 		};
-		void resample()
+		void resample(T sigma)
 		{
 			FLT_TYPE accum = 0;
 			size_t hi = 0;
@@ -73,21 +73,16 @@ namespace pf
 				pscan += pstep;
 				it = std::lower_bound(it, particles_dup.end(), particle(pscan));
 				particle p0 = *it;
-				/*if(it == it_prev)
+				if(it == it_prev)
 				{
+					p.state = p0.state;
 					for(size_t i = 0; i < ie.size(); i ++)
 					{
-						auto left = std::lower_bound(ind_histogram[i].begin(), 
-								ind_histogram[i].end(), p0.state[i]);
-						auto right = left;
-						if(left != ind_histogram[i].begin()) left --;
-						if(right != (--ind_histogram[i].end())) right ++;
-						FLT_TYPE r = ud(engine);
-						p.state[i] = (*left) * r + (*right) * (1.0 - r);
+						std::normal_distribution<FLT_TYPE> nd(0.0, sigma[i]);
+						p.state[i] += nd(engine);
 					}
 				}
-				else*/
-				if(it == particles_dup.end())
+				else if(it == particles_dup.end())
 				{
 					p.state = it_prev->state;
 				}
