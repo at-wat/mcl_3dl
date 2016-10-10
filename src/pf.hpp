@@ -154,8 +154,8 @@ namespace pf
 		};
 		T max()
 		{
-			T *m;
-			FLT_TYPE max_probability = -0.0;
+			T *m = &particles[0].state;
+			FLT_TYPE max_probability = particles[0].probability;
 			for(auto &p: particles)
 			{
 				if(max_probability < p.probability)
