@@ -112,6 +112,24 @@ private:
 	};
 	std::shared_ptr<pf::particle_filter<state>> pf;
 
+	class MyPointRepresentation: public pcl::PointRepresentation<pcl::PointXYZ>
+	{
+		using pcl::PointRepresentation<pcl::PointXYZ>::nr_dimensions_;
+	public:
+		MyPointRepresentation ()
+		{
+			nr_dimensions_ = 4;
+		}
+
+		virtual void copyToFloatArray(const pcl::PointXYZ &p, float * out) const
+		{
+			out[0] = p.x;
+			out[1] = p.y;
+			out[2] = p.z;
+		}
+	};
+	MyPointRepresentation point_rep;
+
 	pcl::PointCloud<pcl::PointXYZ>::Ptr pc_map;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr pc_map2;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr pc_update;
@@ -135,6 +153,8 @@ private:
 		has_map = true;
 		*pc_map2 = *pc_map;
 		kdtree.reset(new  pcl::KdTreeFLANN<pcl::PointXYZ>);
+		kdtree->setEpsilon(0.05);
+		kdtree->setPointRepresentation(boost::make_shared<const MyPointRepresentation>(point_rep));
 		kdtree->setInputCloud(pc_map2);
 		kdtree_orig.reset(new  pcl::KdTreeFLANN<pcl::PointXYZ>);
 		kdtree_orig->setInputCloud(pc_map);
@@ -294,7 +314,7 @@ private:
 							float dist = sqdist[0];
 							dist = 0.2 - sqrtf(dist);
 							if(dist < 0.0) continue;
-							score += dist;
+							score += dist * 5.0;
 							num ++;
 						}
 					}
@@ -390,8 +410,11 @@ public:
 		params.clip_near_sq = pow(params.clip_near, 2.0);
 		params.clip_far_sq = pow(params.clip_far, 2.0);
 
+		float weight[3] = {1.0, 1.0, 5.0};
+		point_rep.setRescaleValues(weight);
+
 		pf.reset(new pf::particle_filter<state>(128));
-		
+
 		pf->init(
 				state(
 					vec3(-0.5, 1.0, 3.2),
@@ -444,7 +467,7 @@ public:
 					pcl::PointCloud<pcl::PointXYZ>::Ptr pc_tmp(new pcl::PointCloud<pcl::PointXYZ>);
 					pcl::VoxelGrid<pcl::PointXYZ> ds;
 					ds.setInputCloud(pc_update);
-					ds.setLeafSize(0.1, 0.1, 0.1);
+					ds.setLeafSize(0.3, 0.3, 0.3);
 					ds.filter(*pc_tmp);
 					*pc_update = *pc_tmp;
 					*pc_map2 += *pc_update;
@@ -460,6 +483,8 @@ public:
 				pc_map2->width = 1;
 				pc_map2->height = pc_map2->points.size();
 				kdtree.reset(new  pcl::KdTreeFLANN<pcl::PointXYZ>);
+				kdtree->setEpsilon(0.05);
+				kdtree->setPointRepresentation(boost::make_shared<const MyPointRepresentation>(point_rep));
 				kdtree->setInputCloud(pc_map2);
 				
 				sensor_msgs::PointCloud2 out;
