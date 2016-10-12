@@ -40,6 +40,14 @@ private:
 	tf::TransformListener tfl;
 	tf::TransformBroadcaster tfb;
 
+	struct
+	{
+		double clip_near;
+		double clip_far;
+		double clip_near_sq;
+		double clip_far_sq;
+	} params;
+
 	class state: public pf::particleBase<float>
 	{
 	public:
@@ -139,8 +147,8 @@ private:
 		pose_in.pose = msg->pose.pose;
 		try
 		{
-			tfl.waitForTransform("map", pose_in.header.frame_id, pose_in.header.stamp, ros::Duration(1.0));
-			tfl.transformPose("map", pose_in, pose);
+			tfl.waitForTransform(frame_ids["map"], pose_in.header.frame_id, pose_in.header.stamp, ros::Duration(1.0));
+			tfl.transformPose(frame_ids["map"], pose_in, pose);
 		}
 		catch(tf::TransformException &e)
 		{
@@ -148,18 +156,19 @@ private:
 		}
 		pf->init(
 				state(
-					vec3(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z + 0.5),
-					quat(pose.pose.orientation.x,
-						pose.pose.orientation.y,
+					vec3(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z + 0.0),
+					quat(0.0, 0.0,
 						pose.pose.orientation.z,
 						pose.pose.orientation.w)
 					), 
 				state(
-					vec3(0.0, 0.0, 0.05),
+					vec3(msg->pose.covariance[0], msg->pose.covariance[6+1], 0.05),
 					quat(0.0, 0.0, 0.1, 0.1)
 					));
 		pc_update.reset(new pcl::PointCloud<pcl::PointXYZ>);
 	}
+
+	std::map<std::string, std::string> frame_ids;
 
 	bool update_map;
 
@@ -221,12 +230,6 @@ private:
 			frames_v.push_back(msg->header.frame_id);
 		}
 
-		if(frames_v[frame_num].compare(msg->header.frame_id) != 0) return;
-		frame_num ++;
-		if(frame_num >= frames_v.size()) frame_num = 0;
-
-		//ROS_INFO("cloud %s  %d/%d", msg->header.frame_id.c_str(), frame_num, frames_v.size());
-
 		sensor_msgs::PointCloud2 pc_bl;
 		if(!pcl_ros::transformPointCloud("base_link", *msg, pc_bl, tfl))
 		{
@@ -235,6 +238,12 @@ private:
 		pcl::PointCloud<pcl::PointXYZ>::Ptr pc_tmp(new pcl::PointCloud<pcl::PointXYZ>);
 		pcl::fromROSMsg(pc_bl, *pc_tmp);
 		*pc_local_accum += *pc_tmp;
+
+		if(frames_v[frame_num].compare(msg->header.frame_id) != 0) return;
+		frame_num ++;
+		if(frame_num >= frames_v.size()) frame_num = 0;
+
+		//ROS_INFO("cloud %s  %d/%d", msg->header.frame_id.c_str(), frame_num, frames_v.size());
 
 		if(frame_num != 0) return;
 
@@ -252,10 +261,10 @@ private:
 				std::remove_if(pc_local->points.begin(), pc_local->points.end(),
 					[&](const pcl::PointXYZ &p)
 					{
-						if(p.x*p.x + p.y*p.y > 8.0*8.0) return true;
-						if(p.x*p.x + p.y*p.y < 0.8*0.8) return true;
+						if(p.x*p.x + p.y*p.y > params.clip_far_sq) return true;
+						if(p.x*p.x + p.y*p.y < params.clip_near_sq) return true;
 						if(p.z < 0.0) return true;
-						return ud(engine) > 0.25;
+						return ud(engine) > 0.2;
 					}), pc_local->points.end());
 		pc_local->width = 1;
 		pc_local->height = pc_local->points.size();
@@ -303,18 +312,26 @@ private:
 		map_pos = e.pos - e.rot * odom.rot.inv() * odom.pos;
 		map_rot = e.rot * odom.rot.inv();
 		tf::StampedTransform trans;
-		trans.stamp_ = msg->header.stamp + ros::Duration(0.5);
-		trans.frame_id_ = "map";
+		trans.stamp_ = ros::Time::now() + ros::Duration(0.2);
+		trans.frame_id_ = frame_ids["map"];
 		trans.child_frame_id_ = "odom";
 		trans.setOrigin(tf::Vector3(map_pos.x, map_pos.y, map_pos.z));
 		trans.setRotation(tf::Quaternion(map_rot.x, map_rot.y, map_rot.z, map_rot.w));
 		tfb.sendTransform(trans);
 
+		trans.stamp_ = ros::Time::now() + ros::Duration(0.2);
+		trans.frame_id_ = frame_ids["map"];
+		trans.child_frame_id_ = "floor";
+		trans.setOrigin(tf::Vector3(0.0, 0.0, e.pos.z));
+		trans.setRotation(tf::Quaternion(0.0, 0.0, 0.0, 1.0));
+		tfb.sendTransform(trans);
+
+
 		*pc_particle = *pc_local;
 		e.transform(*pc_particle);
 		sensor_msgs::PointCloud pc;
 		pc.header.stamp = ros::Time::now();
-		pc.header.frame_id = "map";
+		pc.header.frame_id = frame_ids["map"];
 		for(auto &p: pc_particle->points)
 		{
 			geometry_msgs::Point32 pp;
@@ -367,6 +384,11 @@ public:
 		pub_mapcloud = nh.advertise<sensor_msgs::PointCloud2>("updated_map", 1, true);
 
 		nh.param("update_map", update_map, false);
+		nh.param("map_frame", frame_ids["map"], std::string("map_ground"));
+		nh.param("clip_near", params.clip_near, 0.5);
+		nh.param("clip_far", params.clip_far, 8.0);
+		params.clip_near_sq = pow(params.clip_near, 2.0);
+		params.clip_far_sq = pow(params.clip_far, 2.0);
 
 		pf.reset(new pf::particle_filter<state>(128));
 		
@@ -395,7 +417,7 @@ public:
 
 			geometry_msgs::PoseArray pa;
 			pa.header.stamp = ros::Time::now();
-			pa.header.frame_id = "map";
+			pa.header.frame_id = frame_ids["map"];
 			for(size_t i = 0; i < pf->get_particle_size(); i ++)
 			{
 				geometry_msgs::Pose pm;
