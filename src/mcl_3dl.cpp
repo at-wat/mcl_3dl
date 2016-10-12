@@ -282,12 +282,6 @@ private:
 					{
 						if(kdtree->nearestKSearch(p, 1, id, sqdist))
 						{
-							/*auto pm = pc_map2->points[id[0]];
-							auto diff = pcl::PointXYZ(pm.x - p.x, pm.y - p.y, pm.z - p.z);
-							
-							float dist = powf(diff.x, 2.0)
-								+ powf(diff.y, 2.0) + powf(diff.z, 2.0);*/
-							
 							float dist = sqdist[0];
 							dist = 0.2 - sqrtf(dist);
 							if(dist < 0.0) continue;
@@ -421,10 +415,18 @@ public:
 			cnt ++;
 			if(cnt % 10 == 0 && has_map)
 			{
-				auto e = pf->expectation(0.5);
+				auto e = pf->expectation(1.0);
 				*pc_map2 = *pc_map;
 				if(update_map)
+				{
+					pcl::PointCloud<pcl::PointXYZ>::Ptr pc_tmp(new pcl::PointCloud<pcl::PointXYZ>);
+					pcl::VoxelGrid<pcl::PointXYZ> ds;
+					ds.setInputCloud(pc_update);
+					ds.setLeafSize(0.1, 0.1, 0.1);
+					ds.filter(*pc_tmp);
+					*pc_update = *pc_tmp;
 					*pc_map2 += *pc_update;
+				}
 				pc_map2->points.erase(
 						std::remove_if(pc_map2->points.begin(), pc_map2->points.end(),
 							[&](const pcl::PointXYZ &p)
