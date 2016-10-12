@@ -50,7 +50,7 @@ private:
 			vec3 lin;
 			vec3 ang;
 		} vel;
-		virtual float &operator[](size_t i) override
+		virtual float &operator[](const size_t i) override
 		{
 			switch(i)
 			{
@@ -76,6 +76,7 @@ private:
 		};
 		state()
 		{
+			rot = quat(0.0, 0.0, 0.0, 0.0);
 		};
 		state(const vec3 pos, const quat rot)
 		{

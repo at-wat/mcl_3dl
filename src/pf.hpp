@@ -10,6 +10,16 @@ namespace pf
 	public:
 		virtual FLT_TYPE &operator[](const size_t i) = 0;
 		virtual const size_t size() = 0;
+		template <typename T> T operator+(const T &a)
+		{
+			T in = a;
+			T ret;
+			for(size_t i = 0; i < size(); i ++)
+			{
+				ret[i] = (*this)[i] + in[i];
+			}
+			return ret;
+		}
 	private:
 	};
 
@@ -26,18 +36,21 @@ namespace pf
 				ind_histogram[i].resize(nParticles);
 			}
 		};
-		void init(T mean, T sigma)
+		T generate_noise(T mean, T sigma)
 		{
+			T noise;
 			for(size_t i = 0; i < ie.size(); i ++)
 			{
 				std::normal_distribution<FLT_TYPE> nd(mean[i], sigma[i]);
-				for(auto &p: particles)
-				{
-					p.state[i] = nd(engine);
-				}
+				noise[i] = nd(engine);
 			}
+			return noise;
+		};
+		void init(T mean, T sigma)
+		{
 			for(auto &p: particles)
 			{
+				p.state = generate_noise(mean, sigma);
 				p.probability = 1.0 / particles.size();
 			}
 		};
@@ -61,7 +74,6 @@ namespace pf
 			}
 
 			particles_dup = particles;
-			std::uniform_real_distribution<FLT_TYPE> ud(0.0, 1.0);
 			FLT_TYPE pstep = accum / particles.size();
 			FLT_TYPE pscan = 0;
 			auto it = particles_dup.begin();
@@ -75,12 +87,7 @@ namespace pf
 				particle p0 = *it;
 				if(it == it_prev)
 				{
-					p.state = p0.state;
-					for(size_t i = 0; i < ie.size(); i ++)
-					{
-						std::normal_distribution<FLT_TYPE> nd(0.0, sigma[i]);
-						p.state[i] += nd(engine);
-					}
+					p.state = p0.state + generate_noise(T(), sigma);
 				}
 				else if(it == particles_dup.end())
 				{
@@ -96,13 +103,9 @@ namespace pf
 		};
 		void noise(T sigma)
 		{
-			for(size_t i = 0; i < ie.size(); i ++)
+			for(auto &p: particles)
 			{
-				std::normal_distribution<FLT_TYPE> nd(0.0, sigma[i]);
-				for(auto &p: particles)
-				{
-					p.state[i] += nd(engine);
-				}
+				p.state = p.state + generate_noise(T(), sigma);
 			}
 		};
 		void predict(std::function<void(T&)> model)
