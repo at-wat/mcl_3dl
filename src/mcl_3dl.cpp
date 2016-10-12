@@ -24,6 +24,7 @@
 #include <pf.hpp>
 #include <vec3.hpp>
 #include <quat.hpp>
+#include <filter.hpp>
 
 	
 class mcl_3dl_node
@@ -39,6 +40,9 @@ private:
 
 	tf::TransformListener tfl;
 	tf::TransformBroadcaster tfb;
+
+	std::shared_ptr<filter> f_pos[3]; 
+	std::shared_ptr<filter> f_ang[3]; 
 
 	struct
 	{
@@ -335,7 +339,12 @@ private:
 		trans.stamp_ = ros::Time::now() + ros::Duration(0.2);
 		trans.frame_id_ = frame_ids["map"];
 		trans.child_frame_id_ = "odom";
-		trans.setOrigin(tf::Vector3(map_pos.x, map_pos.y, map_pos.z));
+		auto rpy = map_rot.get_rpy();
+		rpy.x = f_ang[0]->in(rpy.x);
+		rpy.y = f_ang[1]->in(rpy.y);
+		rpy.z = f_ang[2]->in(rpy.z);
+		map_rot.set_rpy(rpy);
+		trans.setOrigin(tf::Vector3(f_pos[0]->in(map_pos.x), f_pos[1]->in(map_pos.y), f_pos[2]->in(map_pos.z)));
 		trans.setRotation(tf::Quaternion(map_rot.x, map_rot.y, map_rot.z, map_rot.w));
 		tfb.sendTransform(trans);
 
@@ -424,6 +433,14 @@ public:
 					vec3(0.5, 0.5, 0.1),
 					quat(0.0, 0.0, 0.2, 0.2)
 					));
+		
+		f_pos[0].reset(new filter(filter::FILTER_LPF, 5.0, 0.0));
+		f_pos[1].reset(new filter(filter::FILTER_LPF, 5.0, 0.0));
+		f_pos[2].reset(new filter(filter::FILTER_LPF, 5.0, 0.0));
+		f_ang[0].reset(new filter(filter::FILTER_LPF, 5.0, 0.0, true));
+		f_ang[1].reset(new filter(filter::FILTER_LPF, 5.0, 0.0, true));
+		f_ang[2].reset(new filter(filter::FILTER_LPF, 5.0, 0.0, true));
+
 		has_odom = has_map = false;
 	}
 	~mcl_3dl_node()

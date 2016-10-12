@@ -87,6 +87,34 @@ public:
 	{
 		return conj() / dot(*this);
 	}
+	vec3 get_rpy() const
+	{
+		float ysq = y * y;
+		float t0 = -2.0 * (ysq + z * z) + 1.0;
+		float t1 = +2.0 * (x * y + w * z);
+		float t2 = -2.0 * (x * z - w * y);
+		float t3 = +2.0 * (y * z + w * x);
+		float t4 = -2.0 * (x * x + ysq) + 1.0;
+
+		if(t2 > 1.0) t2 = 1.0;
+		if(t2 < -1.0) t2 = -1.0;
+
+		return vec3(std::atan2(t3, t4), std::asin(t2), std::atan2(t1, t0));
+	}
+	void set_rpy(const vec3 rpy)
+	{
+		float t2 = cos(rpy.x * 0.5);
+		float t3 = sin(rpy.x * 0.5);
+		float t4 = cos(rpy.y * 0.5);
+		float t5 = sin(rpy.y * 0.5);
+		float t0 = cos(rpy.z * 0.5);
+		float t1 = sin(rpy.z * 0.5);
+
+		x = t0 * t3 * t4 - t1 * t2 * t5;
+		y = t0 * t2 * t5 + t1 * t3 * t4;
+		z = t1 * t2 * t4 - t0 * t3 * t5;
+		w = t0 * t2 * t4 + t1 * t3 * t5;
+	}
 };
 
 #endif
