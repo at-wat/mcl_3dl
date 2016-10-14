@@ -61,6 +61,8 @@ private:
 		double downsample_x;
 		double downsample_y;
 		double downsample_z;
+		double match_dist_min;
+		double match_weight;
 		std::shared_ptr<ros::Duration> map_update_interval;
 		int num_particles;
 	} params;
@@ -311,6 +313,9 @@ private:
 
 		std::vector<int> id(1);
 		std::vector<float> sqdist(1);
+
+		const float match_dist_min = params.match_dist_min;
+		const float match_weight = params.match_weight;
 		pf->measure([&](const state &s)->float
 				{
 					pcl::PointXYZ p0 = pcl::PointXYZ(s.pos.x, s.pos.y, s.pos.z + 0.3);
@@ -329,9 +334,9 @@ private:
 						if(kdtree->nearestKSearch(p, 1, id, sqdist))
 						{
 							float dist = sqdist[0];
-							dist = 0.2 - sqrtf(dist);
+							dist = match_dist_min - sqrtf(dist);
 							if(dist < 0.0) continue;
-							score += dist * 5.0;
+							score += dist * match_weight;
 							num ++;
 						}
 					}
@@ -383,9 +388,6 @@ private:
 
 			if(kdtree_orig->nearestKSearch(p, 1, id, sqdist))
 			{
-				float dist = sqrtf(sqdist[0]);
-				dist = 0.6 - dist;
-			
 				pc.points.push_back(pp);
 				if(update_map)
 				{
@@ -465,6 +467,9 @@ public:
 		double map_update_interval_t;
 		nh.param("map_update_interval_interval", map_update_interval_t, 2.0);
 		params.map_update_interval.reset(new ros::Duration(map_update_interval_t));
+		
+		nh.param("match_dist_min", params.match_dist_min, 0.2);
+		nh.param("match_weight", params.match_weight, 5.0);
 
 		double weight[3];
 		float weight_f[3];
