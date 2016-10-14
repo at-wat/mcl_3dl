@@ -35,7 +35,7 @@ namespace pf
 			{
 				ind_histogram[i].resize(nParticles);
 			}
-		};
+		}
 		T generate_noise(T mean, T sigma)
 		{
 			T noise;
@@ -45,7 +45,7 @@ namespace pf
 				noise[i] = nd(engine);
 			}
 			return noise;
-		};
+		}
 		void init(T mean, T sigma)
 		{
 			for(auto &p: particles)
@@ -53,7 +53,7 @@ namespace pf
 				p.state = generate_noise(mean, sigma);
 				p.probability = 1.0 / particles.size();
 			}
-		};
+		}
 		void resample(T sigma)
 		{
 			FLT_TYPE accum = 0;
@@ -100,21 +100,21 @@ namespace pf
 				it_prev = it;
 				p.probability = prob;
 			}
-		};
+		}
 		void noise(T sigma)
 		{
 			for(auto &p: particles)
 			{
 				p.state = p.state + generate_noise(T(), sigma);
 			}
-		};
+		}
 		void predict(std::function<void(T&)> model)
 		{
 			for(auto &p: particles)
 			{
 				model(p.state);
 			}
-		};
+		}
 		void measure(std::function<FLT_TYPE(const T&)> likelihood)
 		{
 			FLT_TYPE sum = 0;
@@ -127,7 +127,7 @@ namespace pf
 			{
 				p.probability /= sum;
 			}
-		};
+		}
 		T expectation(const FLT_TYPE pass_ratio = 1.0)
 		{
 			T e;
@@ -149,7 +149,7 @@ namespace pf
 				e[i] /= p_sum;
 			}
 			return e;
-		};
+		}
 		T max()
 		{
 			T *m = &particles[0].state;
@@ -163,7 +163,7 @@ namespace pf
 				}
 			}
 			return *m;
-		};
+		}
 		const T get_particle(const size_t i)
 		{
 			return particles[i].state;
@@ -179,18 +179,18 @@ namespace pf
 			particle()
 			{
 				probability = 0.0;
-			};
+			}
 			particle(FLT_TYPE prob)
 			{
 				accum_probability = prob;
-			};
+			}
 			T state;
 			FLT_TYPE probability;
 			FLT_TYPE accum_probability;
 			const bool operator<(const particle &p2) const
 			{
 				return this->accum_probability < p2.accum_probability;
-			};
+			}
 		};
 		std::vector<particle> particles;
 		std::vector<particle> particles_dup;
@@ -199,6 +199,6 @@ namespace pf
 		std::default_random_engine engine;
 		T ie;
 	};
-};
+}
 
 
