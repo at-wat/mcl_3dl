@@ -10,6 +10,7 @@ namespace pf
 	public:
 		virtual FLT_TYPE &operator[](const size_t i) = 0;
 		virtual const size_t size() = 0;
+		virtual void normalize() = 0;
 		template <typename T> T operator+(const T &a)
 		{
 			T in = a;
@@ -19,6 +20,27 @@ namespace pf
 				ret[i] = (*this)[i] + in[i];
 			}
 			return ret;
+		}
+		template <typename T> T operator*(const float &s)
+		{
+			T ret;
+			for(size_t i = 0; i < size(); i ++)
+			{
+				ret[i] = (*this)[i] * s;
+			}
+			return ret;
+		}
+		template <typename T> T generate_noise(
+				std::default_random_engine &engine,
+				T mean, T sigma)
+		{
+			T noise;
+			for(size_t i = 0; i < size(); i ++)
+			{
+				std::normal_distribution<FLT_TYPE> nd(mean[i], sigma[i]);
+				noise[i] = nd(engine);
+			}
+			return noise;
 		}
 	private:
 	};
@@ -30,50 +52,27 @@ namespace pf
 			engine(seed_gen())
 		{
 			particles.resize(nParticles);
-			ind_histogram.resize(ie.size());
-			for(size_t i = 0; i < ie.size(); i ++)
-			{
-				ind_histogram[i].resize(nParticles);
-			}
-		}
-		T generate_noise(T mean, T sigma)
-		{
-			T noise;
-			for(size_t i = 0; i < ie.size(); i ++)
-			{
-				std::normal_distribution<FLT_TYPE> nd(mean[i], sigma[i]);
-				noise[i] = nd(engine);
-			}
-			return noise;
 		}
 		void init(T mean, T sigma)
 		{
 			for(auto &p: particles)
 			{
-				p.state = generate_noise(mean, sigma);
+				p.state = p.state.generate_noise(engine, mean, sigma);
 				p.probability = 1.0 / particles.size();
 			}
 		}
 		void resample(T sigma)
 		{
 			FLT_TYPE accum = 0;
-			size_t hi = 0;
 			for(auto &p: particles)
 			{
 				accum += p.probability;
 				p.accum_probability = accum;
-				for(size_t i = 0; i < ie.size(); i ++)
-				{
-					ind_histogram[i][hi] = p.state[i];
-				}
-				hi ++;
-			}
-			for(size_t i = 0; i < ie.size(); i ++)
-			{
-				std::sort(ind_histogram[i].begin(), ind_histogram[i].end());
 			}
 
 			particles_dup = particles;
+			std::sort(particles_dup.begin(), particles_dup.end());
+
 			FLT_TYPE pstep = accum / particles.size();
 			FLT_TYPE pscan = 0;
 			auto it = particles_dup.begin();
@@ -87,7 +86,8 @@ namespace pf
 				particle p0 = *it;
 				if(it == it_prev)
 				{
-					p.state = p0.state + generate_noise(T(), sigma);
+					p.state = p0.state + p0.state.generate_noise(engine, T(), sigma);
+					p.state.normalize();
 				}
 				else if(it == particles_dup.end())
 				{
@@ -105,7 +105,7 @@ namespace pf
 		{
 			for(auto &p: particles)
 			{
-				p.state = p.state + generate_noise(T(), sigma);
+				p.state = p.state + p.state.generate_noise(engine, T(), sigma);
 			}
 		}
 		void predict(std::function<void(T&)> model)
@@ -137,10 +137,7 @@ namespace pf
 				std::sort(particles.rbegin(), particles.rend());
 			for(auto &p: particles)
 			{
-				for(size_t i = 0; i < ie.size(); i ++)
-				{
-					e[i] += p.probability * p.state[i];
-				}
+				e = p.state.template operator*<T>(p.probability) + e;
 				p_sum += p.probability;
 				if(p_sum > pass_ratio) break;
 			}
@@ -194,7 +191,6 @@ namespace pf
 		};
 		std::vector<particle> particles;
 		std::vector<particle> particles_dup;
-		std::vector<std::vector<FLT_TYPE>> ind_histogram;
 		std::random_device seed_gen;
 		std::default_random_engine engine;
 		T ie;

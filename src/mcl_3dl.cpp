@@ -101,9 +101,13 @@ private:
 		{
 			return 13;
 		};
-		state()
+		virtual void normalize() override
 		{
-			rot = quat(0.0, 0.0, 0.0, 0.0);
+			rot.normalize();
+		};
+		state():
+			rot(0.0, 0.0, 0.0, 0.0)
+		{
 		};
 		state(const vec3 pos, const quat rot)
 		{
