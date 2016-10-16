@@ -205,7 +205,7 @@ private:
 						pose.pose.orientation.w)
 					), 
 				state(
-					vec3(msg->pose.covariance[0], msg->pose.covariance[6+1], 0.05),
+					vec3(msg->pose.covariance[0], msg->pose.covariance[6+1], 0.3),
 					quat(0.0, 0.0, 0.1, 0.1)
 					));
 		pc_update.reset(new pcl::PointCloud<pcl::PointXYZ>);
@@ -241,11 +241,14 @@ private:
 			//	ROS_INFO("dt %0.3f", dt);
 				vec3 v = odom_prev.rot.inv() * (odom.pos - odom_prev.pos);
 				quat r = odom_prev.rot.inv() * odom.rot;
+				r.normalize();
+				std::normal_distribution<float> nd(1.0, 1.0);
+				std::normal_distribution<float> nd2(1.0, 0.1);
 				pf->predict([&](state &s)
 						{
 							s.rot.normalize();
-							s.rot = r * s.rot;
-							s.pos += s.rot * (v * (vec3(1.0, 1.0, 1.0) + s.vel.lin));
+							s.rot = (r * nd2(engine)) * s.rot;
+							s.pos += s.rot * (v * nd(engine));
 						});
 				odom_last = msg->header.stamp;
 				odom_prev = odom;
@@ -338,6 +341,7 @@ private:
 						if(kdtree->nearestKSearch(p, 1, id, sqdist))
 						{
 							float dist = sqdist[0];
+							if(dist < 0.05 * 0.05) dist = 0.05 * 0.05;
 							dist = match_dist_min - sqrtf(dist);
 							if(dist < 0.0) continue;
 							score += dist * match_weight;
@@ -347,7 +351,7 @@ private:
 					
 					return score;
 				});
-		
+
 		auto e = pf->max();
 		e.rot.x = 0.0;
 		e.rot.y = 0.0;
@@ -376,7 +380,6 @@ private:
 		trans.setOrigin(tf::Vector3(0.0, 0.0, e.pos.z));
 		trans.setRotation(tf::Quaternion(0.0, 0.0, 0.0, 1.0));
 		tfb.sendTransform(trans);
-
 
 		*pc_particle = *pc_local;
 		e.transform(*pc_particle);
@@ -425,13 +428,11 @@ private:
 
 
 		pf->resample(state(
-					vec3(0.05, 0.05, 0.005),
-					quat(0.025, 0.025, 0.025, 0.025),
-					vec3(0.2, 0.01, 0.01),
-					vec3(0.0025, 0.0025, 0.005)
+					vec3(0.1, 0.1, 0.05),
+					quat(0.005, 0.005, 0.05, 0.05)
 					)
 				);
-		
+
 		const auto tnow = std::chrono::high_resolution_clock::now();
 		ROS_INFO("MCL (%0.3f sec.)",
 				std::chrono::duration<float>(tnow - ts).count());
@@ -488,11 +489,11 @@ public:
 
 		pf->init(
 				state(
-					vec3(-0.5, 1.0, 3.2),
+					vec3(-0.5, 1.0, 3.0),
 					quat(0.0, 0.0, 0.0, 1.0)
 					), 
 				state(
-					vec3(0.5, 0.5, 0.1),
+					vec3(0.8, 0.8, 0.4),
 					quat(0.0, 0.0, 0.2, 0.2)
 					));
 		
