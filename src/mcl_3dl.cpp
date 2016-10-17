@@ -326,9 +326,9 @@ private:
 		pf->measure([&](const state &s)->float
 				{
 					pcl::PointXYZ p0 = pcl::PointXYZ(s.pos.x, s.pos.y, s.pos.z + 0.3);
-					if(kdtree_orig->nearestKSearch(p0, 1, id, sqdist))
+					if(kdtree_orig->radiusSearch(p0, 0.2, id, sqdist, 1))
 					{
-						if(sqdist[0] < 0.2*0.2) return 0.0;
+						return 0.0;
 					}
 
 					float score = 0;
@@ -338,7 +338,7 @@ private:
 					size_t num = 0;
 					for(auto &p: pc_particle->points)
 					{
-						if(kdtree->nearestKSearch(p, 1, id, sqdist))
+						if(kdtree->radiusSearch(p, match_dist_min, id, sqdist, 1))
 						{
 							float dist = sqdist[0];
 							if(dist < 0.05 * 0.05) dist = 0.05 * 0.05;
@@ -543,9 +543,9 @@ public:
 							std::remove_if(pc_map2->points.begin(), pc_map2->points.end(),
 								[&](const pcl::PointXYZ &p)
 								{
-								if(p.z - e.pos.z > 2.0) return true;
-								if(p.z - e.pos.z < -0.2) return true;
-								return false;
+									if(p.z - e.pos.z > 2.0) return true;
+									if(p.z - e.pos.z < -0.2) return true;
+									return false;
 								}), pc_map2->points.end());
 					pc_map2->width = 1;
 					pc_map2->height = pc_map2->points.size();
