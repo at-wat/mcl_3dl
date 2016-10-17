@@ -141,7 +141,7 @@ private:
 	public:
 		MyPointRepresentation ()
 		{
-			nr_dimensions_ = 4;
+			nr_dimensions_ = 3;
 		}
 
 		virtual void copyToFloatArray(const pcl::PointXYZ &p, float * out) const
