@@ -235,8 +235,11 @@ private:
 		if(has_odom)
 		{
 			float dt = (msg->header.stamp - odom_last).toSec();
-
-			if(dt > 0.05)
+			if(dt < 0.0)
+			{
+				has_odom = false;
+			}
+			else if(dt > 0.05)
 			{
 			//	ROS_INFO("dt %0.3f", dt);
 				vec3 v = odom_prev.rot.inv() * (odom.pos - odom_prev.pos);
