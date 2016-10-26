@@ -21,14 +21,12 @@ namespace pf
 			}
 			return ret;
 		}
-		template <typename T> T operator*(const float &s)
+		void weight(const FLT_TYPE &s)
 		{
-			T ret;
 			for(size_t i = 0; i < size(); i ++)
 			{
-				ret[i] = (*this)[i] * s;
+				(*this)[i] = (*this)[i] * s;
 			}
-			return ret;
 		}
 		template <typename T> T generate_noise(
 				std::default_random_engine &engine,
@@ -137,7 +135,9 @@ namespace pf
 				std::sort(particles.rbegin(), particles.rend());
 			for(auto &p: particles)
 			{
-				e = p.state.template operator*<T>(p.probability) + e;
+				T e1 = p.state;
+				e1.weight(p.probability);
+				e = e1 + e;
 				p_sum += p.probability;
 				if(p_sum > pass_ratio) break;
 			}

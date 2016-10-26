@@ -18,6 +18,24 @@ public:
 	{
 		x = y = z = 0.0;
 	}
+	float &operator[](const size_t i)
+	{
+		switch(i)
+		{
+		case 0:
+			return x;
+			break;
+		case 1:
+			return y;
+			break;
+		case 2:
+			return z;
+			break;
+		default:
+			break;
+		}
+		return x;
+	}
 	vec3 operator+(const vec3 &q) const
 	{
 		return vec3(x+q.x, y+q.y, z+q.z);

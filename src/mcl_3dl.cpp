@@ -77,6 +77,24 @@ private:
 			vec3 lin;
 			vec3 ang;
 		} vel;
+		class rpy_vec
+		{
+		public:
+			vec3 v;
+			rpy_vec()
+			{
+			}
+			rpy_vec(const vec3 &v)
+			{
+				this->v = v;
+			}
+			rpy_vec(const float &r, const float &p, const float y)
+			{
+				this->v.x = r;
+				this->v.y = p;
+				this->v.z = y;
+			}
+		} rpy; 
 		virtual float &operator[](const size_t i) override
 		{
 			switch(i)
@@ -105,14 +123,18 @@ private:
 		{
 			rot.normalize();
 		};
-		state():
-			rot(0.0, 0.0, 0.0, 0.0)
+		state()
 		{
 		};
 		state(const vec3 pos, const quat rot)
 		{
 			this->pos = pos;
 			this->rot = rot;
+		};
+		state(const vec3 pos, const vec3 rpy)
+		{
+			this->pos = pos;
+			this->rpy = rpy_vec(rpy);
 		};
 		state(const vec3 pos, const quat rot, const vec3 lin, const vec3 ang)
 		{
@@ -131,6 +153,50 @@ private:
 				p.y = t.y;
 				p.z = t.z;
 			}
+		}
+		state generate_noise(
+				std::default_random_engine &engine,
+				state mean, state sigma)
+		{
+			state noise;
+			for(size_t i = 0; i < size(); i ++)
+			{
+				if(3 <= i && i <= 6) continue;
+				std::normal_distribution<float> nd(mean[i], sigma[i]);
+				noise[i] = nd(engine);
+			}
+			vec3 rpy_noise;
+			for(size_t i = 0; i < 3; i ++)
+			{
+				std::normal_distribution<float> nd(0.0, sigma.rpy.v[i]);
+				rpy_noise[i] = nd(engine);
+			}
+			noise.rot = quat(rpy_noise) * mean.rot;
+			return noise;
+		}
+		state operator+(const state &a)
+		{
+			state in = a;
+			state ret;
+			for(size_t i = 0; i < size(); i ++)
+			{
+				if(3 <= i && i <= 6) continue;
+				ret[i] = (*this)[i] + in[i];
+			}
+			ret.rot = a.rot * rot;
+			return ret;
+		}
+		void weight(const float &s)
+		{
+			for(size_t i = 0; i < size(); i ++)
+			{
+				if(3 <= i && i <= 6) continue;
+				(*this)[i] = (*this)[i] * s;
+			}
+			vec3 axis;
+			float ang;
+			rot.get_axis_ang(axis, ang);
+			rot.set_axis_ang(axis, ang * s);
 		}
 	};
 	std::shared_ptr<pf::particle_filter<state>> pf;
@@ -199,14 +265,19 @@ private:
 		}
 		pf->init(
 				state(
-					vec3(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z + 0.0),
-					quat(0.0, 0.0,
+					vec3(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z),
+					quat(pose.pose.orientation.x,
+						pose.pose.orientation.y,
 						pose.pose.orientation.z,
 						pose.pose.orientation.w)
 					), 
 				state(
-					vec3(msg->pose.covariance[0], msg->pose.covariance[6+1], 0.3),
-					quat(0.0, 0.0, 0.1, 0.1)
+					vec3(msg->pose.covariance[0], 
+						msg->pose.covariance[6*1+1],
+						msg->pose.covariance[6*2+2]),
+					vec3(msg->pose.covariance[6*3+3],
+						msg->pose.covariance[6*4+4],
+						msg->pose.covariance[6*5+5])
 					));
 		pc_update.reset(new pcl::PointCloud<pcl::PointXYZ>);
 	}
@@ -432,7 +503,7 @@ private:
 
 		pf->resample(state(
 					vec3(0.1, 0.1, 0.05),
-					quat(0.005, 0.005, 0.05, 0.05)
+					vec3(0.05, 0.05, 0.05)
 					)
 				);
 
@@ -497,7 +568,7 @@ public:
 					), 
 				state(
 					vec3(0.8, 0.8, 0.4),
-					quat(0.0, 0.0, 0.2, 0.2)
+					vec3(0.3, 0.3, 0.3)
 					));
 		
 		f_pos[0].reset(new filter(filter::FILTER_LPF, 5.0, 0.0));
