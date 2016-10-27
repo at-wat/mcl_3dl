@@ -510,6 +510,10 @@ private:
 		const auto tnow = std::chrono::high_resolution_clock::now();
 		ROS_INFO("MCL (%0.3f sec.)",
 				std::chrono::duration<float>(tnow - ts).count());
+
+		auto cov = pf->covariance();
+		ROS_INFO("cov: xx %0.3f, yy %0.3f, xy %0.3f",
+				cov[0][0], cov[1][1], cov[0][1]);
 	}
 
 public:

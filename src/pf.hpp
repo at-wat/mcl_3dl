@@ -28,6 +28,12 @@ namespace pf
 				(*this)[i] = (*this)[i] * s;
 			}
 		}
+		template <typename T> FLT_TYPE cov_element(
+				const T &e, const size_t &j, const size_t &k)
+		{
+			T exp = e;
+			return ((*this)[k] - exp[k]) * ((*this)[j] - exp[j]);
+		}
 		template <typename T> T generate_noise(
 				std::default_random_engine &engine,
 				T mean, T sigma)
@@ -141,11 +147,47 @@ namespace pf
 				p_sum += p.probability;
 				if(p_sum > pass_ratio) break;
 			}
-			for(size_t i = 0; i < ie.size(); i ++)
-			{
-				e[i] /= p_sum;
-			}
+			e.weight(1.0f / p_sum);
 			return e;
+		}
+		std::vector<T> covariance(const FLT_TYPE pass_ratio = 1.0)
+		{
+			T e = expectation(pass_ratio);
+			FLT_TYPE p_sum = 0;
+			size_t p_num = 0;
+			std::vector<T> cov;
+			cov.resize(e.size());
+
+			for(auto &p: particles)
+			{
+				p_num ++;
+				p_sum += p.probability;
+				if(p_sum > pass_ratio) break;
+			}
+			p_sum = 0;
+			for(auto &p: particles)
+			{
+				for(size_t j = 0; j < ie.size(); j ++)
+				{
+					for(size_t k = j; k < ie.size(); k ++)
+					{
+						cov[k][j] = cov[j][k] += p.state.cov_element(e, j, k) * p.probability;
+					}
+				}
+
+				p_sum += p.probability;
+				if(p_sum > pass_ratio) break;
+			}
+			for(size_t j = 0; j < ie.size(); j ++)
+			{
+				for(size_t k = j; k < ie.size(); k ++)
+				{
+					cov[k][j] /= p_sum;
+					cov[j][k] /= p_sum;
+				}
+			}
+
+			return cov;
 		}
 		T max()
 		{
