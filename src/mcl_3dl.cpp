@@ -69,6 +69,8 @@ private:
 		double resample_var_yaw;
 		double match_dist_min;
 		double match_weight;
+		double jump_dist;
+		double jump_ang;
 		std::shared_ptr<ros::Duration> map_update_interval;
 		int num_particles;
 		int num_points;
@@ -348,6 +350,7 @@ private:
 	std::vector<std::string> frames_v;
 	size_t frame_num;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr pc_local_accum;
+	state state_prev;
 	void cb_cloud(const sensor_msgs::PointCloud2::ConstPtr &msg)
 	{
 		if(!has_map) return;
@@ -451,11 +454,35 @@ private:
 		quat map_rot;
 		map_pos = e.pos - e.rot * odom.rot.inv() * odom.pos;
 		map_rot = e.rot * odom.rot.inv();
+
+		bool jump = false;
+		{
+			vec3 jump_axis;
+			float jump_ang;
+			float jump_dist = (e.pos - state_prev.pos).norm();
+			(e.rot.inv() * state_prev.rot).get_axis_ang(jump_axis, jump_ang);
+			if(jump_dist > params.jump_dist ||
+					fabs(jump_ang) > params.jump_ang)
+			{
+				ROS_INFO("Pose jumped pos:%0.3f, ang:%0.3f", jump_dist, jump_ang);
+				jump = true;
+			}
+			state_prev = e;
+		}
 		tf::StampedTransform trans;
 		trans.stamp_ = ros::Time::now() + ros::Duration(0.2);
 		trans.frame_id_ = frame_ids["map"];
 		trans.child_frame_id_ = "odom";
 		auto rpy = map_rot.get_rpy();
+		if(jump)
+		{
+			f_ang[0]->set(rpy.x);
+			f_ang[1]->set(rpy.y);
+			f_ang[2]->set(rpy.z);
+			f_pos[0]->set(map_pos.x);
+			f_pos[1]->set(map_pos.y);
+			f_pos[2]->set(map_pos.z);
+		}
 		rpy.x = f_ang[0]->in(rpy.x);
 		rpy.y = f_ang[1]->in(rpy.y);
 		rpy.z = f_ang[2]->in(rpy.z);
@@ -627,6 +654,9 @@ public:
 		f_ang[0].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0, true));
 		f_ang[1].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0, true));
 		f_ang[2].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0, true));
+		
+		nh.param("jump_dist", params.jump_dist, 2.0);
+		nh.param("jump_ang", params.jump_ang, 1.0);
 
 		has_odom = has_map = false;
 	}

@@ -38,6 +38,10 @@ public:
 			break;
 		}
 	}
+	void set(const float &out0)
+	{
+		x = (1 - k[2]) * out0 / k[3];
+	}
 	float in(const float &i)
 	{
 		float in = i;
