@@ -76,7 +76,9 @@ private:
 		std::shared_ptr<ros::Duration> map_update_interval;
 		int num_particles;
 		int num_points;
+		int skip_measure;
 	} params;
+	int cnt_measure;
 
 	class state: public pf::particleBase<float>
 	{
@@ -399,6 +401,13 @@ private:
 
 		if(frame_num != 0) return;
 
+		cnt_measure ++;
+		if(cnt_measure % params.skip_measure != 0)
+		{
+			pc_local_accum.reset(new pcl::PointCloud<pcl::PointXYZ>);
+			return;
+		}
+
 		const auto ts = std::chrono::high_resolution_clock::now();
 
 		pcl::PointCloud<pcl::PointXYZ>::Ptr pc_local(new pcl::PointCloud<pcl::PointXYZ>);
@@ -685,6 +694,9 @@ public:
 		nh.param("jump_ang", params.jump_ang, 1.0);
 		nh.param("fix_dist", params.fix_dist, 0.2);
 		nh.param("fix_ang", params.fix_ang, 0.1);
+
+		nh.param("skip_measure", params.skip_measure, 1);
+		cnt_measure = 0;
 
 		has_odom = has_map = false;
 	}
