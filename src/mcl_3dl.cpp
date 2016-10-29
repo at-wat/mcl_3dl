@@ -251,13 +251,33 @@ private:
 		pc_local_accum.reset(new pcl::PointCloud<pcl::PointXYZ>);
 		frame_num = 0;
 		has_map = true;
+
+		kdtree_orig.reset(new  pcl::KdTreeFLANN<pcl::PointXYZ>);
+		kdtree_orig->setInputCloud(pc_map);
+		std::vector<int> id(7);
+		std::vector<float> sqdist(7);
+		ROS_INFO("map original: %d points", (int)pc_map->points.size());
+		pc_map->points.erase(
+				std::remove_if(pc_map->points.begin(), pc_map->points.end(),
+					[&](const pcl::PointXYZ &p)
+					{
+						if(kdtree_orig->radiusSearch(p, params.map_downsample_x * 1.05, id, sqdist, 7) > 5)
+						{
+							return true;
+						}
+						return false;
+					}), pc_map->points.end());
+		pc_map->width = 1;
+		pc_map->height = pc_map->points.size();
+		ROS_INFO("map reduced: %d points", (int)pc_map->points.size());
+		kdtree_orig.reset(new  pcl::KdTreeFLANN<pcl::PointXYZ>);
+		kdtree_orig->setInputCloud(pc_map);
+
 		*pc_map2 = *pc_map;
 		kdtree.reset(new  pcl::KdTreeFLANN<pcl::PointXYZ>);
 		kdtree->setEpsilon(params.map_grid_min / 2);
 		kdtree->setPointRepresentation(boost::make_shared<const MyPointRepresentation>(point_rep));
 		kdtree->setInputCloud(pc_map2);
-		kdtree_orig.reset(new  pcl::KdTreeFLANN<pcl::PointXYZ>);
-		kdtree_orig->setInputCloud(pc_map);
 	}
 
 	void cb_position(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg)
@@ -420,12 +440,6 @@ private:
 		const float match_weight = params.match_weight;
 		pf->measure([&](const state &s)->float
 				{
-					pcl::PointXYZ p0 = pcl::PointXYZ(s.pos.x, s.pos.y, s.pos.z + 0.3);
-					if(kdtree_orig->radiusSearch(p0, 0.2, id, sqdist, 1))
-					{
-						return 0.0;
-					}
-
 					float score = 0;
 					*pc_particle = *pc_local;
 					s.transform(*pc_particle);
