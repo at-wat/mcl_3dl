@@ -71,6 +71,8 @@ private:
 		double match_weight;
 		double jump_dist;
 		double jump_ang;
+		double fix_dist;
+		double fix_ang;
 		std::shared_ptr<ros::Duration> map_update_interval;
 		int num_particles;
 		int num_points;
@@ -498,6 +500,20 @@ private:
 		trans.setRotation(tf::Quaternion(0.0, 0.0, 0.0, 1.0));
 		tfb.sendTransform(trans);
 
+		auto cov = pf->covariance();
+		bool fix = false;
+		{
+			vec3 fix_axis;
+			float fix_ang = sqrtf(cov[3][3] + cov[4][4] + cov[5][5]);
+			float fix_dist = sqrtf(cov[0][0] + cov[1][1] + cov[2][2]);
+			ROS_DEBUG("cov: lin %0.3f ang %0.3f", fix_dist, fix_ang);
+			if(fix_dist < params.fix_dist &&
+					fabs(fix_ang) < params.fix_ang)
+			{
+				fix = true;
+				ROS_DEBUG("Localization fixed");
+			}
+		}
 		*pc_particle = *pc_local;
 		e.transform(*pc_particle);
 		sensor_msgs::PointCloud pc;
@@ -515,7 +531,7 @@ private:
 				pc.points.push_back(pp);
 				if(update_map)
 				{
-					if(sqdist[0] > 0.6 * 0.6)
+					if(sqdist[0] > 0.6 * 0.6 && fix)
 					{
 						pc_update->insert(pc_update->end(), p);
 					}
@@ -557,10 +573,6 @@ private:
 		const auto tnow = std::chrono::high_resolution_clock::now();
 		ROS_INFO("MCL (%0.3f sec.)",
 				std::chrono::duration<float>(tnow - ts).count());
-
-		auto cov = pf->covariance();
-		ROS_INFO("cov: xx %0.3f, yy %0.3f, xy %0.3f",
-				cov[0][0], cov[1][1], cov[0][1]);
 	}
 
 public:
@@ -657,6 +669,8 @@ public:
 		
 		nh.param("jump_dist", params.jump_dist, 2.0);
 		nh.param("jump_ang", params.jump_ang, 1.0);
+		nh.param("fix_dist", params.fix_dist, 0.2);
+		nh.param("fix_ang", params.fix_ang, 0.1);
 
 		has_odom = has_map = false;
 	}
