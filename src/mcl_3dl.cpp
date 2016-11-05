@@ -51,6 +51,8 @@ private:
 		double clip_far;
 		double clip_near_sq;
 		double clip_far_sq;
+		double clip_z_min;
+		double clip_z_max;
 		double map_downsample_x;
 		double map_downsample_y;
 		double map_downsample_z;
@@ -423,7 +425,7 @@ private:
 		{
 			if(p.x*p.x + p.y*p.y > params.clip_far_sq) continue;
 			if(p.x*p.x + p.y*p.y < params.clip_near_sq) continue;
-			if(p.z < 0.0) continue;
+			if(p.z < params.clip_z_min || params.clip_z_max < p.z) continue;
 			num_valid ++;
 		}
 		float use_rate = (float)params.num_points / num_valid;
@@ -433,7 +435,7 @@ private:
 					{
 						if(p.x*p.x + p.y*p.y > params.clip_far_sq) return true;
 						if(p.x*p.x + p.y*p.y < params.clip_near_sq) return true;
-						if(p.z < 0.0) return true;
+						if(p.z < params.clip_z_min || params.clip_z_max < p.z) return true;
 						return ud(engine) > use_rate;
 					}), pc_local->points.end());
 		pc_local->width = 1;
@@ -618,6 +620,8 @@ public:
 		nh.param("clip_far", params.clip_far, 8.0);
 		params.clip_near_sq = pow(params.clip_near, 2.0);
 		params.clip_far_sq = pow(params.clip_far, 2.0);
+		nh.param("clip_z_min", params.clip_z_min, 0.0);
+		nh.param("clip_z_max", params.clip_z_max, 3.0);
 		nh.param("map_downsample_x", params.map_downsample_x, 0.1);
 		nh.param("map_downsample_y", params.map_downsample_y, 0.1);
 		nh.param("map_downsample_z", params.map_downsample_z, 0.1);
