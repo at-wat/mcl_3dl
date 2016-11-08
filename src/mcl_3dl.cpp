@@ -78,6 +78,7 @@ private:
 		std::shared_ptr<ros::Duration> map_update_interval;
 		int num_particles;
 		int num_points;
+		int num_points_beam;
 		int skip_measure;
 	} params;
 	int cnt_measure;
@@ -441,7 +442,21 @@ private:
 		pc_local->width = 1;
 		pc_local->height = pc_local->points.size();
 		
+		pcl::PointCloud<pcl::PointXYZ>::Ptr pc_local_beam(new pcl::PointCloud<pcl::PointXYZ>);
+		*pc_local_beam = *pc_local;
+		float use_rate_beam = (float)params.num_points_beam / pc_local->points.size();
+		pc_local_beam->points.erase(
+				std::remove_if(pc_local_beam->points.begin(), pc_local_beam->points.end(),
+					[&](const pcl::PointXYZ &p)
+					{
+						return ud(engine) > use_rate_beam;
+					}), pc_local_beam->points.end());
+		pc_local_beam->width = 1;
+		pc_local_beam->height = pc_local_beam->points.size();
+
+
 		pcl::PointCloud<pcl::PointXYZ>::Ptr pc_particle(new pcl::PointCloud<pcl::PointXYZ>);
+		pcl::PointCloud<pcl::PointXYZ>::Ptr pc_particle_beam(new pcl::PointCloud<pcl::PointXYZ>);
 		pcl::PointCloud<pcl::PointXYZ>::Ptr pc_dummy(new pcl::PointCloud<pcl::PointXYZ>);
 
 		std::vector<int> id(1);
@@ -451,10 +466,10 @@ private:
 		const float match_weight = params.match_weight;
 		pf->measure([&](const state &s)->float
 				{
-					float score = 0;
+					// likelihood model
+					float score_like = 0;
 					*pc_particle = *pc_local;
 					s.transform(*pc_particle);
-
 					size_t num = 0;
 					for(auto &p: pc_particle->points)
 					{
@@ -464,12 +479,36 @@ private:
 							if(dist < 0.05 * 0.05) dist = 0.05 * 0.05;
 							dist = match_dist_min - sqrtf(dist);
 							if(dist < 0.0) continue;
-							score += dist * match_weight;
+
+							score_like += dist * match_weight;
 							num ++;
 						}
 					}
+
+					// approximative beam model
+					float score_beam = 1.0;
+					*pc_particle_beam = *pc_local_beam;
+					s.transform(*pc_particle_beam);
+					for(auto &p: pc_particle_beam->points)
+					{
+						vec3 pos = s.pos + vec3(0.0, 0.0, 0.3);
+						vec3 end(p.x, p.y, p.z);
+						int num = (end - pos).norm() / params.map_grid_min;
+						vec3 inc = (end - pos) / num;
+						for(int i = 0; i < num - 1; i ++)
+						{
+							pos += inc;
+							if(i < 1) continue;
+							if(kdtree->radiusSearch(pcl::PointXYZ(pos.x, pos.y, pos.z), 
+										params.map_grid_min, id, sqdist, 1))
+							{
+								score_beam *= 0.8;
+								break;
+							}
+						}
+					}
 					
-					return score;
+					return score_like * score_beam;
 				});
 
 		auto e = pf->max();
@@ -514,7 +553,9 @@ private:
 		rpy.y = f_ang[1]->in(rpy.y);
 		rpy.z = f_ang[2]->in(rpy.z);
 		map_rot.set_rpy(rpy);
-		trans.setOrigin(tf::Vector3(f_pos[0]->in(map_pos.x), f_pos[1]->in(map_pos.y), f_pos[2]->in(map_pos.z)));
+		trans.setOrigin(tf::Vector3(f_pos[0]->in(map_pos.x),
+					f_pos[1]->in(map_pos.y),
+					f_pos[2]->in(map_pos.z)));
 		trans.setRotation(tf::Quaternion(map_rot.x, map_rot.y, map_rot.z, map_rot.w));
 		tfb.sendTransform(trans);
 
@@ -625,9 +666,9 @@ public:
 		nh.param("map_downsample_x", params.map_downsample_x, 0.1);
 		nh.param("map_downsample_y", params.map_downsample_y, 0.1);
 		nh.param("map_downsample_z", params.map_downsample_z, 0.1);
-		nh.param("downsample_x", params.downsample_x, 0.2);
-		nh.param("downsample_y", params.downsample_y, 0.2);
-		nh.param("downsample_z", params.downsample_z, 0.1);
+		nh.param("downsample_x", params.downsample_x, 0.1);
+		nh.param("downsample_y", params.downsample_y, 0.1);
+		nh.param("downsample_z", params.downsample_z, 0.05);
 		params.map_grid_min = std::min(std::min(params.map_downsample_x, params.map_downsample_y), 
 				params.map_downsample_z);
 		nh.param("update_downsample_x", params.update_downsample_x, 0.3);
@@ -651,9 +692,10 @@ public:
 		nh.param("num_particles", params.num_particles, 256);
 		pf.reset(new pf::particle_filter<state>(params.num_particles));
 		nh.param("num_points", params.num_points, 32);
+		nh.param("num_points_beam", params.num_points_beam, 8);
 		
-		nh.param("resample_var_x", params.resample_var_x, 0.1);
-		nh.param("resample_var_y", params.resample_var_y, 0.1);
+		nh.param("resample_var_x", params.resample_var_x, 0.2);
+		nh.param("resample_var_y", params.resample_var_y, 0.2);
 		nh.param("resample_var_z", params.resample_var_z, 0.05);
 		nh.param("resample_var_roll", params.resample_var_roll, 0.05);
 		nh.param("resample_var_pitch", params.resample_var_pitch, 0.05);
@@ -686,7 +728,7 @@ public:
 					));
 		
 		double lpf_step;
-		nh.param("lpf_step", lpf_step, 5.0);
+		nh.param("lpf_step", lpf_step, 16.0);
 		f_pos[0].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0));
 		f_pos[1].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0));
 		f_pos[2].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0));
