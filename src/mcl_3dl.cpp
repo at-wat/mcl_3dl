@@ -32,6 +32,7 @@ class mcl_3dl_node
 private:
 	ros::Subscriber sub_cloud;
 	ros::Subscriber sub_mapcloud;
+	ros::Subscriber sub_mapcloud_update;
 	ros::Subscriber sub_odom;
 	ros::Subscriber sub_position;
 	ros::Publisher pub_particle;
@@ -284,6 +285,18 @@ private:
 		kdtree->setPointRepresentation(boost::make_shared<const MyPointRepresentation>(point_rep));
 		kdtree->setInputCloud(pc_map2);
 	}
+	void cb_mapcloud_update(const sensor_msgs::PointCloud2::ConstPtr &msg)
+	{
+		ROS_INFO("map_update received");
+		pcl::PointCloud<pcl::PointXYZ> pc_tmp;
+		pcl::fromROSMsg(*msg, pc_tmp);
+
+		pc_update.reset(new pcl::PointCloud<pcl::PointXYZ>);
+		pcl::VoxelGrid<pcl::PointXYZ> ds;
+		ds.setInputCloud(pc_tmp.makeShared());
+		ds.setLeafSize(params.update_downsample_x, params.update_downsample_y, params.update_downsample_z);
+		ds.filter(*pc_update);
+	}
 
 	void cb_position(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg)
 	{
@@ -319,8 +332,6 @@ private:
 	}
 
 	std::map<std::string, std::string> frame_ids;
-
-	bool update_map;
 
 	ros::Time odom_last;
 	bool has_map;
@@ -595,13 +606,6 @@ private:
 			if(kdtree_orig->nearestKSearch(p, 1, id, sqdist))
 			{
 				pc.points.push_back(pp);
-				if(update_map)
-				{
-					if(sqdist[0] > 0.6 * 0.6 && fix)
-					{
-						pc_update->insert(pc_update->end(), p);
-					}
-				}
 			}
 		}
 		pub_debug.publish(pc);
@@ -650,12 +654,12 @@ public:
 		sub_cloud = nh.subscribe("cloud", 20, &mcl_3dl_node::cb_cloud, this);
 		sub_odom = nh.subscribe("odom", 1000, &mcl_3dl_node::cb_odom, this);
 		sub_mapcloud = nh.subscribe("mapcloud", 1, &mcl_3dl_node::cb_mapcloud, this);
+		sub_mapcloud_update = nh.subscribe("mapcloud_update", 1, &mcl_3dl_node::cb_mapcloud_update, this);
 		sub_position = nh.subscribe("initialpose", 1, &mcl_3dl_node::cb_position, this);
 		pub_particle = nh.advertise<geometry_msgs::PoseArray>("particles", 1, true);
 		pub_debug = nh.advertise<sensor_msgs::PointCloud>("debug", 5, true);
 		pub_mapcloud = nh.advertise<sensor_msgs::PointCloud2>("updated_map", 1, true);
 
-		nh.param("update_map", update_map, false);
 		nh.param("map_frame", frame_ids["map"], std::string("map_ground"));
 		nh.param("clip_near", params.clip_near, 0.5);
 		nh.param("clip_far", params.clip_far, 8.0);
@@ -766,19 +770,7 @@ public:
 				if(has_map)
 				{
 					auto e = pf->expectation(1.0);
-					*pc_map2 = *pc_map;
-					if(update_map)
-					{
-						pcl::PointCloud<pcl::PointXYZ>::Ptr pc_tmp(new pcl::PointCloud<pcl::PointXYZ>);
-						pcl::VoxelGrid<pcl::PointXYZ> ds;
-						ds.setInputCloud(pc_update);
-						ds.setLeafSize(params.update_downsample_x, 
-								params.update_downsample_y, 
-								params.update_downsample_z);
-						ds.filter(*pc_tmp);
-						*pc_update = *pc_tmp;
-						*pc_map2 += *pc_update;
-					}
+					*pc_map2 = *pc_map + *pc_update;
 					pc_map2->points.erase(
 							std::remove_if(pc_map2->points.begin(), pc_map2->points.end(),
 								[&](const pcl::PointXYZ &p)
