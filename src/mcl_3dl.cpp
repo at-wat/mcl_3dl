@@ -660,7 +660,7 @@ public:
 		pub_debug = nh.advertise<sensor_msgs::PointCloud>("debug", 5, true);
 		pub_mapcloud = nh.advertise<sensor_msgs::PointCloud2>("updated_map", 1, true);
 
-		nh.param("map_frame", frame_ids["map"], std::string("map_ground"));
+		nh.param("map_frame", frame_ids["map"], std::string("map"));
 		nh.param("clip_near", params.clip_near, 0.5);
 		nh.param("clip_far", params.clip_far, 8.0);
 		params.clip_near_sq = pow(params.clip_near, 2.0);
