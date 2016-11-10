@@ -362,14 +362,20 @@ private:
 			{
 			//	ROS_INFO("dt %0.3f", dt);
 				vec3 v = odom_prev.rot.inv() * (odom.pos - odom_prev.pos);
-				quat r = odom_prev.rot.inv() * odom.rot;
+				quat r = odom.rot * odom_prev.rot.inv();
+				r.rotate_axis(odom_prev.rot.inv());
+				vec3 axis;
+				float ang;
+				r.get_axis_ang(axis, ang);
 				r.normalize();
 				std::normal_distribution<float> nd(1.0, 1.0);
 				std::normal_distribution<float> nd2(1.0, 0.1);
 				pf->predict([&](state &s)
 						{
 							s.rot.normalize();
-							s.rot = (r * nd2(engine)) * s.rot;
+							quat r2 = r;
+							r2.rotate_axis(s.rot);
+							s.rot = (r2 * nd2(engine)) * s.rot;
 							s.pos += s.rot * (v * nd(engine));
 						});
 				odom_last = msg->header.stamp;
@@ -503,7 +509,7 @@ private:
 					s.transform(*pc_particle_beam);
 					for(auto &p: pc_particle_beam->points)
 					{
-						vec3 pos = s.pos + vec3(0.0, 0.0, 0.3);
+						vec3 pos = s.pos + s.rot * vec3(0.0, 0.0, 0.3);
 						vec3 end(p.x, p.y, p.z);
 						int num = (end - pos).norm() / params.map_grid_min;
 						vec3 inc = (end - pos) / num;
@@ -524,8 +530,6 @@ private:
 				});
 
 		auto e = pf->max();
-		e.rot.x = 0.0;
-		e.rot.y = 0.0;
 		e.rot.normalize();
 
 		vec3 map_pos;

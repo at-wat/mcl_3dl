@@ -145,6 +145,13 @@ public:
 		float wsq = 1.0 - w * w;
 		axis = vec3(x, y, z) / sqrtf(wsq);
 	}
+	void rotate_axis(const quat &r)
+	{
+		vec3 axis;
+		float ang;
+		get_axis_ang(axis, ang);
+		set_axis_ang(r * axis, ang);
+	}
 };
 
 #endif
