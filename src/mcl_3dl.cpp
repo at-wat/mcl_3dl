@@ -38,6 +38,7 @@ private:
 	ros::Publisher pub_particle;
 	ros::Publisher pub_debug;
 	ros::Publisher pub_mapcloud;
+	ros::Publisher pub_pose;
 
 	tf::TransformListener tfl;
 	tf::TransformBroadcaster tfb;
@@ -582,6 +583,23 @@ private:
 		tfb.sendTransform(trans);
 
 		auto cov = pf->covariance();
+
+		geometry_msgs::PoseWithCovarianceStamped pose;
+		pose.header.stamp = trans.stamp_;
+		pose.header.frame_id = trans.frame_id_;
+		pose.pose.pose.position.x = e.pos.x;
+		pose.pose.pose.position.y = e.pos.y;
+		pose.pose.pose.position.z = e.pos.z;
+		pose.pose.pose.orientation.x = e.rot.x;
+		pose.pose.pose.orientation.y = e.rot.y;
+		pose.pose.pose.orientation.z = e.rot.z;
+		pose.pose.pose.orientation.w = e.rot.w;
+		for(size_t i = 0; i < 36; i ++)
+		{
+			pose.pose.covariance[i] = cov[i/6][i%6];
+		}
+		pub_pose.publish(pose);
+
 		bool fix = false;
 		{
 			vec3 fix_axis;
@@ -660,6 +678,7 @@ public:
 		sub_mapcloud = nh.subscribe("mapcloud", 1, &mcl_3dl_node::cb_mapcloud, this);
 		sub_mapcloud_update = nh.subscribe("mapcloud_update", 1, &mcl_3dl_node::cb_mapcloud_update, this);
 		sub_position = nh.subscribe("initialpose", 1, &mcl_3dl_node::cb_position, this);
+		pub_pose = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("/amcl_pose", 5, false);
 		pub_particle = nh.advertise<geometry_msgs::PoseArray>("particles", 1, true);
 		pub_debug = nh.advertise<sensor_msgs::PointCloud>("debug", 5, true);
 		pub_mapcloud = nh.advertise<sensor_msgs::PointCloud2>("updated_map", 1, true);
