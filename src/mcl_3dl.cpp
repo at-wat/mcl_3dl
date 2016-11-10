@@ -564,11 +564,15 @@ private:
 		rpy.y = f_ang[1]->in(rpy.y);
 		rpy.z = f_ang[2]->in(rpy.z);
 		map_rot.set_rpy(rpy);
-		trans.setOrigin(tf::Vector3(f_pos[0]->in(map_pos.x),
-					f_pos[1]->in(map_pos.y),
-					f_pos[2]->in(map_pos.z)));
+		map_pos.x = f_pos[0]->in(map_pos.x);
+		map_pos.y = f_pos[1]->in(map_pos.y);
+		map_pos.z = f_pos[2]->in(map_pos.z);
+		trans.setOrigin(tf::Vector3(map_pos.x, map_pos.y, map_pos.z));
 		trans.setRotation(tf::Quaternion(map_rot.x, map_rot.y, map_rot.z, map_rot.w));
 		tfb.sendTransform(trans);
+
+		e.rot = map_rot * odom.rot;
+		e.pos = map_pos + e.rot * odom.rot.inv() * odom.pos;
 
 		trans.stamp_ = ros::Time::now() + ros::Duration(0.2);
 		trans.frame_id_ = frame_ids["map"];
