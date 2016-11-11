@@ -55,6 +55,8 @@ private:
 		double clip_far_sq;
 		double clip_z_min;
 		double clip_z_max;
+		double map_clip_z_min;
+		double map_clip_z_max;
 		double map_downsample_x;
 		double map_downsample_y;
 		double map_downsample_z;
@@ -694,6 +696,8 @@ public:
 		params.clip_far_sq = pow(params.clip_far, 2.0);
 		nh.param("clip_z_min", params.clip_z_min, 0.0);
 		nh.param("clip_z_max", params.clip_z_max, 3.0);
+		nh.param("map_clip_z_min", params.map_clip_z_min, -3.0);
+		nh.param("map_clip_z_max", params.map_clip_z_max, 3.0);
 		nh.param("map_downsample_x", params.map_downsample_x, 0.1);
 		nh.param("map_downsample_y", params.map_downsample_y, 0.1);
 		nh.param("map_downsample_z", params.map_downsample_z, 0.1);
@@ -802,8 +806,8 @@ public:
 							std::remove_if(pc_map2->points.begin(), pc_map2->points.end(),
 								[&](const pcl::PointXYZ &p)
 								{
-									if(p.z - e.pos.z > 2.0) return true;
-									if(p.z - e.pos.z < -0.2) return true;
+									if(p.z - e.pos.z > params.map_clip_z_max) return true;
+									if(p.z - e.pos.z < params.map_clip_z_min) return true;
 									return false;
 								}), pc_map2->points.end());
 					pc_map2->width = 1;
