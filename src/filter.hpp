@@ -40,16 +40,22 @@ public:
 	}
 	void set(const float &out0)
 	{
-		x = (1 - k[2]) * out0 / k[3];
+		if(angle)
+		{
+			x = (1 - k[2]) * remainder(out0, M_PI * 2.0) / k[3];
+		}
+		else
+		{
+			x = (1 - k[2]) * out0 / k[3];
+		}
+		out = out0;
 	}
 	float in(const float &i)
 	{
 		float in = i;
 		if(angle)
 		{
-			float diff = in - out;
-			if(diff > M_PI) in -= roundf(diff / (2.0 * M_PI)) * 2.0 * M_PI;
-			else if(diff < -M_PI) in += roundf(-diff / (2.0 * M_PI)) * 2.0 * M_PI;
+			in = out + remainder(in - out, M_PI * 2.0);
 		}
 		x = k[0] * in + k[1] * x;
 		out = k[2] * in + k[3] * x;
