@@ -27,7 +27,6 @@
 #include <quat.hpp>
 #include <filter.hpp>
 
-
 class mcl_3dl_node
 {
 private:
