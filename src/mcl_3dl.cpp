@@ -3,6 +3,7 @@
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud.h>
 #include <sensor_msgs/PointCloud2.h>
+#include <sensor_msgs/point_cloud_conversion.h>
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/PoseArray.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
@@ -26,7 +27,7 @@
 #include <quat.hpp>
 #include <filter.hpp>
 
-	
+
 class mcl_3dl_node
 {
 private:
@@ -39,6 +40,8 @@ private:
 	ros::Publisher pub_debug;
 	ros::Publisher pub_mapcloud;
 	ros::Publisher pub_pose;
+	ros::Publisher pub_matched;
+	ros::Publisher pub_unmatched;
 
 	tf::TransformListener tfl;
 	tf::TransformBroadcaster tfb;
@@ -84,8 +87,12 @@ private:
 		int num_points;
 		int num_points_beam;
 		int skip_measure;
+		double match_output_dist;
+		double unmatch_output_dist;
+		std::shared_ptr<ros::Duration> match_output_interval;
 	} params;
 	int cnt_measure;
+	ros::Time match_output_last;
 
 	class state: public pf::particleBase<float>
 	{
@@ -408,7 +415,7 @@ private:
 		}
 
 		sensor_msgs::PointCloud2 pc_bl;
-		if(!pcl_ros::transformPointCloud("base_link", *msg, pc_bl, tfl))
+		if(!pcl_ros::transformPointCloud(frame_ids["base_link"], *msg, pc_bl, tfl))
 		{
 			return;
 		}
@@ -439,6 +446,9 @@ private:
 		ds.setLeafSize(params.downsample_x, params.downsample_y, params.downsample_z);
 		ds.filter(*pc_local);
 		pc_local_accum.reset(new pcl::PointCloud<pcl::PointXYZ>);
+		
+		pcl::PointCloud<pcl::PointXYZ>::Ptr pc_local_full(new pcl::PointCloud<pcl::PointXYZ>);
+		*pc_local_full = *pc_local;
 
 		std::uniform_real_distribution<float> ud(0.0, 1.0);
 		int num_valid = 0;
@@ -622,7 +632,7 @@ private:
 		*pc_particle = *pc_local;
 		e.transform(*pc_particle);
 		sensor_msgs::PointCloud pc;
-		pc.header.stamp = ros::Time::now();
+		pc.header.stamp = msg->header.stamp;
 		pc.header.frame_id = frame_ids["map"];
 		for(auto &p: pc_particle->points)
 		{
@@ -637,6 +647,51 @@ private:
 			}
 		}
 		pub_debug.publish(pc);
+
+		if(msg->header.stamp - match_output_last > *params.match_output_interval &&
+				(pub_matched.getNumSubscribers() > 0 || pub_unmatched.getNumSubscribers() > 0))
+		{
+			match_output_last = msg->header.stamp;
+
+			sensor_msgs::PointCloud pc_match;
+			pc_match.header.stamp = msg->header.stamp;
+			pc_match.header.frame_id = frame_ids["map"];
+			sensor_msgs::PointCloud pc_unmatch;
+			pc_unmatch.header.stamp = msg->header.stamp;
+			pc_unmatch.header.frame_id = frame_ids["map"];
+
+			e.transform(*pc_local_full);
+
+			const double match_dist_sq = params.match_output_dist * params.match_output_dist;
+			for(auto &p: pc_local_full->points)
+			{
+				geometry_msgs::Point32 pp;
+				pp.x = p.x;
+				pp.y = p.y;
+				pp.z = p.z;
+
+				if(!kdtree->radiusSearch(p, params.unmatch_output_dist, id, sqdist, 1))
+				{
+					pc_unmatch.points.push_back(pp);
+				}
+				else if(sqdist[0] < match_dist_sq)
+				{
+					pc_match.points.push_back(pp);
+				}
+			}
+			if(pub_matched.getNumSubscribers() > 0)
+			{
+				sensor_msgs::PointCloud2 pc2;
+				sensor_msgs::convertPointCloudToPointCloud2(pc_match, pc2);
+				pub_matched.publish(pc2);
+			}
+			if(pub_unmatched.getNumSubscribers() > 0)
+			{
+				sensor_msgs::PointCloud2 pc2;
+				sensor_msgs::convertPointCloudToPointCloud2(pc_unmatch, pc2);
+				pub_unmatched.publish(pc2);
+			}
+		}
 			
 		geometry_msgs::PoseArray pa;
 		pa.header.stamp = ros::Time::now();
@@ -690,6 +745,7 @@ public:
 		pub_mapcloud = nh.advertise<sensor_msgs::PointCloud2>("updated_map", 1, true);
 
 		nh.param("map_frame", frame_ids["map"], std::string("map"));
+		nh.param("robot_frame", frame_ids["base_link"], std::string("base_link"));
 		nh.param("clip_near", params.clip_near, 0.5);
 		nh.param("clip_far", params.clip_far, 8.0);
 		params.clip_near_sq = pow(params.clip_near, 2.0);
@@ -779,7 +835,16 @@ public:
 		nh.param("skip_measure", params.skip_measure, 1);
 		cnt_measure = 0;
 
+		nh.param("match_output_dist", params.match_output_dist, 0.1);
+		nh.param("unmatch_output_dist", params.unmatch_output_dist, 0.5);
+		double match_output_interval_t;
+		nh.param("match_output_interval_interval", match_output_interval_t, 0.2);
+		params.match_output_interval.reset(new ros::Duration(match_output_interval_t));
+		pub_matched = nh.advertise<sensor_msgs::PointCloud2>("matched", 2, true);
+		pub_unmatched = nh.advertise<sensor_msgs::PointCloud2>("unmatched", 2, true);
+
 		has_odom = has_map = false;
+		match_output_last = ros::Time::now();
 	}
 	~mcl_3dl_node()
 	{
