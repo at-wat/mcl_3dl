@@ -24,10 +24,16 @@ However, beam_range_finder_model is heavier than likelihood_field_range_finder_m
 
 mcl_3dl node uses both of them to perform good matching result and also light computation power.
 The node calculates a likelihood of each particle by multiplying likelihood of likelihood_field_range_finder_model by using a larger number of points and one of beam_range_finder_model by using only a few random sampled points.
-It realizes pointcloud matching with small computation power with rejecting matched-but-misaligned matches.
+It realizes pointcloud matching with small computation power with rejecting matched-but-wrong matches.
+
+In this implementation, the likelihood of likelihood_field_range_finder_model is a summation of distances from each measured point to closest point in the map. 
+The closest point search uses Kd-tree, and the measured point is voxel filtered and random sampled to reduce computation power.
+
+Likelihood of beam_range_finder_model is calculated by ray casting.
+Where `N` is a number of rays of measured point, `n` is a number of the rays which passes through objects described in the map, and *alpha* is a rejection weight, likelihood is given as `alpha^(n/N)`.
 
 ### Prediction
 
-The pose of the particles is predicted according to odometry data with noise given as parameters.
+The pose of the particles is predicted according to odometry data with noise parameters.
 
 ### Resampling
