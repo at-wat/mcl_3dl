@@ -54,4 +54,4 @@ Copied particles is spread by the Gaussian noise.
 
 ## TODO
 
-* Re-localization: (Expansion resetting)[http://ieeexplore.ieee.org/xpls/abs_all.jsp?arnumber=1389781] might be implemented in future.
+* Re-localization: [Expansion resetting](http://ieeexplore.ieee.org/xpls/abs_all.jsp?arnumber=1389781) might be implemented in future.
