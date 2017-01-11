@@ -13,12 +13,18 @@ The node provides classic MCL; currently, it doesn't implement adaptive feature 
 
 ## Algorithms
 
-A fundamental algorithm of the mcl_3dl node is Monte Carlo localization (MCL), aka particle filter localization.
+A fundamental algorithm of mcl_3dl node is Monte Carlo localization (MCL), aka particle filter localization.
 MCL represents a probabilistic distribution of estimated pose as density and weight of particles.
 
 ### Measurement
 
 A main aspect of the node is a combination of beam_range_finder_model, likelihood_field_range_finder_model that were well-described in the book Probabilistic Robotics, by Thrun, Burgard, and Fox.
+beam_range_finder_model can reduce false positive matching by handling visibility of the measured point in the map.
+However, beam_range_finder_model is heavier than likelihood_field_range_finder_model.
+
+mcl_3dl node uses both of them to perform good matching result and also light computation power.
+The node calculates a likelihood of each particle by multiplying likelihood of likelihood_field_range_finder_model by using a larger number of points and one of beam_range_finder_model by using only a few random sampled points.
+It realizes pointcloud matching with small computation power with rejecting matched-but-misaligned matches.
 
 ### Prediction
 
