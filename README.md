@@ -50,3 +50,8 @@ Using odometry data compensated by IMU is recommended.
 
 *mcl_3dl* node resamples particles by copying particles which have large probability according to the distribution.
 Copied particles is spread by the Gaussian noise.
+
+
+## TODO
+
+* Re-localization: (Expansion resetting)[http://ieeexplore.ieee.org/xpls/abs_all.jsp?arnumber=1389781] might be implemented in future.
