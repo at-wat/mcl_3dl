@@ -99,6 +99,7 @@ private:
 	public:
 		vec3 pos;
 		quat rot;
+		bool diff;
 		struct
 		{
 			vec3 lin;
@@ -152,16 +153,19 @@ private:
 		};
 		state()
 		{
+			diff = false;
 		};
 		state(const vec3 pos, const quat rot)
 		{
 			this->pos = pos;
 			this->rot = rot;
+			diff = false;
 		};
 		state(const vec3 pos, const vec3 rpy)
 		{
 			this->pos = pos;
 			this->rpy = rpy_vec(rpy);
+			diff = true;
 		};
 		state(const vec3 pos, const quat rot, const vec3 lin, const vec3 ang)
 		{
@@ -169,7 +173,12 @@ private:
 			this->rot = rot;
 			this->vel.lin = lin;
 			this->vel.ang = ang;
+			diff = false;
 		};
+		bool is_diff()
+		{
+			return diff;
+		}
 		void transform(pcl::PointCloud<pcl::PointXYZ> &pc) const
 		{
 			auto r = rot.normalized();
@@ -186,6 +195,10 @@ private:
 				state mean, state sigma)
 		{
 			state noise;
+			if(mean.is_diff() || !sigma.is_diff())
+			{
+				ROS_ERROR("Failed to generate noise. mean must be quat and sigma must be rpy vec.");
+			}
 			for(size_t i = 0; i < size(); i ++)
 			{
 				if(3 <= i && i <= 6) continue;
@@ -811,7 +824,7 @@ public:
 		pf->init(
 				state(
 					vec3(x, y, z),
-					vec3(roll, pitch, yaw)
+					quat(vec3(roll, pitch, yaw))
 					), 
 				state(
 					vec3(v_x, v_y, v_z),
