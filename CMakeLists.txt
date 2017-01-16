@@ -23,6 +23,8 @@ else()
 	message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
 
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O1")
+
 
 include_directories(${catkin_INCLUDE_DIRS} ${PCL_INCLUDE_DIR} src)
 link_directories(${PCL_LIBRARY_DIR})
