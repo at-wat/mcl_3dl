@@ -17,6 +17,6 @@ MCL represents a probabilistic distribution of estimated pose as density and wei
 
 See [details](doc/Algorithms.md).
 
-## TODO
+## License
 
-* Re-localization: [Expansion resetting](http://ieeexplore.ieee.org/xpls/abs_all.jsp?arnumber=1389781) might be implemented in future.
+*mcl_3dl* is available under BSD license.
