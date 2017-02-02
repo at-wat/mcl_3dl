@@ -82,6 +82,10 @@ private:
 		double jump_ang;
 		double fix_dist;
 		double fix_ang;
+		double odom_err_lin_lin;
+		double odom_err_lin_ang;
+		double odom_err_ang_lin;
+		double odom_err_ang_ang;
 		std::shared_ptr<ros::Duration> map_update_interval;
 		int num_particles;
 		int num_points;
@@ -390,15 +394,19 @@ private:
 				float ang;
 				r.get_axis_ang(axis, ang);
 				r.normalize();
-				std::normal_distribution<float> nd(1.0, 1.0);
-				std::normal_distribution<float> nd2(1.0, 0.1);
+
+				float trans = v.norm();
+				std::normal_distribution<float> ll(1.0, trans * params.odom_err_lin_lin * dt);
+				std::normal_distribution<float> la(1.0, trans * params.odom_err_lin_ang * dt);
+				std::normal_distribution<float> al(1.0, ang * params.odom_err_ang_lin * dt);
+				std::normal_distribution<float> aa(1.0, ang * params.odom_err_ang_ang * dt);
 				pf->predict([&](state &s)
 						{
 							s.rot.normalize();
 							quat r2 = r;
 							r2.rotate_axis(s.rot);
-							s.rot = (r2 * nd2(engine)) * s.rot;
-							s.pos += s.rot * (v * nd(engine));
+							s.rot = (r2 * aa(engine) * la(engine)) * s.rot;
+							s.pos += s.rot * (v * ll(engine) * al(engine));
 						});
 				odom_last = msg->header.stamp;
 				odom_prev = odom;
@@ -798,12 +806,17 @@ public:
 		nh.param("num_points", params.num_points, 32);
 		nh.param("num_points_beam", params.num_points_beam, 8);
 		
-		nh.param("resample_var_x", params.resample_var_x, 0.2);
-		nh.param("resample_var_y", params.resample_var_y, 0.2);
+		nh.param("resample_var_x", params.resample_var_x, 0.05);
+		nh.param("resample_var_y", params.resample_var_y, 0.05);
 		nh.param("resample_var_z", params.resample_var_z, 0.05);
 		nh.param("resample_var_roll", params.resample_var_roll, 0.05);
 		nh.param("resample_var_pitch", params.resample_var_pitch, 0.05);
 		nh.param("resample_var_yaw", params.resample_var_yaw, 0.05);
+
+		nh.param("odom_err_lin_lin", params.odom_err_lin_lin, 0.1);
+		nh.param("odom_err_lin_ang", params.odom_err_lin_ang, 0.05);
+		nh.param("odom_err_ang_lin", params.odom_err_ang_lin, 0.05);
+		nh.param("odom_err_ang_ang", params.odom_err_ang_ang, 0.1);
 
 		double x, y, z;
 		double roll, pitch, yaw;
