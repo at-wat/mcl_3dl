@@ -495,7 +495,7 @@ private:
 				ROS_ERROR("Failed to transform laser origin.");
 				origins.push_back(vec3(0.0, 0.0, 0.0));
 			}
-			/*ROS_INFO(" beam_origin[%d]  %0.6f %0.6f %0.6f",
+			/*ROS_INFO(" beam_origin[%d]  %0.3f %0.3f %0.3f",
 					(int)origins.size() - 1, 
 					origins.back().x,
 					origins.back().y,
@@ -549,6 +549,12 @@ private:
 		pc_local_beam->width = 1;
 		pc_local_beam->height = pc_local_beam->points.size();
 
+		/*for(auto p: pc_local_beam->points)
+		{
+			int beam_header_id = lroundf(p.intensity);
+			ROS_INFO(" raycast point origin %d (%0.3f %0.3f %0.3f)", 
+					beam_header_id, p.x, p.y, p.z);
+		}*/
 
 		pcl::PointCloud<pcl::PointXYZI>::Ptr pc_particle(new pcl::PointCloud<pcl::PointXYZI>);
 		pcl::PointCloud<pcl::PointXYZI>::Ptr pc_particle_beam(new pcl::PointCloud<pcl::PointXYZI>);
