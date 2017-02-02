@@ -183,7 +183,7 @@ private:
 		{
 			return diff;
 		}
-		void transform(pcl::PointCloud<pcl::PointXYZ> &pc) const
+		void transform(pcl::PointCloud<pcl::PointXYZI> &pc) const
 		{
 			auto r = rot.normalized();
 			for(auto &p: pc.points)
@@ -245,16 +245,16 @@ private:
 	};
 	std::shared_ptr<pf::particle_filter<state>> pf;
 
-	class MyPointRepresentation: public pcl::PointRepresentation<pcl::PointXYZ>
+	class MyPointRepresentation: public pcl::PointRepresentation<pcl::PointXYZI>
 	{
-		using pcl::PointRepresentation<pcl::PointXYZ>::nr_dimensions_;
+		using pcl::PointRepresentation<pcl::PointXYZI>::nr_dimensions_;
 	public:
 		MyPointRepresentation ()
 		{
 			nr_dimensions_ = 3;
 		}
 
-		virtual void copyToFloatArray(const pcl::PointXYZ &p, float * out) const
+		virtual void copyToFloatArray(const pcl::PointXYZI &p, float * out) const
 		{
 			out[0] = p.x;
 			out[1] = p.y;
@@ -263,36 +263,36 @@ private:
 	};
 	MyPointRepresentation point_rep;
 
-	pcl::PointCloud<pcl::PointXYZ>::Ptr pc_map;
-	pcl::PointCloud<pcl::PointXYZ>::Ptr pc_map2;
-	pcl::PointCloud<pcl::PointXYZ>::Ptr pc_update;
-	pcl::KdTreeFLANN<pcl::PointXYZ>::Ptr kdtree;
-	pcl::KdTreeFLANN<pcl::PointXYZ>::Ptr kdtree_orig;
+	pcl::PointCloud<pcl::PointXYZI>::Ptr pc_map;
+	pcl::PointCloud<pcl::PointXYZI>::Ptr pc_map2;
+	pcl::PointCloud<pcl::PointXYZI>::Ptr pc_update;
+	pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtree;
+	pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtree_orig;
 	void cb_mapcloud(const sensor_msgs::PointCloud2::ConstPtr &msg)
 	{
 		ROS_INFO("map received");
-		pcl::PointCloud<pcl::PointXYZ> pc_tmp;
+		pcl::PointCloud<pcl::PointXYZI> pc_tmp;
 		pcl::fromROSMsg(*msg, pc_tmp);
 
-		pc_map.reset(new pcl::PointCloud<pcl::PointXYZ>);
-		pc_map2.reset(new pcl::PointCloud<pcl::PointXYZ>);
-		pc_update.reset(new pcl::PointCloud<pcl::PointXYZ>);
-		pcl::VoxelGrid<pcl::PointXYZ> ds;
+		pc_map.reset(new pcl::PointCloud<pcl::PointXYZI>);
+		pc_map2.reset(new pcl::PointCloud<pcl::PointXYZI>);
+		pc_update.reset(new pcl::PointCloud<pcl::PointXYZI>);
+		pcl::VoxelGrid<pcl::PointXYZI> ds;
 		ds.setInputCloud(pc_tmp.makeShared());
 		ds.setLeafSize(params.map_downsample_x, params.map_downsample_y, params.map_downsample_z);
 		ds.filter(*pc_map);
-		pc_local_accum.reset(new pcl::PointCloud<pcl::PointXYZ>);
+		pc_local_accum.reset(new pcl::PointCloud<pcl::PointXYZI>);
 		frame_num = 0;
 		has_map = true;
 
-		kdtree_orig.reset(new  pcl::KdTreeFLANN<pcl::PointXYZ>);
+		kdtree_orig.reset(new  pcl::KdTreeFLANN<pcl::PointXYZI>);
 		kdtree_orig->setInputCloud(pc_map);
 		std::vector<int> id(7);
 		std::vector<float> sqdist(7);
 		ROS_INFO("map original: %d points", (int)pc_map->points.size());
 		pc_map->points.erase(
 				std::remove_if(pc_map->points.begin(), pc_map->points.end(),
-					[&](const pcl::PointXYZ &p)
+					[&](const pcl::PointXYZI &p)
 					{
 						if(kdtree_orig->radiusSearch(p, params.map_downsample_x * 1.05, id, sqdist, 7) > 5)
 						{
@@ -303,11 +303,11 @@ private:
 		pc_map->width = 1;
 		pc_map->height = pc_map->points.size();
 		ROS_INFO("map reduced: %d points", (int)pc_map->points.size());
-		kdtree_orig.reset(new  pcl::KdTreeFLANN<pcl::PointXYZ>);
+		kdtree_orig.reset(new  pcl::KdTreeFLANN<pcl::PointXYZI>);
 		kdtree_orig->setInputCloud(pc_map);
 
 		*pc_map2 = *pc_map;
-		kdtree.reset(new  pcl::KdTreeFLANN<pcl::PointXYZ>);
+		kdtree.reset(new  pcl::KdTreeFLANN<pcl::PointXYZI>);
 		kdtree->setEpsilon(params.map_grid_min / 2);
 		kdtree->setPointRepresentation(boost::make_shared<const MyPointRepresentation>(point_rep));
 		kdtree->setInputCloud(pc_map2);
@@ -315,11 +315,11 @@ private:
 	void cb_mapcloud_update(const sensor_msgs::PointCloud2::ConstPtr &msg)
 	{
 		ROS_INFO("map_update received");
-		pcl::PointCloud<pcl::PointXYZ> pc_tmp;
+		pcl::PointCloud<pcl::PointXYZI> pc_tmp;
 		pcl::fromROSMsg(*msg, pc_tmp);
 
-		pc_update.reset(new pcl::PointCloud<pcl::PointXYZ>);
-		pcl::VoxelGrid<pcl::PointXYZ> ds;
+		pc_update.reset(new pcl::PointCloud<pcl::PointXYZI>);
+		pcl::VoxelGrid<pcl::PointXYZI> ds;
 		ds.setInputCloud(pc_tmp.makeShared());
 		ds.setLeafSize(params.update_downsample_x, params.update_downsample_y, params.update_downsample_z);
 		ds.filter(*pc_update);
@@ -355,7 +355,7 @@ private:
 						msg->pose.covariance[6*4+4],
 						msg->pose.covariance[6*5+5])
 					));
-		pc_update.reset(new pcl::PointCloud<pcl::PointXYZ>);
+		pc_update.reset(new pcl::PointCloud<pcl::PointXYZI>);
 	}
 
 	std::map<std::string, std::string> frame_ids;
@@ -424,7 +424,8 @@ private:
 	std::map<std::string, bool> frames;
 	std::vector<std::string> frames_v;
 	size_t frame_num;
-	pcl::PointCloud<pcl::PointXYZ>::Ptr pc_local_accum;
+	pcl::PointCloud<pcl::PointXYZI>::Ptr pc_local_accum;
+	std::vector<std_msgs::Header> pc_accum_header;
 	state state_prev;
 	void cb_cloud(const sensor_msgs::PointCloud2::ConstPtr &msg)
 	{
@@ -436,13 +437,19 @@ private:
 		}
 
 		sensor_msgs::PointCloud2 pc_bl;
-		if(!pcl_ros::transformPointCloud(frame_ids["base_link"], *msg, pc_bl, tfl))
+		if(!pcl_ros::transformPointCloud(frame_ids["odom"], *msg, pc_bl, tfl))
 		{
 			return;
 		}
-		pcl::PointCloud<pcl::PointXYZ>::Ptr pc_tmp(new pcl::PointCloud<pcl::PointXYZ>);
+		pcl::PointCloud<pcl::PointXYZI>::Ptr pc_tmp(new pcl::PointCloud<pcl::PointXYZI>);
 		pcl::fromROSMsg(pc_bl, *pc_tmp);
+		for(auto &p: pc_tmp->points)
+		{
+			p.intensity = pc_accum_header.size();
+		}
 		*pc_local_accum += *pc_tmp;
+		pc_local_accum->header.frame_id = frame_ids["odom"];
+		pc_accum_header.push_back(msg->header);
 
 		if(frames_v[frame_num].compare(msg->header.frame_id) != 0) return;
 		frame_num ++;
@@ -455,20 +462,55 @@ private:
 		cnt_measure ++;
 		if(cnt_measure % params.skip_measure != 0)
 		{
-			pc_local_accum.reset(new pcl::PointCloud<pcl::PointXYZ>);
+			pc_local_accum.reset(new pcl::PointCloud<pcl::PointXYZI>);
+			pc_accum_header.clear();
 			return;
+		}
+
+		if(!pcl_ros::transformPointCloud(
+					frame_ids["base_link"], *pc_local_accum, *pc_local_accum, tfl))
+		{
+			ROS_ERROR("Failed to transform laser origin.");
+			pc_local_accum.reset(new pcl::PointCloud<pcl::PointXYZI>);
+			pc_accum_header.clear();
+			return;
+		}
+		std::vector<vec3> origins;
+		for(auto &h: pc_accum_header)
+		{
+			try
+			{
+				tf::StampedTransform trans;
+				tfl.waitForTransform(frame_ids["base_link"], msg->header.stamp, 
+						h.frame_id, h.stamp, 
+						frame_ids["odom"], ros::Duration(0.05));
+				tfl.lookupTransform(frame_ids["base_link"], msg->header.stamp,
+						h.frame_id, h.stamp, 
+						frame_ids["odom"], trans);
+				auto origin = trans.getOrigin();
+				origins.push_back(vec3(origin.x(), origin.y(), origin.z()));
+			}
+			catch(tf::TransformException &e)
+			{
+				ROS_ERROR("Failed to transform laser origin.");
+				origins.push_back(vec3(0.0, 0.0, 0.0));
+			}
+			/*ROS_INFO(" beam_origin[%d]  %0.6f %0.6f %0.6f",
+					(int)origins.size() - 1, 
+					origins.back().x,
+					origins.back().y,
+					origins.back().z);*/
 		}
 
 		const auto ts = std::chrono::high_resolution_clock::now();
 
-		pcl::PointCloud<pcl::PointXYZ>::Ptr pc_local(new pcl::PointCloud<pcl::PointXYZ>);
-		pcl::VoxelGrid<pcl::PointXYZ> ds;
+		pcl::PointCloud<pcl::PointXYZI>::Ptr pc_local(new pcl::PointCloud<pcl::PointXYZI>);
+		pcl::VoxelGrid<pcl::PointXYZI> ds;
 		ds.setInputCloud(pc_local_accum);
 		ds.setLeafSize(params.downsample_x, params.downsample_y, params.downsample_z);
 		ds.filter(*pc_local);
-		pc_local_accum.reset(new pcl::PointCloud<pcl::PointXYZ>);
 		
-		pcl::PointCloud<pcl::PointXYZ>::Ptr pc_local_full(new pcl::PointCloud<pcl::PointXYZ>);
+		pcl::PointCloud<pcl::PointXYZI>::Ptr pc_local_full(new pcl::PointCloud<pcl::PointXYZI>);
 		*pc_local_full = *pc_local;
 
 		std::uniform_real_distribution<float> ud(0.0, 1.0);
@@ -483,7 +525,7 @@ private:
 		float use_rate = (float)params.num_points / num_valid;
 		pc_local->points.erase(
 				std::remove_if(pc_local->points.begin(), pc_local->points.end(),
-					[&](const pcl::PointXYZ &p)
+					[&](const pcl::PointXYZI &p)
 					{
 						if(p.x*p.x + p.y*p.y > params.clip_far_sq) return true;
 						if(p.x*p.x + p.y*p.y < params.clip_near_sq) return true;
@@ -493,22 +535,24 @@ private:
 		pc_local->width = 1;
 		pc_local->height = pc_local->points.size();
 		
-		pcl::PointCloud<pcl::PointXYZ>::Ptr pc_local_beam(new pcl::PointCloud<pcl::PointXYZ>);
+		pcl::PointCloud<pcl::PointXYZI>::Ptr pc_local_beam(new pcl::PointCloud<pcl::PointXYZI>);
 		*pc_local_beam = *pc_local;
 		float use_rate_beam = (float)params.num_points_beam / pc_local->points.size();
 		pc_local_beam->points.erase(
 				std::remove_if(pc_local_beam->points.begin(), pc_local_beam->points.end(),
-					[&](const pcl::PointXYZ &p)
+					[&](const pcl::PointXYZI &p)
 					{
+						if(p.intensity - roundf(p.intensity) > 0.01)
+							return true;
 						return ud(engine) > use_rate_beam;
 					}), pc_local_beam->points.end());
 		pc_local_beam->width = 1;
 		pc_local_beam->height = pc_local_beam->points.size();
 
 
-		pcl::PointCloud<pcl::PointXYZ>::Ptr pc_particle(new pcl::PointCloud<pcl::PointXYZ>);
-		pcl::PointCloud<pcl::PointXYZ>::Ptr pc_particle_beam(new pcl::PointCloud<pcl::PointXYZ>);
-		pcl::PointCloud<pcl::PointXYZ>::Ptr pc_dummy(new pcl::PointCloud<pcl::PointXYZ>);
+		pcl::PointCloud<pcl::PointXYZI>::Ptr pc_particle(new pcl::PointCloud<pcl::PointXYZI>);
+		pcl::PointCloud<pcl::PointXYZI>::Ptr pc_particle_beam(new pcl::PointCloud<pcl::PointXYZI>);
+		pcl::PointCloud<pcl::PointXYZI>::Ptr pc_dummy(new pcl::PointCloud<pcl::PointXYZI>);
 
 		std::vector<int> id(1);
 		std::vector<float> sqdist(1);
@@ -542,7 +586,8 @@ private:
 					s.transform(*pc_particle_beam);
 					for(auto &p: pc_particle_beam->points)
 					{
-						vec3 pos = s.pos + s.rot * vec3(0.0, 0.0, 0.3);
+						int beam_header_id = lroundf(p.intensity);
+						vec3 pos = s.pos + s.rot * origins[beam_header_id];
 						vec3 end(p.x, p.y, p.z);
 						int num = (end - pos).norm() / params.map_grid_min;
 						vec3 inc = (end - pos) / num;
@@ -550,7 +595,12 @@ private:
 						{
 							pos += inc;
 							if(i < 1) continue;
-							if(kdtree->radiusSearch(pcl::PointXYZ(pos.x, pos.y, pos.z), 
+							pcl::PointXYZI center;
+							center.x = pos.x;
+							center.y = pos.y;
+							center.z = pos.z;
+							center.intensity = 0.0;
+							if(kdtree->radiusSearch(center, 
 										params.map_grid_min, id, sqdist, 1))
 							{
 								score_beam *= 0.8;
@@ -587,7 +637,7 @@ private:
 		tf::StampedTransform trans;
 		trans.stamp_ = ros::Time::now() + ros::Duration(0.2);
 		trans.frame_id_ = frame_ids["map"];
-		trans.child_frame_id_ = "odom";
+		trans.child_frame_id_ = frame_ids["odom"];
 		auto rpy = map_rot.get_rpy();
 		if(jump)
 		{
@@ -747,6 +797,8 @@ private:
 		const auto tnow = std::chrono::high_resolution_clock::now();
 		ROS_INFO("MCL (%0.3f sec.)",
 				std::chrono::duration<float>(tnow - ts).count());
+		pc_local_accum.reset(new pcl::PointCloud<pcl::PointXYZI>);
+		pc_accum_header.clear();
 	}
 
 public:
@@ -767,6 +819,7 @@ public:
 
 		nh.param("map_frame", frame_ids["map"], std::string("map"));
 		nh.param("robot_frame", frame_ids["base_link"], std::string("base_link"));
+		nh.param("odom_frame", frame_ids["odom"], std::string("odom"));
 		nh.param("clip_near", params.clip_near, 0.5);
 		nh.param("clip_far", params.clip_far, 8.0);
 		params.clip_near_sq = pow(params.clip_near, 2.0);
@@ -794,11 +847,12 @@ public:
 		nh.param("match_weight", params.match_weight, 5.0);
 
 		double weight[3];
-		float weight_f[3];
+		float weight_f[4];
 		nh.param("dist_weight_x", weight[0], 1.0);
 		nh.param("dist_weight_y", weight[1], 1.0);
 		nh.param("dist_weight_z", weight[2], 5.0);
 		for(size_t i = 0; i < 3; i ++) weight_f[i] = weight[i];
+		weight_f[3] = 0.0;
 		point_rep.setRescaleValues(weight_f);
 
 		nh.param("num_particles", params.num_particles, 256);
@@ -895,7 +949,7 @@ public:
 					*pc_map2 = *pc_map + *pc_update;
 					pc_map2->points.erase(
 							std::remove_if(pc_map2->points.begin(), pc_map2->points.end(),
-								[&](const pcl::PointXYZ &p)
+								[&](const pcl::PointXYZI &p)
 								{
 									if(p.z - e.pos.z > params.map_clip_z_max) return true;
 									if(p.z - e.pos.z < params.map_clip_z_min) return true;
@@ -903,7 +957,7 @@ public:
 								}), pc_map2->points.end());
 					pc_map2->width = 1;
 					pc_map2->height = pc_map2->points.size();
-					kdtree.reset(new  pcl::KdTreeFLANN<pcl::PointXYZ>);
+					kdtree.reset(new  pcl::KdTreeFLANN<pcl::PointXYZI>);
 					kdtree->setEpsilon(params.map_grid_min);
 					kdtree->setPointRepresentation(boost::make_shared<const MyPointRepresentation>(point_rep));
 					kdtree->setInputCloud(pc_map2);
