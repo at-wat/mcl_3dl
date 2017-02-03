@@ -396,10 +396,10 @@ private:
 				r.normalize();
 
 				float trans = v.norm();
-				std::normal_distribution<float> ll(1.0, trans * params.odom_err_lin_lin * dt);
-				std::normal_distribution<float> la(1.0, trans * params.odom_err_lin_ang * dt);
-				std::normal_distribution<float> al(1.0, ang * params.odom_err_ang_lin * dt);
-				std::normal_distribution<float> aa(1.0, ang * params.odom_err_ang_ang * dt);
+				std::normal_distribution<float> ll(1.0, trans * params.odom_err_lin_lin);
+				std::normal_distribution<float> la(1.0, trans * params.odom_err_lin_ang);
+				std::normal_distribution<float> al(1.0, fabs(ang) * params.odom_err_ang_lin);
+				std::normal_distribution<float> aa(1.0, fabs(ang) * params.odom_err_ang_ang);
 				pf->predict([&](state &s)
 						{
 							s.rot.normalize();
@@ -875,7 +875,7 @@ public:
 
 		nh.param("odom_err_lin_lin", params.odom_err_lin_lin, 0.1);
 		nh.param("odom_err_lin_ang", params.odom_err_lin_ang, 0.05);
-		nh.param("odom_err_ang_lin", params.odom_err_ang_lin, 0.05);
+		nh.param("odom_err_ang_lin", params.odom_err_ang_lin, 0.1);
 		nh.param("odom_err_ang_ang", params.odom_err_ang_ang, 0.1);
 
 		double x, y, z;
