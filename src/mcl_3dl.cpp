@@ -26,6 +26,7 @@
 #include <vec3.hpp>
 #include <quat.hpp>
 #include <filter.hpp>
+#include <nd.hpp>
 
 
 class mcl_3dl_node
@@ -93,6 +94,8 @@ private:
 		int skip_measure;
 		double match_output_dist;
 		double unmatch_output_dist;
+		double bias_var_dist;
+		double bias_var_ang;
 		std::shared_ptr<ros::Duration> match_output_interval;
 	} params;
 	int cnt_measure;
@@ -618,7 +621,17 @@ private:
 					return score_like * score_beam;
 				});
 
-		auto e = pf->max();
+		normal_likelihood<float> nl_lin((float)params.bias_var_dist);
+		normal_likelihood<float> nl_ang((float)params.bias_var_ang);
+		pf->bias([&](const state &s, float &p_bias)->void
+				{
+					const float lin_diff = (s.pos - state_prev.pos).norm();
+					vec3 axis;
+					float ang_diff;
+					(s.rot * state_prev.rot.inv()).get_axis_ang(axis, ang_diff);
+					p_bias = nl_lin(lin_diff) * nl_ang(ang_diff);
+				});
+		auto e = pf->max_biased();
 		e.rot.normalize();
 
 		vec3 map_pos;
@@ -917,6 +930,8 @@ public:
 		nh.param("jump_ang", params.jump_ang, 1.0);
 		nh.param("fix_dist", params.fix_dist, 0.2);
 		nh.param("fix_ang", params.fix_ang, 0.1);
+		nh.param("bias_var_dist", params.bias_var_dist, 2.0);
+		nh.param("bias_var_ang", params.bias_var_ang, 1.57);
 
 		nh.param("skip_measure", params.skip_measure, 1);
 		cnt_measure = 0;

@@ -119,6 +119,13 @@ namespace pf
 				model(p.state);
 			}
 		}
+		void bias(std::function<void(const T&, float &p_bias)> prob)
+		{
+			for(auto &p: particles)
+			{
+				prob(p.state, p.probability_bias);
+			}
+		}
 		void measure(std::function<FLT_TYPE(const T&)> likelihood)
 		{
 			FLT_TYPE sum = 0;
@@ -203,6 +210,21 @@ namespace pf
 			}
 			return *m;
 		}
+		T max_biased()
+		{
+			T *m = &particles[0].state;
+			FLT_TYPE max_probability = 
+				particles[0].probability * particles[0].probability_bias;
+			for(auto &p: particles)
+			{
+				if(max_probability < p.probability * p.probability_bias)
+				{
+					max_probability = p.probability * p.probability_bias;
+					m = &p.state;
+				}
+			}
+			return *m;
+		}
 		const T get_particle(const size_t i)
 		{
 			return particles[i].state;
@@ -218,6 +240,7 @@ namespace pf
 			particle()
 			{
 				probability = 0.0;
+				probability_bias = 0.0;
 			}
 			particle(FLT_TYPE prob)
 			{
@@ -225,6 +248,7 @@ namespace pf
 			}
 			T state;
 			FLT_TYPE probability;
+			FLT_TYPE probability_bias;
 			FLT_TYPE accum_probability;
 			const bool operator<(const particle &p2) const
 			{
