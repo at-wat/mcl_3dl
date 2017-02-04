@@ -135,13 +135,14 @@ public:
 	}
 	void get_axis_ang(vec3 &axis, float &ang) const
 	{
-		if(w >= 1.0 - 0.000001)
+		if(fabs(w) >= 1.0 - 0.000001)
 		{
 			ang = 0.0;
 			axis = vec3(0.0, 0.0, 1.0);
 			return;
 		}
 		ang = acosf(w) * 2.0;
+		if(ang > M_PI) ang -= 2.0 * M_PI;
 		float wsq = 1.0 - w * w;
 		axis = vec3(x, y, z) / sqrtf(wsq);
 	}
