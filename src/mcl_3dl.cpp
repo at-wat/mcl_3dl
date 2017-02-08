@@ -5,6 +5,7 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/point_cloud_conversion.h>
 #include <nav_msgs/Odometry.h>
+#include <sensor_msgs/Imu.h>
 #include <geometry_msgs/PoseArray.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 
@@ -36,6 +37,7 @@ private:
 	ros::Subscriber sub_mapcloud;
 	ros::Subscriber sub_mapcloud_update;
 	ros::Subscriber sub_odom;
+	ros::Subscriber sub_imu;
 	ros::Subscriber sub_position;
 	ros::Publisher pub_particle;
 	ros::Publisher pub_debug;
@@ -49,6 +51,7 @@ private:
 
 	std::shared_ptr<filter> f_pos[3]; 
 	std::shared_ptr<filter> f_ang[3]; 
+	std::shared_ptr<filter> f_acc[3]; 
 
 	class parameters
 	{
@@ -819,6 +822,56 @@ private:
 		pc_local_accum.reset(new pcl::PointCloud<pcl::PointXYZI>);
 		pc_accum_header.clear();
 	}
+	ros::Time imu_last;
+	void cb_imu(const sensor_msgs::Imu::ConstPtr &msg)
+	{
+		vec3 acc;
+		acc.x = f_acc[0]->in(msg->linear_acceleration.x);
+		acc.y = f_acc[1]->in(msg->linear_acceleration.y);
+		acc.z = f_acc[2]->in(msg->linear_acceleration.z);
+
+		float dt = (msg->header.stamp - imu_last).toSec();
+		if(dt < 0.0)
+		{
+			f_acc[0]->set(0.0);
+			f_acc[1]->set(0.0);
+			f_acc[2]->set(0.0);
+		}
+		else if(dt > 0.05)
+		{
+			vec3 acc_measure = acc / acc.norm();
+			try
+			{
+				tfl.waitForTransform(msg->header.frame_id, frame_ids["base_link"], 
+						msg->header.stamp, ros::Duration(0.1));
+				tf::Stamped<tf::Vector3> in, out;
+				in.frame_id_ = msg->header.frame_id;
+				in.stamp_ = msg->header.stamp;
+				in.setX(acc_measure.x);
+				in.setY(acc_measure.y);
+				in.setZ(acc_measure.z);
+				tfl.transformVector(frame_ids["base_link"], in, out);
+				acc_measure = vec3(out.x(), out.y(), out.z());
+			}
+			catch(tf::TransformException &e)
+			{
+				return;
+			}
+			float acc_measure_norm = acc_measure.norm();
+			normal_likelihood<float> nd(M_PI / 12.0); // 15 deg
+			pf->measure([&](const state &s)->float
+					{
+						vec3 acc_estim = s.rot.inv() * vec3(0.0, 0.0, 1.0);
+						float diff = acosf(
+									acc_estim.dot(acc_measure)
+									/ (acc_measure_norm * acc_estim.norm())
+								);
+						return nd(diff);
+					});
+
+			imu_last = msg->header.stamp;
+		}
+	}
 
 public:
 	mcl_3dl_node(int argc, char *argv[]):
@@ -827,7 +880,8 @@ public:
 		ros::NodeHandle nh("~");
 
 		sub_cloud = nh.subscribe("cloud", 20, &mcl_3dl_node::cb_cloud, this);
-		sub_odom = nh.subscribe("odom", 1000, &mcl_3dl_node::cb_odom, this);
+		sub_odom = nh.subscribe("odom", 200, &mcl_3dl_node::cb_odom, this);
+		sub_imu = nh.subscribe("imu", 200, &mcl_3dl_node::cb_imu, this);
 		sub_mapcloud = nh.subscribe("mapcloud", 1, &mcl_3dl_node::cb_mapcloud, this);
 		sub_mapcloud_update = nh.subscribe("mapcloud_update", 1, &mcl_3dl_node::cb_mapcloud_update, this);
 		sub_position = nh.subscribe("initialpose", 1, &mcl_3dl_node::cb_position, this);
@@ -926,6 +980,11 @@ public:
 		f_ang[1].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0, true));
 		f_ang[2].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0, true));
 		
+		nh.param("acc_lpf_step", lpf_step, 48.0);
+		f_acc[0].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0));
+		f_acc[1].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0));
+		f_acc[2].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0));
+
 		nh.param("jump_dist", params.jump_dist, 2.0);
 		nh.param("jump_ang", params.jump_ang, 1.0);
 		nh.param("fix_dist", params.fix_dist, 0.2);
