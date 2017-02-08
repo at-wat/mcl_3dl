@@ -99,6 +99,7 @@ private:
 		double unmatch_output_dist;
 		double bias_var_dist;
 		double bias_var_ang;
+		float beam_likelihood;
 		std::shared_ptr<ros::Duration> match_output_interval;
 	} params;
 	int cnt_measure;
@@ -608,7 +609,7 @@ private:
 							if(kdtree->radiusSearch(center, 
 										params.map_grid_min, id, sqdist, 1))
 							{
-								score_beam *= 0.8;
+								score_beam *= params.beam_likelihood;
 								break;
 							}
 						}
@@ -926,6 +927,10 @@ public:
 		nh.param("num_points", params.num_points, 32);
 		nh.param("num_points_beam", params.num_points_beam, 8);
 		
+		double beam_likelihood_a;
+		nh.param("beam_likelihood", beam_likelihood_a, 0.5);
+		params.beam_likelihood = powf(beam_likelihood_a, 1.0 / (float)params.num_points_beam);
+
 		nh.param("resample_var_x", params.resample_var_x, 0.05);
 		nh.param("resample_var_y", params.resample_var_y, 0.05);
 		nh.param("resample_var_z", params.resample_var_z, 0.05);
