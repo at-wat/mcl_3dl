@@ -1,5 +1,7 @@
 <launch>
-	<arg name="map_objs" />
+	<arg name="use_pointcloud_map" default="false" />
+	<arg name="map_objs" unless="$(arg use_pointcloud_map)" />
+	<arg name="map_pcd" if="$(arg use_pointcloud_map)" />
 	<arg name="map_scale" default="1.0" />
 	<arg name="map_offset_x" default="0.0" />
 	<arg name="map_offset_y" default="0.0" />
@@ -14,8 +16,9 @@
 	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find mcl_3dl)/launch/mcl_3dl.rviz" />
 	<node pkg="mcl_3dl" type="mcl_3dl" name="mcl_3dl" output="screen">
 		<remap from="~/cloud" to="/cloud" />
-		<remap from="~/mapcloud" to="/obj_to_pointcloud/cloud" />
+		<remap from="~/mapcloud" to="/mapcloud" />
 		<remap from="~/odom" to="/odom" />
+		<remap from="~/imu" to="/imu/data" />
 		<remap from="~/initialpose" to="/initialpose" />
 		<param name="num_particles" value="64" />
 		<param name="num_points" value="96" />
@@ -26,13 +29,20 @@
 		<param name="jump_dist" value="1.0" />
 		<param name="jump_ang" value="1.57" />
 	</node>
-	<node pkg="obj_to_pointcloud" type="obj_to_pointcloud" name="obj_to_pointcloud">
+	<node pkg="obj_to_pointcloud" type="obj_to_pointcloud" name="obj_to_pointcloud"
+			unless="$(arg use_pointcloud_map)">
 		<param name="objs" value="$(arg map_objs)" />
 		<param name="points_per_meter_sq" value="1200.0" />
 		<param name="offset_x" value="$(arg map_offset_x)" />
 		<param name="offset_y" value="$(arg map_offset_y)" />
 		<param name="downsample_grid" value="0.1" />
 		<param name="scale" value="$(arg map_scale)" />
+		<remap from="~/cloud" to="/mapcloud" />
+	</node>
+	<node pkg="pcl_ros" type="pcd_to_pointcloud" name="pcd_to_pointcloud"
+			args="$(arg map_pcd)" if="$(arg use_pointcloud_map)">
+		<param name="frame_id" value="map" />
+		<remap from="/cloud_pcd" to="/mapcloud" />
 	</node>
 	<node pkg="track_odometry" type="track_odometry" name="track_odometry">
 		<remap from="/imu" to="/imu/data" />
