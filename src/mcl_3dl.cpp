@@ -293,16 +293,9 @@ private:
 		std::vector<int> id(7);
 		std::vector<float> sqdist(7);
 		ROS_INFO("map original: %d points", (int)pc_map->points.size());
-		pc_map->points.erase(
-				std::remove_if(pc_map->points.begin(), pc_map->points.end(),
-					[&](const pcl::PointXYZI &p)
-					{
-						if(kdtree_orig->radiusSearch(p, params.map_downsample_x * 1.05, id, sqdist, 7) > 5)
-						{
-							return true;
-						}
-						return false;
-					}), pc_map->points.end());
+
+		// map pointcloud filters here
+
 		pc_map->width = 1;
 		pc_map->height = pc_map->points.size();
 		ROS_INFO("map reduced: %d points", (int)pc_map->points.size());
