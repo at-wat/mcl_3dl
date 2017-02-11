@@ -1,7 +1,7 @@
 <launch>
 	<param name="use_sim_time" value="true" />
 
-	<node pkg="rosbag" type="play" name="playback" args="--clock @PROJECT_BINARY_DIR@/test/short_test.bag" />
+	<node pkg="rosbag" type="play" name="playback" args="--clock -r 4.0 @PROJECT_BINARY_DIR@/test/short_test.bag" />
 
 	<test test-name="compare_pose" pkg="mcl_3dl" type="compare_pose" time-limit="400.0">
 	</test>
@@ -15,9 +15,9 @@
 		<remap from="~/imu" to="/imu/data" />
 		<remap from="~/initialpose" to="/initialpose" />
 		<param name="num_particles" value="64" />
-		<param name="num_points" value="96" />
+		<param name="num_points" value="64" />
 		<param name="num_points_beam" value="3" />
-		<param name="skip_measure" value="1" />
+		<param name="skip_measure" value="2" />
 		<param name="clip_far" value="10.0" />
 		<param name="map_frame" value="map" />
 		<param name="jump_dist" value="1.0" />
