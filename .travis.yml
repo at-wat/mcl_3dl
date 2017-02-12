@@ -12,12 +12,12 @@ env:
     - DATASET_REF_FILE=short_test_ref.topic
 
 before_install:
-  - .test-scripts/load_cache.sh
-  - .test-scripts/cache_dataset.sh
+  - .travis.scripts/load_cache.sh
+  - .travis.scripts/cache_dataset.sh
 
 install: true
 
 script:
   - docker build -t docker-mcl3dl:latest --pull=true ${TRAVIS_BUILD_DIR}
-  - .test-scripts/save_cache.sh
+  - .travis.scripts/save_cache.sh
 
