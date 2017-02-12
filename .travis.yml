@@ -1,0 +1,19 @@
+sudo: required
+services: docker
+
+cache:
+  directories:
+    - /home/travis/docker/
+env:
+  global:
+    - DOCKER_CACHE_FILE=/home/travis/docker/cache.tar.lz4
+
+before_install:
+  - script.docker/load_cache.sh
+
+install: true
+
+script:
+  - docker build -t docker-mcl3dl:latest --pull=true ${TRAVIS_BUILD_DIR}
+  - script.docker/save_cache.sh
+
