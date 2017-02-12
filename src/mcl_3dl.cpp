@@ -100,6 +100,7 @@ private:
 		double bias_var_dist;
 		double bias_var_ang;
 		float beam_likelihood;
+		float sin_total_ref;
 		std::shared_ptr<ros::Duration> match_output_interval;
 	} params;
 	int cnt_measure;
@@ -609,7 +610,22 @@ private:
 							if(kdtree->radiusSearch(center, 
 										params.map_grid_min, id, sqdist, 1))
 							{
-								score_beam *= params.beam_likelihood;
+								float d0 = sqdist[0];
+								vec3 pos_prev = pos - (inc * 2.0);
+								pcl::PointXYZI center_prev;
+								center_prev.x = pos_prev.x;
+								center_prev.y = pos_prev.y;
+								center_prev.z = pos_prev.z;
+								center_prev.intensity = 0.0;
+								kdtree->nearestKSearch(center_prev, 1, id, sqdist);
+								float d1 = sqdist[0];
+
+								float sin_ang = (d1 - d0) / (inc * 2.0).norm();
+								// reject total reflection
+								if(sin_ang > params.sin_total_ref)
+								{
+									score_beam *= params.beam_likelihood;
+								}
 								break;
 							}
 						}
@@ -930,6 +946,10 @@ public:
 		double beam_likelihood_a;
 		nh.param("beam_likelihood", beam_likelihood_a, 0.5);
 		params.beam_likelihood = powf(beam_likelihood_a, 1.0 / (float)params.num_points_beam);
+		double ang_total_ref;
+		nh.param("ang_total_ref", ang_total_ref, M_PI / 6.0);
+		params.sin_total_ref = sinf(ang_total_ref);
+
 
 		nh.param("resample_var_x", params.resample_var_x, 0.05);
 		nh.param("resample_var_y", params.resample_var_y, 0.05);
