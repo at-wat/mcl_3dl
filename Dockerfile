@@ -1,7 +1,7 @@
 FROM ros:kinetic
 
 RUN apt-get update && \
-		apt-get install -y --no-install-recommends sudo ros-kinetic-pcl-ros libgtest-dev wget && \
+		apt-get install -y --no-install-recommends sudo ros-kinetic-pcl-ros libgtest-dev wget lz4 && \
 		rm -rf /var/lib/apt/lists/*
 
 RUN rosdep update && \
