@@ -8,6 +8,7 @@ source /catkin_ws/devel/setup.bash
 
 cd /catkin_ws
 
+mkdir -p /catkin_ws/build/mcl_3dl/test/
 mv /catkin_ws/src/mcl_3dl/.cached-dataset/* /catkin_ws/build/mcl_3dl/test/
 ls -lh /catkin_ws/build/mcl_3dl/test/
 
