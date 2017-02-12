@@ -611,7 +611,7 @@ private:
 										params.map_grid_min, id, sqdist, 1))
 							{
 								float d0 = sqdist[0];
-								vec3 pos_prev = pos - inc;
+								vec3 pos_prev = pos - (inc * 2.0);
 								pcl::PointXYZI center_prev;
 								center_prev.x = pos_prev.x;
 								center_prev.y = pos_prev.y;
@@ -620,7 +620,7 @@ private:
 								kdtree->nearestKSearch(center_prev, 1, id, sqdist);
 								float d1 = sqdist[0];
 
-								float sin_ang = (d1 - d0) / inc.norm();
+								float sin_ang = (d1 - d0) / (inc * 2.0).norm();
 								// reject total reflection
 								if(sin_ang > params.sin_total_ref)
 								{
