@@ -15,5 +15,5 @@ install: true
 
 script:
   - docker build -t docker-mcl3dl:latest --pull=true ${TRAVIS_BUILD_DIR}
-  - scripts/save_cache.sh
+  - script.docker/save_cache.sh
 
