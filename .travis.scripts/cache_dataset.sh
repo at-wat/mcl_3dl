@@ -11,8 +11,6 @@ fi
 
 cd ${DATASET_CACHE_DIR}
 
-rm -f *.md5 *.md5.* || true
-
 DATASET_REF_MD5=`md5sum ${DATASET_REF_FILE} | cut -f1 -d' ' || true`
 DATASET_MD5=`md5sum ${DATASET_FILE} | cut -f1 -d' ' || true`
 DATASET_REF_MD5_SERVER=`wget --quiet ${DATASET_BASE_URI}/${DATASET_REF_FILE}.md5 -O -`
