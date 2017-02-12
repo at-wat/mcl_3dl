@@ -35,20 +35,20 @@ TEST(compare_pose, compare)
 				fprintf(stderr, "compare_pose[%d/%d]:\n",
 						(int)i_path, (int)path.poses.size());
 				fprintf(stderr, "  position error/limit=%0.3f/%0.3f\n", error, error_limit);
-				fprintf(stderr, "  x error/2sigma=%0.3f/%0.3f\n", x_error, x_sigma * 2.0);
-				fprintf(stderr, "  y error/2sigma=%0.3f/%0.3f\n", y_error, y_sigma * 2.0);
-				fprintf(stderr, "  z error/2sigma=%0.3f/%0.3f\n", z_error, z_sigma * 2.0);
+				fprintf(stderr, "  x error/3sigma=%0.3f/%0.3f\n", x_error, x_sigma * 3.0);
+				fprintf(stderr, "  y error/3sigma=%0.3f/%0.3f\n", y_error, y_sigma * 3.0);
+				fprintf(stderr, "  z error/3sigma=%0.3f/%0.3f\n", z_error, z_sigma * 3.0);
 
 				i_path ++;
 				if(i_path >= path.poses.size()) ros::shutdown();
 
 				ASSERT_FALSE(error > error_limit)
 					<< "Position error is larger then expected.";
-				ASSERT_FALSE(fabs(x_error) > x_sigma * 2.0)
+				ASSERT_FALSE(fabs(x_error) > x_sigma * 3.0)
 					<< "Estimated variance is too small to continue tracking. (x)";
-				ASSERT_FALSE(fabs(y_error) > y_sigma * 2.0)
+				ASSERT_FALSE(fabs(y_error) > y_sigma * 3.0)
 					<< "Estimated variance is too small to continue tracking. (y)";
-				ASSERT_FALSE(fabs(z_error) > z_sigma * 2.0)
+				ASSERT_FALSE(fabs(z_error) > z_sigma * 3.0)
 					<< "Estimated variance is too small to continue tracking. (z)";
 			}
 		};
