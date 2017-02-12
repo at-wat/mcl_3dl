@@ -13,7 +13,7 @@ env:
 
 before_install:
   - .test-scripts/load_cache.sh
-  - .test-scripts/update_dataset.sh
+  - .test-scripts/cache_dataset.sh
 
 install: true
 
