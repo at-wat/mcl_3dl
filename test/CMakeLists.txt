@@ -23,7 +23,6 @@ target_link_libraries(compare_pose ${catkin_LIBRARIES})
 add_dependencies(compare_pose 
 			${PROJECT_NAME}_short_test.bag
 			${PROJECT_NAME}_short_test_ref.topic 
-			${PROJECT_BINARY_DIR}/test/tests/localization_rostest.test
 		)
 
 
