@@ -10,6 +10,9 @@ env:
     - DATASET_CACHE_DIR=/home/travis/docker/dataset
     - DATASET_FILE=short_test.bag
     - DATASET_REF_FILE=short_test_ref.topic
+branches:
+  only:
+    - master
 
 before_install:
   - .travis.scripts/load_cache.sh
