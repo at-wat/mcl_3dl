@@ -16,4 +16,5 @@ catkin_make
 catkin_make tests --cmake-args -DMCL_3DL_EXTRA_TESTS:=ON
 catkin_make run_tests  --cmake-args -DMCL_3DL_EXTRA_TESTS:=ON
 
+catkin_test_results
 
