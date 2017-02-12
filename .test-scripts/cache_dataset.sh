@@ -11,12 +11,12 @@ fi
 
 cd ${DATASET_CACHE_DIR}
 
-wget --quiet ${DATASET_BASE_URI}/${DATASET_REF_FILE}.md5
-wget --quiet ${DATASET_BASE_URI}/${DATASET_FILE}.md5
+rm -f *.md5 *.md5.* || true
+
 DATASET_REF_MD5=`md5sum ${DATASET_REF_FILE} | cut -f1 -d' ' || true`
 DATASET_MD5=`md5sum ${DATASET_FILE} | cut -f1 -d' ' || true`
-DATASET_REF_MD5_SERVER=`cat ${DATASET_REF_FILE}.md5`
-DATASET_MD5_SERVER=`cat ${DATASET_FILE}.md5`
+DATASET_REF_MD5_SERVER=`wget --quiet ${DATASET_BASE_URI}/${DATASET_REF_FILE}.md5 -O -`
+DATASET_MD5_SERVER=`wget --quiet ${DATASET_BASE_URI}/${DATASET_FILE}.md5 -O -`
 
 if [ ! -f ${DATASET_REF_FILE} ] || 
 		[[ ${DATASET_REF_MD5} != ${DATASET_REF_MD5_SERVER} ]]; then
