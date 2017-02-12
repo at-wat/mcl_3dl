@@ -9,7 +9,7 @@ source /catkin_ws/devel/setup.bash
 cd /catkin_ws
 
 mv /catkin_ws/src/mcl_3dl/.cached-dataset/* /catkin_ws/build/mcl_3dl/test/
-ls -l /catkin_ws/build/mcl_3dl/test/
+ls -lh /catkin_ws/build/mcl_3dl/test/
 
 rosdep install --from-paths src/mcl_3dl --ignore-src --rosdistro=${ROS_DISTRO} -y
 
