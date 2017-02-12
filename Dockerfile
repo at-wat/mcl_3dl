@@ -1,8 +1,9 @@
 FROM ros:kinetic
 
 RUN apt-get update && \
-		apt-get install -y --no-install-recommends sudo ros-kinetic-pcl-ros libgtest-dev wget && \
-		rm -rf /var/lib/apt/lists/*
+	apt-get install -y --no-install-recommends sudo ros-kinetic-pcl-ros libgtest-dev wget && \
+	apt-get clean && \
+	rm -rf /var/lib/apt/lists/*
 
 RUN rosdep update && \
 	mkdir -p /catkin_ws/src && \
