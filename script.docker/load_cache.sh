@@ -3,5 +3,7 @@
 set -o errexit
 set -o verbose
 
-lz4 -dc /tmp/docker-cache.lz4 | docker load
+if [ -f ${DOCKER_CACHE_FILE} ]; then
+	lz4 -dc ${DOCKER_CACHE_FILE} | docker load
+fi
 
