@@ -34,3 +34,6 @@ else
 	echo "${DATASET_FILE}: md5 checksum matched"
 fi
 
+mkdir -p ${TRAVIS_BUILD_DIR}/.cached-dataset
+cp ${DATASET_FILE} ${DATASET_REF_FILE} ${TRAVIS_BUILD_DIR}/.cached-dataset
+
