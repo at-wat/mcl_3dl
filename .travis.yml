@@ -7,13 +7,17 @@ cache:
 env:
   global:
     - DOCKER_CACHE_FILE=/home/travis/docker/cache.tar.lz4
+    - DATASET_CACHE_DIR=/home/travis/docker/dataset
+    - DATASET_FILE=short_test.bag
+    - DATASET_REF_FILE=short_test_ref.topic
 
 before_install:
-  - script.docker/load_cache.sh
+  - .travis.scripts/load_cache.sh
+  - .travis.scripts/cache_dataset.sh
 
 install: true
 
 script:
   - docker build -t docker-mcl3dl:latest --pull=true ${TRAVIS_BUILD_DIR}
-  - script.docker/save_cache.sh
+  - .travis.scripts/save_cache.sh
 
