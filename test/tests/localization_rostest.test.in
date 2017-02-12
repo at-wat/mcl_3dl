@@ -4,6 +4,7 @@
 	<node pkg="rosbag" type="play" name="playback" args="--clock -r 4.0 @PROJECT_BINARY_DIR@/test/short_test.bag" />
 
 	<test test-name="compare_pose" pkg="mcl_3dl" type="compare_pose" time-limit="400.0">
+		<param name="error_limit" value="0.25" />
 	</test>
 	
 	<node pkg="rostopic" type="rostopic" name="set_initial" args="pub -1 -f @PROJECT_BINARY_DIR@/test/short_test_ref.topic /compare_pose/poses_ref nav_msgs/Path" />

@@ -946,6 +946,10 @@ public:
 		double beam_likelihood_a;
 		nh.param("beam_likelihood", beam_likelihood_a, 0.5);
 		params.beam_likelihood = powf(beam_likelihood_a, 1.0 / (float)params.num_points_beam);
+		double ang_total_ref;
+		nh.param("ang_total_ref", ang_total_ref, M_PI / 6.0);
+		params.sin_total_ref = sinf(ang_total_ref);
+
 
 		nh.param("resample_var_x", params.resample_var_x, 0.05);
 		nh.param("resample_var_y", params.resample_var_y, 0.05);
@@ -1016,10 +1020,6 @@ public:
 		params.match_output_interval.reset(new ros::Duration(match_output_interval_t));
 		pub_matched = nh.advertise<sensor_msgs::PointCloud2>("matched", 2, true);
 		pub_unmatched = nh.advertise<sensor_msgs::PointCloud2>("unmatched", 2, true);
-
-		double ang_total_ref;
-		nh.param("ang_total_ref", ang_total_ref, M_PI / 8.0);
-		params.sin_total_ref = sinf(ang_total_ref);
 
 		has_odom = has_map = false;
 		match_output_last = ros::Time::now();
