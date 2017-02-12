@@ -33,3 +33,13 @@ add_definitions(${PCL_DEFINITIONS})
 add_executable(mcl_3dl src/mcl_3dl.cpp)
 target_link_libraries(mcl_3dl ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
+if(CATKIN_ENABLE_TESTING)
+	add_subdirectory(test)
+endif()
+
+install(TARGETS ${PROJECT_NAME}
+	ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+	LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+	RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
+)
+

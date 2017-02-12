@@ -5,6 +5,7 @@
 	<arg name="map_scale" default="1.0" />
 	<arg name="map_offset_x" default="0.0" />
 	<arg name="map_offset_y" default="0.0" />
+	<arg name="generate_test_bag" default="false" />
 
 	<!--
 	Required topics:
@@ -14,7 +15,7 @@
 	-->
 
 	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find mcl_3dl)/launch/mcl_3dl.rviz" />
-	<node pkg="mcl_3dl" type="mcl_3dl" name="mcl_3dl" output="screen">
+	<node pkg="mcl_3dl" type="mcl_3dl" name="mcl_3dl" output="screen" unless="$(arg generate_test_bag)">
 		<remap from="~/cloud" to="/cloud" />
 		<remap from="~/mapcloud" to="/mapcloud" />
 		<remap from="~/odom" to="/odom" />
@@ -42,6 +43,7 @@
 	<node pkg="pcl_ros" type="pcd_to_pointcloud" name="pcd_to_pointcloud"
 			args="$(arg map_pcd)" if="$(arg use_pointcloud_map)">
 		<param name="frame_id" value="map" />
+		<param name="latch" value="true" />
 		<remap from="/cloud_pcd" to="/mapcloud" />
 	</node>
 	<node pkg="track_odometry" type="track_odometry" name="track_odometry">
@@ -52,6 +54,10 @@
 	<node pkg="trajectory_tracker" type="trajectory_recorder" name="path_recorder">
 		<param name="dist_interval" value="0.1" />
 		<param name="ang_interval" value="0.2" />
+	</node>
+	<node pkg="trajectory_tracker" type="trajectory_recorder" name="poses_ref">
+		<param name="dist_interval" value="0.5" />
+		<param name="ang_interval" value="100.0" />
 	</node>
 
 </launch>
