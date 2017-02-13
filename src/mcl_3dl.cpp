@@ -610,7 +610,7 @@ private:
 							if(kdtree->radiusSearch(center, 
 										params.map_grid_min, id, sqdist, 1))
 							{
-								float d0 = sqdist[0];
+								float d0 = sqrtf(sqdist[0]);
 								vec3 pos_prev = pos - (inc * 2.0);
 								pcl::PointXYZI center_prev;
 								center_prev.x = pos_prev.x;
@@ -618,11 +618,11 @@ private:
 								center_prev.z = pos_prev.z;
 								center_prev.intensity = 0.0;
 								kdtree->nearestKSearch(center_prev, 1, id, sqdist);
-								float d1 = sqdist[0];
+								float d1 = sqrtf(sqdist[0]);
 
-								float sin_ang = (d1 - d0) / (inc * 2.0).norm();
+								float sin_ang = (d1 - d0) / (inc.norm() * 2.0);
 								// reject total reflection
-								if(sin_ang > params.sin_total_ref)
+								if(sin_ang < params.sin_total_ref)
 								{
 									score_beam *= params.beam_likelihood;
 								}
