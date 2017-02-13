@@ -957,7 +957,7 @@ public:
 		nh.param("robot_frame", frame_ids["base_link"], std::string("base_link"));
 		nh.param("odom_frame", frame_ids["odom"], std::string("odom"));
 		nh.param("clip_near", params.clip_near, 0.5);
-		nh.param("clip_far", params.clip_far, 8.0);
+		nh.param("clip_far", params.clip_far, 10.0);
 		params.clip_near_sq = pow(params.clip_near, 2.0);
 		params.clip_far_sq = pow(params.clip_far, 2.0);
 		nh.param("clip_z_min", params.clip_z_min, 0.0);
@@ -991,13 +991,13 @@ public:
 		weight_f[3] = 0.0;
 		point_rep.setRescaleValues(weight_f);
 
-		nh.param("num_particles", params.num_particles, 256);
+		nh.param("num_particles", params.num_particles, 64);
 		pf.reset(new pf::particle_filter<state>(params.num_particles));
-		nh.param("num_points", params.num_points, 32);
-		nh.param("num_points_beam", params.num_points_beam, 8);
+		nh.param("num_points", params.num_points, 96);
+		nh.param("num_points_beam", params.num_points_beam, 3);
 		
 		double beam_likelihood_a;
-		nh.param("beam_likelihood", beam_likelihood_a, 0.5);
+		nh.param("beam_likelihood", beam_likelihood_a, 0.2);
 		params.beam_likelihood = powf(beam_likelihood_a, 1.0 / (float)params.num_points_beam);
 		double ang_total_ref;
 		nh.param("ang_total_ref", ang_total_ref, M_PI / 6.0);
@@ -1056,8 +1056,8 @@ public:
 		f_acc[1].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0));
 		f_acc[2].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0));
 
-		nh.param("jump_dist", params.jump_dist, 2.0);
-		nh.param("jump_ang", params.jump_ang, 1.0);
+		nh.param("jump_dist", params.jump_dist, 1.0);
+		nh.param("jump_ang", params.jump_ang, 1.57);
 		nh.param("fix_dist", params.fix_dist, 0.2);
 		nh.param("fix_ang", params.fix_ang, 0.1);
 		nh.param("bias_var_dist", params.bias_var_dist, 2.0);
