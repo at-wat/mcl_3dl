@@ -24,11 +24,13 @@
 		<param name="num_particles" value="64" />
 		<param name="num_points" value="96" />
 		<param name="num_points_beam" value="3" />
-		<param name="skip_measure" value="1" />
+		<param name="skip_measure" value="2" />
 		<param name="clip_far" value="10.0" />
 		<param name="map_frame" value="map" />
 		<param name="jump_dist" value="1.0" />
 		<param name="jump_ang" value="1.57" />
+		<param name="beam_likelihood" value="0.2" />
+		<param name="ang_total_ref" value="0.5" />
 	</node>
 	<node pkg="obj_to_pointcloud" type="obj_to_pointcloud" name="obj_to_pointcloud"
 			unless="$(arg use_pointcloud_map)">
