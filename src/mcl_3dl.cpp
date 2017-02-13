@@ -899,7 +899,7 @@ public:
 		pub_particle = nh.advertise<geometry_msgs::PoseArray>("particles", 1, true);
 		pub_debug = nh.advertise<sensor_msgs::PointCloud>("debug", 5, true);
 		pub_mapcloud = nh.advertise<sensor_msgs::PointCloud2>("updated_map", 1, true);
-ROS_ERROR("Latest");
+
 		nh.param("map_frame", frame_ids["map"], std::string("map"));
 		nh.param("robot_frame", frame_ids["base_link"], std::string("base_link"));
 		nh.param("odom_frame", frame_ids["odom"], std::string("odom"));
