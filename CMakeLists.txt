@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(mcl_3dl)
 
 find_package(catkin REQUIRED COMPONENTS
-	roscpp std_msgs message_generation sensor_msgs pcl_ros
+	roscpp std_msgs message_generation sensor_msgs pcl_ros visualization_msgs
 )
 
 find_package(PCL 1.7 REQUIRED)
