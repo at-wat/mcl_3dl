@@ -24,5 +24,6 @@
 		<param name="jump_dist" value="1.0" />
 		<param name="jump_ang" value="1.57" />
 		<param name="beam_likelihood" value="0.2" />
+		<param name="ang_total_ref" value="0.5" />
 	</node>
 </launch>
