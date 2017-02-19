@@ -8,6 +8,7 @@
 #include <sensor_msgs/Imu.h>
 #include <geometry_msgs/PoseArray.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
+#include <visualization_msgs/MarkerArray.h>
 
 #include <tf/transform_listener.h>
 #include <tf/transform_broadcaster.h>
@@ -45,6 +46,7 @@ private:
 	ros::Publisher pub_pose;
 	ros::Publisher pub_matched;
 	ros::Publisher pub_unmatched;
+	ros::Publisher pub_debug_marker;
 
 	tf::TransformListener tfl;
 	tf::TransformBroadcaster tfb;
@@ -647,6 +649,56 @@ private:
 		auto e = pf->max_biased();
 		e.rot.normalize();
 
+		{
+			visualization_msgs::MarkerArray markers;
+
+			*pc_particle_beam = *pc_local_beam;
+			e.transform(*pc_particle_beam);
+			for(auto &p: pc_particle_beam->points)
+			{
+				int beam_header_id = lroundf(p.intensity);
+				vec3 pos = e.pos + e.rot * origins[beam_header_id];
+				vec3 end(p.x, p.y, p.z);
+
+				visualization_msgs::Marker marker;
+				marker.header.frame_id = frame_ids["map"];
+				marker.header.stamp = msg->header.stamp;
+				marker.ns = "Rays";
+				marker.id = markers.markers.size();
+				marker.type= visualization_msgs::Marker::LINE_STRIP;
+				marker.action = 0;
+				marker.pose.position.x = 0.0;
+				marker.pose.position.y = 0.0;
+				marker.pose.position.z = 0.0;
+				marker.pose.orientation.x = 0.0;
+				marker.pose.orientation.y = 0.0;
+				marker.pose.orientation.z = 0.0;
+				marker.pose.orientation.w = 1.0;
+				marker.scale.x = marker.scale.y = marker.scale.z = 0.025;
+				marker.lifetime = ros::Duration(0.2);
+				marker.frame_locked = true;
+				marker.points.resize(2);
+				marker.points[0].x = pos.x;
+				marker.points[0].y = pos.y;
+				marker.points[0].z = pos.z;
+				marker.points[1].x = end.x;
+				marker.points[1].y = end.y;
+				marker.points[1].z = end.z;
+				marker.colors.resize(2);
+				marker.colors[0].a = 0.5;
+				marker.colors[0].r = 1.0;
+				marker.colors[0].g = 0.0;
+				marker.colors[0].b = 0.0;
+				marker.colors[1].a = 0.2;
+				marker.colors[1].r = 1.0;
+				marker.colors[1].g = 0.0;
+				marker.colors[1].b = 0.0;
+
+				markers.markers.push_back(marker);
+			}
+			pub_debug_marker.publish(markers);
+		}
+
 		vec3 map_pos;
 		quat map_rot;
 		map_pos = e.pos - e.rot * odom.rot.inv() * odom.pos;
@@ -899,12 +951,13 @@ public:
 		pub_particle = nh.advertise<geometry_msgs::PoseArray>("particles", 1, true);
 		pub_debug = nh.advertise<sensor_msgs::PointCloud>("debug", 5, true);
 		pub_mapcloud = nh.advertise<sensor_msgs::PointCloud2>("updated_map", 1, true);
+		pub_debug_marker = nh.advertise<visualization_msgs::MarkerArray>("debug_marker", 1, true);
 
 		nh.param("map_frame", frame_ids["map"], std::string("map"));
 		nh.param("robot_frame", frame_ids["base_link"], std::string("base_link"));
 		nh.param("odom_frame", frame_ids["odom"], std::string("odom"));
 		nh.param("clip_near", params.clip_near, 0.5);
-		nh.param("clip_far", params.clip_far, 8.0);
+		nh.param("clip_far", params.clip_far, 10.0);
 		params.clip_near_sq = pow(params.clip_near, 2.0);
 		params.clip_far_sq = pow(params.clip_far, 2.0);
 		nh.param("clip_z_min", params.clip_z_min, 0.0);
@@ -938,13 +991,13 @@ public:
 		weight_f[3] = 0.0;
 		point_rep.setRescaleValues(weight_f);
 
-		nh.param("num_particles", params.num_particles, 256);
+		nh.param("num_particles", params.num_particles, 64);
 		pf.reset(new pf::particle_filter<state>(params.num_particles));
-		nh.param("num_points", params.num_points, 32);
-		nh.param("num_points_beam", params.num_points_beam, 8);
+		nh.param("num_points", params.num_points, 96);
+		nh.param("num_points_beam", params.num_points_beam, 3);
 		
 		double beam_likelihood_a;
-		nh.param("beam_likelihood", beam_likelihood_a, 0.5);
+		nh.param("beam_likelihood", beam_likelihood_a, 0.2);
 		params.beam_likelihood = powf(beam_likelihood_a, 1.0 / (float)params.num_points_beam);
 		double ang_total_ref;
 		nh.param("ang_total_ref", ang_total_ref, M_PI / 6.0);
@@ -1003,8 +1056,8 @@ public:
 		f_acc[1].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0));
 		f_acc[2].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0));
 
-		nh.param("jump_dist", params.jump_dist, 2.0);
-		nh.param("jump_ang", params.jump_ang, 1.0);
+		nh.param("jump_dist", params.jump_dist, 1.0);
+		nh.param("jump_ang", params.jump_ang, 1.57);
 		nh.param("fix_dist", params.fix_dist, 0.2);
 		nh.param("fix_ang", params.fix_ang, 0.1);
 		nh.param("bias_var_dist", params.bias_var_dist, 2.0);
