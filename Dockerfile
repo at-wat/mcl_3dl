@@ -1,7 +1,7 @@
 FROM ros:kinetic
 
 RUN apt-get update && \
-	apt-get install -y --no-install-recommends sudo libeigen3-dev libpcl-dev libproj-dev libvtk5-dev libgtest-dev wget && \
+	apt-get install -y --no-install-recommends sudo libeigen3-dev libpcl-dev libproj-dev libgtest-dev wget && \
 	apt-get clean && \
 	rm -rf /var/lib/apt/lists/*
 
