@@ -1,6 +1,6 @@
 FROM ros:kinetic
 
-RUN apt-get update && \
+RUN apt-get -qq update && \
 	apt-get install -y --no-install-recommends sudo libeigen3-dev libpcl-dev libproj-dev libqtgui4 libgtest-dev wget && \
 	apt-get clean && \
 	rm -rf /var/lib/apt/lists/*
