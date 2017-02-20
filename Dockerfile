@@ -1,7 +1,7 @@
 FROM ros:kinetic
 
-RUN apt-get update && \
-	apt-get install -y --no-install-recommends sudo ros-kinetic-pcl-ros libgtest-dev wget && \
+RUN apt-get -qq update && \
+	apt-get install -y --no-install-recommends sudo libeigen3-dev libpcl-dev libproj-dev libqtgui4 libgtest-dev wget && \
 	apt-get clean && \
 	rm -rf /var/lib/apt/lists/*
 
