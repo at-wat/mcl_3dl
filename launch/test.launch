@@ -42,6 +42,7 @@
 		<remap from="/imu" to="/imu/data" />
 		<param name="base_link_id" value="/base_link" />
 		<param name="z_filter" value="1.0" />
+		<param name="tf_tolerance" value="0.1" />
 	</node>
 	<node pkg="trajectory_tracker" type="trajectory_recorder" name="path_recorder">
 		<param name="dist_interval" value="0.1" />
