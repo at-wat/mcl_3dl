@@ -54,6 +54,9 @@ private:
 	std::shared_ptr<filter> f_pos[3]; 
 	std::shared_ptr<filter> f_ang[3]; 
 	std::shared_ptr<filter> f_acc[3]; 
+	std::shared_ptr<filter> localize_rate; 
+	ros::Time localized_last;
+	ros::Duration tf_tolerance_base;
 
 	class parameters
 	{
@@ -104,6 +107,7 @@ private:
 		float beam_likelihood;
 		float sin_total_ref;
 		std::shared_ptr<ros::Duration> match_output_interval;
+		std::shared_ptr<ros::Duration> tf_tolerance;
 	} params;
 	int cnt_measure;
 	ros::Time match_output_last;
@@ -719,7 +723,7 @@ private:
 			state_prev = e;
 		}
 		tf::StampedTransform trans;
-		trans.stamp_ = ros::Time::now() + ros::Duration(0.2);
+		trans.stamp_ = ros::Time::now() + tf_tolerance_base + *params.tf_tolerance;
 		trans.frame_id_ = frame_ids["map"];
 		trans.child_frame_id_ = frame_ids["odom"];
 		auto rpy = map_rot.get_rpy();
@@ -746,9 +750,9 @@ private:
 		e.rot = map_rot * odom.rot;
 		e.pos = map_pos + e.rot * odom.rot.inv() * odom.pos;
 
-		trans.stamp_ = ros::Time::now() + ros::Duration(0.2);
+		trans.stamp_ = ros::Time::now() + tf_tolerance_base + *params.tf_tolerance;
 		trans.frame_id_ = frame_ids["map"];
-		trans.child_frame_id_ = "floor";
+		trans.child_frame_id_ = frame_ids["floor"];
 		trans.setOrigin(tf::Vector3(0.0, 0.0, e.pos.z));
 		trans.setRotation(tf::Quaternion(0.0, 0.0, 0.0, 1.0));
 		tfb.sendTransform(trans);
@@ -849,7 +853,7 @@ private:
 		}
 			
 		geometry_msgs::PoseArray pa;
-		pa.header.stamp = ros::Time::now();
+		pa.header.stamp = ros::Time::now() + tf_tolerance_base + *params.tf_tolerance;
 		pa.header.frame_id = frame_ids["map"];
 		for(size_t i = 0; i < pf->get_particle_size(); i ++)
 		{
@@ -883,6 +887,13 @@ private:
 				std::chrono::duration<float>(tnow - ts).count());
 		pc_local_accum.reset(new pcl::PointCloud<pcl::PointXYZI>);
 		pc_accum_header.clear();
+
+
+		ros::Time localized_current = ros::Time::now();
+		float dt = (localized_current - localized_last).toSec();
+		if(dt > 1.0) dt = 1.0;
+		tf_tolerance_base = ros::Duration(localize_rate->in(dt));
+		localized_last = localized_current;
 	}
 	ros::Time imu_last;
 	void cb_imu(const sensor_msgs::Imu::ConstPtr &msg)
@@ -956,6 +967,7 @@ public:
 		nh.param("map_frame", frame_ids["map"], std::string("map"));
 		nh.param("robot_frame", frame_ids["base_link"], std::string("base_link"));
 		nh.param("odom_frame", frame_ids["odom"], std::string("odom"));
+		nh.param("floor_frame", frame_ids["floor"], std::string("floor"));
 		nh.param("clip_near", params.clip_near, 0.5);
 		nh.param("clip_far", params.clip_far, 10.0);
 		params.clip_near_sq = pow(params.clip_near, 2.0);
@@ -1074,8 +1086,14 @@ public:
 		pub_matched = nh.advertise<sensor_msgs::PointCloud2>("matched", 2, true);
 		pub_unmatched = nh.advertise<sensor_msgs::PointCloud2>("unmatched", 2, true);
 
+		double tf_tolerance_t;
+		nh.param("tf_tolerance", tf_tolerance_t, 0.1);
+		params.tf_tolerance.reset(new ros::Duration(tf_tolerance_t));
+
 		has_odom = has_map = false;
 		match_output_last = ros::Time::now();
+		localize_rate.reset(new filter(filter::FILTER_LPF, 5.0, 0.0));
+		localized_last = ros::Time::now();
 	}
 	~mcl_3dl_node()
 	{
