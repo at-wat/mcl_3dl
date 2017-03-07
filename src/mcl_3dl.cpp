@@ -108,6 +108,7 @@ private:
 		float sin_total_ref;
 		std::shared_ptr<ros::Duration> match_output_interval;
 		std::shared_ptr<ros::Duration> tf_tolerance;
+		bool publish_tf;
 	} params;
 	int cnt_measure;
 	ros::Time match_output_last;
@@ -745,7 +746,9 @@ private:
 		map_pos.z = f_pos[2]->in(map_pos.z);
 		trans.setOrigin(tf::Vector3(map_pos.x, map_pos.y, map_pos.z));
 		trans.setRotation(tf::Quaternion(map_rot.x, map_rot.y, map_rot.z, map_rot.w));
-		tfb.sendTransform(trans);
+
+		std::vector<tf::StampedTransform> transforms;
+		transforms.push_back(trans);
 
 		e.rot = map_rot * odom.rot;
 		e.pos = map_pos + e.rot * odom.rot.inv() * odom.pos;
@@ -755,7 +758,10 @@ private:
 		trans.child_frame_id_ = frame_ids["floor"];
 		trans.setOrigin(tf::Vector3(0.0, 0.0, e.pos.z));
 		trans.setRotation(tf::Quaternion(0.0, 0.0, 0.0, 1.0));
-		tfb.sendTransform(trans);
+
+		transforms.push_back(trans);
+
+		if(params.publish_tf) tfb.sendTransform(transforms);
 
 		auto cov = pf->covariance();
 
@@ -1089,6 +1095,8 @@ public:
 		double tf_tolerance_t;
 		nh.param("tf_tolerance", tf_tolerance_t, 0.1);
 		params.tf_tolerance.reset(new ros::Duration(tf_tolerance_t));
+
+		nh.param("publish_tf", params.publish_tf, true);
 
 		has_odom = has_map = false;
 		match_output_last = ros::Time::now();
