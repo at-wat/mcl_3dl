@@ -67,6 +67,12 @@ private:
 		double clip_far_sq;
 		double clip_z_min;
 		double clip_z_max;
+		double clip_beam_near;
+		double clip_beam_far;
+		double clip_beam_near_sq;
+		double clip_beam_far_sq;
+		double clip_beam_z_min;
+		double clip_beam_z_max;
 		double map_clip_z_min;
 		double map_clip_z_max;
 		double map_downsample_x;
@@ -357,7 +363,7 @@ private:
 				state(
 					vec3(msg->pose.covariance[0], 
 						msg->pose.covariance[6*1+1],
-						msg->pose.covariance[6*2+2]),
+						msg->pose.covariance[6*2+2] + 1.0),
 					vec3(msg->pose.covariance[6*3+3],
 						msg->pose.covariance[6*4+4],
 						msg->pose.covariance[6*5+5])
@@ -544,6 +550,15 @@ private:
 		
 		pcl::PointCloud<pcl::PointXYZI>::Ptr pc_local_beam(new pcl::PointCloud<pcl::PointXYZI>);
 		*pc_local_beam = *pc_local;
+		pc_local_beam->points.erase(
+				std::remove_if(pc_local_beam->points.begin(), pc_local_beam->points.end(),
+					[&](const pcl::PointXYZI &p)
+					{
+						if(p.x*p.x + p.y*p.y > params.clip_beam_far_sq) return true;
+						if(p.x*p.x + p.y*p.y < params.clip_beam_near_sq) return true;
+						if(p.z < params.clip_beam_z_min || params.clip_beam_z_max < p.z) return true;
+						return false;
+					}), pc_local_beam->points.end());
 		float use_rate_beam = (float)params.num_points_beam / pc_local->points.size();
 		pc_local_beam->points.erase(
 				std::remove_if(pc_local_beam->points.begin(), pc_local_beam->points.end(),
@@ -607,14 +622,13 @@ private:
 						for(int i = 0; i < num - 1; i ++)
 						{
 							pos += inc;
-							if(i < 1) continue;
 							pcl::PointXYZI center;
 							center.x = pos.x;
 							center.y = pos.y;
 							center.z = pos.z;
 							center.intensity = 0.0;
 							if(kdtree->radiusSearch(center, 
-										params.map_grid_min, id, sqdist, 1))
+										params.map_grid_min / 2.0, id, sqdist, 1))
 							{
 								float d0 = sqrtf(sqdist[0]);
 								vec3 pos_prev = pos - (inc * 2.0);
@@ -628,7 +642,7 @@ private:
 
 								float sin_ang = (d1 - d0) / (inc.norm() * 2.0);
 								// reject total reflection
-								if(sin_ang < params.sin_total_ref)
+								if(sin_ang > params.sin_total_ref || fabs(d1 - d0) < 1e-6)
 								{
 									score_beam *= params.beam_likelihood;
 								}
@@ -972,8 +986,14 @@ public:
 		nh.param("clip_far", params.clip_far, 10.0);
 		params.clip_near_sq = pow(params.clip_near, 2.0);
 		params.clip_far_sq = pow(params.clip_far, 2.0);
-		nh.param("clip_z_min", params.clip_z_min, 0.0);
-		nh.param("clip_z_max", params.clip_z_max, 3.0);
+		nh.param("clip_z_min", params.clip_z_min, -2.0);
+		nh.param("clip_z_max", params.clip_z_max, 2.0);
+		nh.param("clip_beam_near", params.clip_beam_near, 0.5);
+		nh.param("clip_beam_far", params.clip_beam_far, 4.0);
+		params.clip_beam_near_sq = pow(params.clip_beam_near, 2.0);
+		params.clip_beam_far_sq = pow(params.clip_beam_far, 2.0);
+		nh.param("clip_beam_z_min", params.clip_beam_z_min, -2.0);
+		nh.param("clip_beam_z_max", params.clip_beam_z_max, 2.0);
 		nh.param("map_clip_z_min", params.map_clip_z_min, -3.0);
 		nh.param("map_clip_z_max", params.map_clip_z_max, 3.0);
 		nh.param("map_downsample_x", params.map_downsample_x, 0.1);
