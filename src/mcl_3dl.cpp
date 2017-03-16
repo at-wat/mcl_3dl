@@ -112,6 +112,7 @@ private:
 		double bias_var_ang;
 		float beam_likelihood;
 		float sin_total_ref;
+		double acc_var;
 		std::shared_ptr<ros::Duration> match_output_interval;
 		std::shared_ptr<ros::Duration> tf_tolerance;
 	} params;
@@ -945,7 +946,7 @@ private:
 				return;
 			}
 			float acc_measure_norm = acc_measure.norm();
-			normal_likelihood<float> nd(M_PI / 12.0); // 15 deg
+			normal_likelihood<float> nd(params.acc_var);
 			pf->measure([&](const state &s)->float
 					{
 						vec3 acc_estim = s.rot.inv() * vec3(0.0, 0.0, 1.0);
@@ -1087,6 +1088,7 @@ public:
 		f_acc[0].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0));
 		f_acc[1].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0));
 		f_acc[2].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0));
+		nh.param("acc_var", params.acc_var, M_PI / 6.0); // 30 deg
 
 		nh.param("jump_dist", params.jump_dist, 1.0);
 		nh.param("jump_ang", params.jump_ang, 1.57);
