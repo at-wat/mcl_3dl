@@ -111,6 +111,7 @@ private:
 		double bias_var_dist;
 		double bias_var_ang;
 		float beam_likelihood;
+		double beam_likelihood_min;
 		float sin_total_ref;
 		double acc_var;
 		std::shared_ptr<ros::Duration> match_output_interval;
@@ -651,6 +652,8 @@ private:
 							}
 						}
 					}
+					if(score_beam < params.beam_likelihood_min)
+						score_beam = params.beam_likelihood_min;
 					
 					return score_like * score_beam;
 				});
@@ -1029,9 +1032,8 @@ public:
 		nh.param("num_points", params.num_points, 96);
 		nh.param("num_points_beam", params.num_points_beam, 3);
 		
-		double beam_likelihood_a;
-		nh.param("beam_likelihood", beam_likelihood_a, 0.2);
-		params.beam_likelihood = powf(beam_likelihood_a, 1.0 / (float)params.num_points_beam);
+		nh.param("beam_likelihood", params.beam_likelihood_min, 0.2);
+		params.beam_likelihood = powf(params.beam_likelihood_min, 1.0 / (float)params.num_points_beam);
 		double ang_total_ref;
 		nh.param("ang_total_ref", ang_total_ref, M_PI / 6.0);
 		params.sin_total_ref = sinf(ang_total_ref);
