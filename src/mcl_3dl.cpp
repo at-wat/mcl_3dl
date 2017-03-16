@@ -364,7 +364,7 @@ private:
 				state(
 					vec3(msg->pose.covariance[0], 
 						msg->pose.covariance[6*1+1],
-						msg->pose.covariance[6*2+2] + 1.0),
+						msg->pose.covariance[6*2+2]),
 					vec3(msg->pose.covariance[6*3+3],
 						msg->pose.covariance[6*4+4],
 						msg->pose.covariance[6*5+5])
