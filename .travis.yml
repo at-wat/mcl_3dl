@@ -15,6 +15,7 @@ branches:
     - master
 
 before_install:
+  - .travis.scripts/update_docker.sh
   - .travis.scripts/load_cache.sh
   - .travis.scripts/cache_dataset.sh
 
@@ -22,6 +23,6 @@ install: true
 
 script:
   - docker info
-  - docker build --storage-driver=overlay2 -t docker-mcl3dl:latest --pull=true ${TRAVIS_BUILD_DIR}
+  - docker build -t docker-mcl3dl:latest --pull=true ${TRAVIS_BUILD_DIR}
   - .travis.scripts/save_cache.sh
 
