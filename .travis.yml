@@ -21,6 +21,7 @@ before_install:
 install: true
 
 script:
-  - docker build -t docker-mcl3dl:latest --pull=true ${TRAVIS_BUILD_DIR}
+  - docker info
+  - docker build --storage-driver=overlay2 -t docker-mcl3dl:latest --pull=true ${TRAVIS_BUILD_DIR}
   - .travis.scripts/save_cache.sh
 
