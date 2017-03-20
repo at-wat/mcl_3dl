@@ -111,6 +111,7 @@ private:
 		double bias_var_dist;
 		double bias_var_ang;
 		float beam_likelihood;
+		double beam_likelihood_min;
 		float sin_total_ref;
 		double acc_var;
 		std::shared_ptr<ros::Duration> match_output_interval;
@@ -118,6 +119,7 @@ private:
 	} params;
 	int cnt_measure;
 	ros::Time match_output_last;
+	bool output_pcd;
 
 	class state: public pf::particleBase<float>
 	{
@@ -287,6 +289,7 @@ private:
 	pcl::PointCloud<pcl::PointXYZI>::Ptr pc_map;
 	pcl::PointCloud<pcl::PointXYZI>::Ptr pc_map2;
 	pcl::PointCloud<pcl::PointXYZI>::Ptr pc_update;
+	pcl::PointCloud<pcl::PointXYZI>::Ptr pc_all_accum;
 	pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtree;
 	pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtree_orig;
 	void cb_mapcloud(const sensor_msgs::PointCloud2::ConstPtr &msg)
@@ -303,6 +306,7 @@ private:
 		ds.setLeafSize(params.map_downsample_x, params.map_downsample_y, params.map_downsample_z);
 		ds.filter(*pc_map);
 		pc_local_accum.reset(new pcl::PointCloud<pcl::PointXYZI>);
+		pc_all_accum.reset(new pcl::PointCloud<pcl::PointXYZI>);
 		frame_num = 0;
 		has_map = true;
 
@@ -651,6 +655,8 @@ private:
 							}
 						}
 					}
+					if(score_beam < params.beam_likelihood_min)
+						score_beam = params.beam_likelihood_min;
 					
 					return score_like * score_beam;
 				});
@@ -821,6 +827,8 @@ private:
 			}
 		}
 		pub_debug.publish(pc);
+		
+		if(output_pcd) *pc_all_accum += *pc_particle;
 
 		if(msg->header.stamp - match_output_last > *params.match_output_interval &&
 				(pub_matched.getNumSubscribers() > 0 || pub_unmatched.getNumSubscribers() > 0))
@@ -1029,9 +1037,8 @@ public:
 		nh.param("num_points", params.num_points, 96);
 		nh.param("num_points_beam", params.num_points_beam, 3);
 		
-		double beam_likelihood_a;
-		nh.param("beam_likelihood", beam_likelihood_a, 0.2);
-		params.beam_likelihood = powf(beam_likelihood_a, 1.0 / (float)params.num_points_beam);
+		nh.param("beam_likelihood", params.beam_likelihood_min, 0.2);
+		params.beam_likelihood = powf(params.beam_likelihood_min, 1.0 / (float)params.num_points_beam);
 		double ang_total_ref;
 		nh.param("ang_total_ref", ang_total_ref, M_PI / 6.0);
 		params.sin_total_ref = sinf(ang_total_ref);
@@ -1112,6 +1119,8 @@ public:
 		nh.param("tf_tolerance", tf_tolerance_t, 0.1);
 		params.tf_tolerance.reset(new ros::Duration(tf_tolerance_t));
 
+		nh.param("output_pcd", output_pcd, false);
+
 		has_odom = has_map = false;
 		match_output_last = ros::Time::now();
 		localize_rate.reset(new filter(filter::FILTER_LPF, 5.0, 0.0));
@@ -1157,6 +1166,16 @@ public:
 					pcl::toROSMsg(*pc_map2, out);
 					pub_mapcloud.publish(out);
 				}
+			}
+		}
+		if(output_pcd)
+		{
+
+			if(pc_all_accum)
+			{
+				std::cerr << "mcl_3dl: saving pcd file.";
+				std::cerr << " (" << (int)pc_all_accum->points.size() << " points)" << std::endl;
+				pcl::io::savePCDFileBinary("mcl_3dl.pcd", *pc_all_accum);
 			}
 		}
 	}
