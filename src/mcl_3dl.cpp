@@ -783,7 +783,7 @@ private:
 		geometry_msgs::PoseWithCovarianceStamped pose;
 		pose.header.stamp = trans.stamp_;
 		pose.header.frame_id = trans.frame_id_;
-		pose.pose.pose.position.x = e.pos.x + 1.0;
+		pose.pose.pose.position.x = e.pos.x;
 		pose.pose.pose.position.y = e.pos.y;
 		pose.pose.pose.position.z = e.pos.z;
 		pose.pose.pose.orientation.x = e.rot.x;
