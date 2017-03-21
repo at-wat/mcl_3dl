@@ -80,26 +80,25 @@ namespace pf
 			FLT_TYPE pstep = accum / particles.size();
 			FLT_TYPE pscan = 0;
 			auto it = particles_dup.begin();
-			auto it_prev = particles_dup.end();
+			auto it_prev = particles_dup.begin();
 
 			FLT_TYPE prob = 1.0 / particles.size();
 			for(auto &p: particles)
 			{
 				pscan += pstep;
 				it = std::lower_bound(it, particles_dup.end(), particle(pscan));
-				particle p0 = *it;
-				if(it == it_prev)
-				{
-					p.state = p0.state + p0.state.generate_noise(engine, T(), sigma);
-					p.state.normalize();
-				}
-				else if(it == particles_dup.end())
+				if(it == particles_dup.end())
 				{
 					p.state = it_prev->state;
 				}
+				else if(it == it_prev)
+				{
+					p.state = it->state + it->state.generate_noise(engine, T(), sigma);
+					p.state.normalize();
+				}
 				else
 				{
-					p.state = p0.state;
+					p.state = it->state;
 				}
 				it_prev = it;
 				p.probability = prob;
