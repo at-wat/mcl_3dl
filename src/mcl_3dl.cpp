@@ -120,6 +120,7 @@ private:
 	int cnt_measure;
 	ros::Time match_output_last;
 	bool output_pcd;
+	bool publish_tf;
 
 	class state: public pf::particleBase<float>
 	{
@@ -766,22 +767,26 @@ private:
 		map_pos.z = f_pos[2]->in(map_pos.z);
 		trans.setOrigin(tf::Vector3(map_pos.x, map_pos.y, map_pos.z));
 		trans.setRotation(tf::Quaternion(map_rot.x, map_rot.y, map_rot.z, map_rot.w));
-		tfb.sendTransform(trans);
+
+		std::vector<tf::StampedTransform> transforms;
+		transforms.push_back(trans);
 
 		e.rot = map_rot * odom.rot;
 		e.pos = map_pos + e.rot * odom.rot.inv() * odom.pos;
 
-		trans.stamp_ = ros::Time::now() + tf_tolerance_base + *params.tf_tolerance;
 		trans.frame_id_ = frame_ids["map"];
 		trans.child_frame_id_ = frame_ids["floor"];
 		trans.setOrigin(tf::Vector3(0.0, 0.0, e.pos.z));
 		trans.setRotation(tf::Quaternion(0.0, 0.0, 0.0, 1.0));
-		tfb.sendTransform(trans);
+
+		transforms.push_back(trans);
+
+		if(publish_tf) tfb.sendTransform(transforms);
 
 		auto cov = pf->covariance();
 
 		geometry_msgs::PoseWithCovarianceStamped pose;
-		pose.header.stamp = trans.stamp_;
+		pose.header.stamp = msg->header.stamp;
 		pose.header.frame_id = trans.frame_id_;
 		pose.pose.pose.position.x = e.pos.x;
 		pose.pose.pose.position.y = e.pos.y;
@@ -1116,9 +1121,10 @@ public:
 		pub_unmatched = nh.advertise<sensor_msgs::PointCloud2>("unmatched", 2, true);
 
 		double tf_tolerance_t;
-		nh.param("tf_tolerance", tf_tolerance_t, 0.1);
+		nh.param("tf_tolerance", tf_tolerance_t, 0.05);
 		params.tf_tolerance.reset(new ros::Duration(tf_tolerance_t));
 
+		nh.param("publish_tf", publish_tf, true);
 		nh.param("output_pcd", output_pcd, false);
 
 		has_odom = has_map = false;

@@ -1,0 +1,19 @@
+<launch>
+	<param name="use_sim_time" value="true" />
+
+	<node pkg="rosbag" type="play" name="playback" args="--clock -r 3.0 -d 4.0 @PROJECT_BINARY_DIR@/test/short_test.bag" />
+
+	<test test-name="compare_tf" pkg="mcl_3dl" type="compare_tf" time-limit="30.0">
+	</test>
+	
+	<node pkg="rostopic" type="rostopic" name="set_initial" args="pub -1 -f @PROJECT_BINARY_DIR@/test/short_test_ref.topic /compare_pose/poses_ref nav_msgs/Path" />
+
+	<node pkg="mcl_3dl" type="mcl_3dl" name="mcl_3dl" output="log">
+		<remap from="~/cloud" to="/cloud" />
+		<remap from="~/mapcloud" to="/mapcloud" />
+		<remap from="~/odom" to="/odom" />
+		<remap from="~/imu" to="/imu/data" />
+		<remap from="~/initialpose" to="/initialpose" />
+		<param name="skip_measure" value="2" />
+	</node>
+</launch>

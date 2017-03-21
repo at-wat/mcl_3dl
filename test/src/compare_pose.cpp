@@ -7,7 +7,7 @@
 TEST(compare_pose, compare)
 {
 	ros::NodeHandle nh("~");
-
+	
 	nav_msgs::Path path;
 	size_t i_path;
 
@@ -63,6 +63,7 @@ TEST(compare_pose, compare)
 		ros::spinOnce();
 		wait.sleep();
 	}
+	fprintf(stderr, "compare_pose finished\n");
 }
 
 
