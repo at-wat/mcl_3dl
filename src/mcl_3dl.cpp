@@ -67,6 +67,12 @@ private:
 		double clip_far_sq;
 		double clip_z_min;
 		double clip_z_max;
+		double clip_beam_near;
+		double clip_beam_far;
+		double clip_beam_near_sq;
+		double clip_beam_far_sq;
+		double clip_beam_z_min;
+		double clip_beam_z_max;
 		double map_clip_z_min;
 		double map_clip_z_max;
 		double map_downsample_x;
@@ -105,13 +111,16 @@ private:
 		double bias_var_dist;
 		double bias_var_ang;
 		float beam_likelihood;
+		double beam_likelihood_min;
 		float sin_total_ref;
+		double acc_var;
 		std::shared_ptr<ros::Duration> match_output_interval;
 		std::shared_ptr<ros::Duration> tf_tolerance;
-		bool publish_tf;
 	} params;
 	int cnt_measure;
 	ros::Time match_output_last;
+	bool output_pcd;
+	bool publish_tf;
 
 	class state: public pf::particleBase<float>
 	{
@@ -281,6 +290,7 @@ private:
 	pcl::PointCloud<pcl::PointXYZI>::Ptr pc_map;
 	pcl::PointCloud<pcl::PointXYZI>::Ptr pc_map2;
 	pcl::PointCloud<pcl::PointXYZI>::Ptr pc_update;
+	pcl::PointCloud<pcl::PointXYZI>::Ptr pc_all_accum;
 	pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtree;
 	pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtree_orig;
 	void cb_mapcloud(const sensor_msgs::PointCloud2::ConstPtr &msg)
@@ -297,6 +307,7 @@ private:
 		ds.setLeafSize(params.map_downsample_x, params.map_downsample_y, params.map_downsample_z);
 		ds.filter(*pc_map);
 		pc_local_accum.reset(new pcl::PointCloud<pcl::PointXYZI>);
+		pc_all_accum.reset(new pcl::PointCloud<pcl::PointXYZI>);
 		frame_num = 0;
 		has_map = true;
 
@@ -545,6 +556,15 @@ private:
 		
 		pcl::PointCloud<pcl::PointXYZI>::Ptr pc_local_beam(new pcl::PointCloud<pcl::PointXYZI>);
 		*pc_local_beam = *pc_local;
+		pc_local_beam->points.erase(
+				std::remove_if(pc_local_beam->points.begin(), pc_local_beam->points.end(),
+					[&](const pcl::PointXYZI &p)
+					{
+						if(p.x*p.x + p.y*p.y > params.clip_beam_far_sq) return true;
+						if(p.x*p.x + p.y*p.y < params.clip_beam_near_sq) return true;
+						if(p.z < params.clip_beam_z_min || params.clip_beam_z_max < p.z) return true;
+						return false;
+					}), pc_local_beam->points.end());
 		float use_rate_beam = (float)params.num_points_beam / pc_local->points.size();
 		pc_local_beam->points.erase(
 				std::remove_if(pc_local_beam->points.begin(), pc_local_beam->points.end(),
@@ -608,14 +628,13 @@ private:
 						for(int i = 0; i < num - 1; i ++)
 						{
 							pos += inc;
-							if(i < 1) continue;
 							pcl::PointXYZI center;
 							center.x = pos.x;
 							center.y = pos.y;
 							center.z = pos.z;
 							center.intensity = 0.0;
 							if(kdtree->radiusSearch(center, 
-										params.map_grid_min, id, sqdist, 1))
+										params.map_grid_min / 2.0, id, sqdist, 1))
 							{
 								float d0 = sqrtf(sqdist[0]);
 								vec3 pos_prev = pos - (inc * 2.0);
@@ -629,7 +648,7 @@ private:
 
 								float sin_ang = (d1 - d0) / (inc.norm() * 2.0);
 								// reject total reflection
-								if(sin_ang < params.sin_total_ref)
+								if(sin_ang > params.sin_total_ref || fabs(d1 - d0) < 1e-6)
 								{
 									score_beam *= params.beam_likelihood;
 								}
@@ -637,6 +656,8 @@ private:
 							}
 						}
 					}
+					if(score_beam < params.beam_likelihood_min)
+						score_beam = params.beam_likelihood_min;
 					
 					return score_like * score_beam;
 				});
@@ -761,7 +782,7 @@ private:
 
 		transforms.push_back(trans);
 
-		if(params.publish_tf) tfb.sendTransform(transforms);
+		if(publish_tf) tfb.sendTransform(transforms);
 
 		auto cov = pf->covariance();
 
@@ -812,6 +833,8 @@ private:
 			}
 		}
 		pub_debug.publish(pc);
+		
+		if(output_pcd) *pc_all_accum += *pc_particle;
 
 		if(msg->header.stamp - match_output_last > *params.match_output_interval &&
 				(pub_matched.getNumSubscribers() > 0 || pub_unmatched.getNumSubscribers() > 0))
@@ -937,7 +960,7 @@ private:
 				return;
 			}
 			float acc_measure_norm = acc_measure.norm();
-			normal_likelihood<float> nd(M_PI / 12.0); // 15 deg
+			normal_likelihood<float> nd(params.acc_var);
 			pf->measure([&](const state &s)->float
 					{
 						vec3 acc_estim = s.rot.inv() * vec3(0.0, 0.0, 1.0);
@@ -978,8 +1001,14 @@ public:
 		nh.param("clip_far", params.clip_far, 10.0);
 		params.clip_near_sq = pow(params.clip_near, 2.0);
 		params.clip_far_sq = pow(params.clip_far, 2.0);
-		nh.param("clip_z_min", params.clip_z_min, 0.0);
-		nh.param("clip_z_max", params.clip_z_max, 3.0);
+		nh.param("clip_z_min", params.clip_z_min, -2.0);
+		nh.param("clip_z_max", params.clip_z_max, 2.0);
+		nh.param("clip_beam_near", params.clip_beam_near, 0.5);
+		nh.param("clip_beam_far", params.clip_beam_far, 4.0);
+		params.clip_beam_near_sq = pow(params.clip_beam_near, 2.0);
+		params.clip_beam_far_sq = pow(params.clip_beam_far, 2.0);
+		nh.param("clip_beam_z_min", params.clip_beam_z_min, -2.0);
+		nh.param("clip_beam_z_max", params.clip_beam_z_max, 2.0);
 		nh.param("map_clip_z_min", params.map_clip_z_min, -3.0);
 		nh.param("map_clip_z_max", params.map_clip_z_max, 3.0);
 		nh.param("map_downsample_x", params.map_downsample_x, 0.1);
@@ -1014,9 +1043,8 @@ public:
 		nh.param("num_points", params.num_points, 96);
 		nh.param("num_points_beam", params.num_points_beam, 3);
 		
-		double beam_likelihood_a;
-		nh.param("beam_likelihood", beam_likelihood_a, 0.2);
-		params.beam_likelihood = powf(beam_likelihood_a, 1.0 / (float)params.num_points_beam);
+		nh.param("beam_likelihood", params.beam_likelihood_min, 0.2);
+		params.beam_likelihood = powf(params.beam_likelihood_min, 1.0 / (float)params.num_points_beam);
 		double ang_total_ref;
 		nh.param("ang_total_ref", ang_total_ref, M_PI / 6.0);
 		params.sin_total_ref = sinf(ang_total_ref);
@@ -1073,6 +1101,7 @@ public:
 		f_acc[0].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0));
 		f_acc[1].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0));
 		f_acc[2].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0));
+		nh.param("acc_var", params.acc_var, M_PI / 6.0); // 30 deg
 
 		nh.param("jump_dist", params.jump_dist, 1.0);
 		nh.param("jump_ang", params.jump_ang, 1.57);
@@ -1096,7 +1125,8 @@ public:
 		nh.param("tf_tolerance", tf_tolerance_t, 0.1);
 		params.tf_tolerance.reset(new ros::Duration(tf_tolerance_t));
 
-		nh.param("publish_tf", params.publish_tf, true);
+		nh.param("publish_tf", publish_tf, true);
+		nh.param("output_pcd", output_pcd, false);
 
 		has_odom = has_map = false;
 		match_output_last = ros::Time::now();
@@ -1143,6 +1173,16 @@ public:
 					pcl::toROSMsg(*pc_map2, out);
 					pub_mapcloud.publish(out);
 				}
+			}
+		}
+		if(output_pcd)
+		{
+
+			if(pc_all_accum)
+			{
+				std::cerr << "mcl_3dl: saving pcd file.";
+				std::cerr << " (" << (int)pc_all_accum->points.size() << " points)" << std::endl;
+				pcl::io::savePCDFileBinary("mcl_3dl.pcd", *pc_all_accum);
 			}
 		}
 	}
