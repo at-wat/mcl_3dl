@@ -745,7 +745,7 @@ private:
 			state_prev = e;
 		}
 		tf::StampedTransform trans;
-		trans.stamp_ = ros::Time::now() + tf_tolerance_base + *params.tf_tolerance;
+		trans.stamp_ = msg->header.stamp + tf_tolerance_base + *params.tf_tolerance;
 		trans.frame_id_ = frame_ids["map"];
 		trans.child_frame_id_ = frame_ids["odom"];
 		auto rpy = map_rot.get_rpy();
@@ -774,7 +774,7 @@ private:
 		e.rot = map_rot * odom.rot;
 		e.pos = map_pos + e.rot * odom.rot.inv() * odom.pos;
 
-		trans.stamp_ = ros::Time::now() + tf_tolerance_base + *params.tf_tolerance;
+		trans.stamp_ = msg->header.stamp + tf_tolerance_base + *params.tf_tolerance;
 		trans.frame_id_ = frame_ids["map"];
 		trans.child_frame_id_ = frame_ids["floor"];
 		trans.setOrigin(tf::Vector3(0.0, 0.0, e.pos.z));
@@ -787,7 +787,7 @@ private:
 		auto cov = pf->covariance();
 
 		geometry_msgs::PoseWithCovarianceStamped pose;
-		pose.header.stamp = trans.stamp_;
+		pose.header.stamp = msg->header.stamp;
 		pose.header.frame_id = trans.frame_id_;
 		pose.pose.pose.position.x = e.pos.x;
 		pose.pose.pose.position.y = e.pos.y;
@@ -1122,7 +1122,7 @@ public:
 		pub_unmatched = nh.advertise<sensor_msgs::PointCloud2>("unmatched", 2, true);
 
 		double tf_tolerance_t;
-		nh.param("tf_tolerance", tf_tolerance_t, 0.1);
+		nh.param("tf_tolerance", tf_tolerance_t, 0.05);
 		params.tf_tolerance.reset(new ros::Duration(tf_tolerance_t));
 
 		nh.param("publish_tf", publish_tf, true);

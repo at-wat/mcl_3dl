@@ -45,7 +45,7 @@ TEST(compare_tf, compare)
 			cnt ++;
 			if(cnt >= cnt_max) ros::shutdown();
 
-			ASSERT_FALSE(error > 0.01)
+			ASSERT_FALSE(error > 0.05)
 				<< "tf output diverges from amcl_pose.";
 		};
 	ros::Subscriber sub_pose = nh.subscribe("/amcl_pose", 1, cb_pose);
