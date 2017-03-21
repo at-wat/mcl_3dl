@@ -745,7 +745,7 @@ private:
 			state_prev = e;
 		}
 		tf::StampedTransform trans;
-		trans.stamp_ = msg->header.stamp + tf_tolerance_base + *params.tf_tolerance;
+		trans.stamp_ = ros::Time::now() + tf_tolerance_base + *params.tf_tolerance;
 		trans.frame_id_ = frame_ids["map"];
 		trans.child_frame_id_ = frame_ids["odom"];
 		auto rpy = map_rot.get_rpy();
@@ -774,7 +774,6 @@ private:
 		e.rot = map_rot * odom.rot;
 		e.pos = map_pos + e.rot * odom.rot.inv() * odom.pos;
 
-		trans.stamp_ = msg->header.stamp + tf_tolerance_base + *params.tf_tolerance;
 		trans.frame_id_ = frame_ids["map"];
 		trans.child_frame_id_ = frame_ids["floor"];
 		trans.setOrigin(tf::Vector3(0.0, 0.0, e.pos.z));
