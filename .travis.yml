@@ -22,6 +22,6 @@ before_install:
 install: true
 
 script:
-  - docker build -t docker-mcl3dl:latest --pull=true ${TRAVIS_BUILD_DIR}
+  - docker build -t docker-mcl3dl:latest --pull=true ${TRAVIS_BUILD_DIR} --build-arg TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST} --build-arg TRAVIS_REPO_SLUG=${TRAVIS_REPO_SLUG} --build-arg TRAVIS_BOT_GITHUB_TOKEN=${TRAVIS_BOT_GITHUB_TOKEN}
   - .travis.scripts/save_cache.sh
 
