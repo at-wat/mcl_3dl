@@ -5,10 +5,10 @@ set -o verbose
 
 function post_error()
 {
-	if [[ ${TRAVIS_PULL_REQUEST} == "true" ]];
+	if [[ ${TRAVIS_PULL_REQUEST} != "false" ]];
 	then
 		curl -X POST -H 'Content-Type:application/json' -d "{\"body\":\"** Travis-CI status notifier\n\n$1\"}" \
-			https://api.github.com/repos/${TRAVIS_PULL_REQUEST_SLUG}/pull/${TRAVIS_PULL_REQUEST}/comments?access_token=${TRAVIS_BOT_GITHUB_TOKEN}
+			https://api.github.com/repos/${TRAVIS_REPO_SLUG}/pull/${TRAVIS_PULL_REQUEST}/comments?access_token=${TRAVIS_BOT_GITHUB_TOKEN}
 	fi
 }
 
