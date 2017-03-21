@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 
-find_package(catkin REQUIRED COMPONENTS roscpp rostest nav_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp rostest nav_msgs tf)
 
 
 if(MCL_3DL_EXTRA_TESTS)
