@@ -27,13 +27,13 @@ rosdep install --from-paths src/mcl_3dl --ignore-src --rosdistro=${ROS_DISTRO} -
 apt-get clean && \
 rm -rf /var/lib/apt/lists/*
 
-catkin_make || post_error('```catkin_make``` failed') || false
-catkin_make tests --cmake-args -DMCL_3DL_EXTRA_TESTS:=ON || post_error('```catkin_make tests``` failed') || false
-catkin_make run_tests  --cmake-args -DMCL_3DL_EXTRA_TESTS:=ON || post_error('```catkin_make run_tests``` failed') || false
+catkin_make || post_error '```catkin_make``` failed' || false
+catkin_make tests --cmake-args -DMCL_3DL_EXTRA_TESTS:=ON || post_error '```catkin_make tests``` failed' || false
+catkin_make run_tests  --cmake-args -DMCL_3DL_EXTRA_TESTS:=ON || post_error '```catkin_make run_tests``` failed' || false
 
-catkin_test_results || post_error('Test failed') || false
+catkin_test_results || post_error 'Test failed' || false
 
-post_error('All tests passed')
+post_error 'All tests passed'
 
 cd ..
 rm -rf /catkin_ws || true
