@@ -1057,9 +1057,9 @@ public:
 		nh.param("resample_var_yaw", params.resample_var_yaw, 0.05);
 
 		nh.param("odom_err_lin_lin", params.odom_err_lin_lin, 0.1);
-		nh.param("odom_err_lin_ang", params.odom_err_lin_ang, 0.05);
+		nh.param("odom_err_lin_ang", params.odom_err_lin_ang, 0.25);
 		nh.param("odom_err_ang_lin", params.odom_err_ang_lin, 0.1);
-		nh.param("odom_err_ang_ang", params.odom_err_ang_ang, 0.1);
+		nh.param("odom_err_ang_ang", params.odom_err_ang_ang, 0.2);
 
 		double x, y, z;
 		double roll, pitch, yaw;
@@ -1096,11 +1096,11 @@ public:
 		f_ang[1].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0, true));
 		f_ang[2].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0, true));
 		
-		nh.param("acc_lpf_step", lpf_step, 48.0);
+		nh.param("acc_lpf_step", lpf_step, 128.0);
 		f_acc[0].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0));
 		f_acc[1].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0));
 		f_acc[2].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0));
-		nh.param("acc_var", params.acc_var, M_PI / 6.0); // 30 deg
+		nh.param("acc_var", params.acc_var, M_PI / 4.0); // 45 deg
 
 		nh.param("jump_dist", params.jump_dist, 1.0);
 		nh.param("jump_ang", params.jump_ang, 1.57);
