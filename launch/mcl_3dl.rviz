@@ -29,7 +29,7 @@ Panels:
     Experimental: true
     Name: Time
     SyncMode: 0
-    SyncSource: PointCloud2
+    SyncSource: ""
 Visualization Manager:
   Class: ""
   Displays:
@@ -57,6 +57,7 @@ Visualization Manager:
       Enabled: true
       Name: PoseArray
       Topic: /mcl_3dl/particles
+      Unreliable: false
       Value: true
     - Class: rviz/Axes
       Enabled: true
@@ -90,7 +91,8 @@ Visualization Manager:
       Size (Pixels): 4
       Size (m): 0.1
       Style: Flat Squares
-      Topic: /obj_to_pointcloud/cloud
+      Topic: /mcl_3dl/updated_map
+      Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
@@ -120,6 +122,7 @@ Visualization Manager:
       Size (m): 0.02
       Style: Flat Squares
       Topic: /mcl_3dl/matched
+      Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
@@ -149,6 +152,7 @@ Visualization Manager:
       Size (m): 0.02
       Style: Flat Squares
       Topic: /mcl_3dl/unmatched
+      Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
@@ -157,6 +161,9 @@ Visualization Manager:
       Class: rviz/Path
       Color: 25; 255; 0
       Enabled: true
+      Head Diameter: 0.3
+      Head Length: 0.2
+      Length: 0.3
       Line Style: Lines
       Line Width: 0.03
       Name: Path
@@ -164,81 +171,34 @@ Visualization Manager:
         X: 0
         Y: 0
         Z: 0
+      Pose Style: None
+      Radius: 0.03
+      Shaft Diameter: 0.1
+      Shaft Length: 0.1
       Topic: /path_recorder/recpath
+      Unreliable: false
       Value: true
     - Class: rviz/TF
       Enabled: true
       Frame Timeout: 15
       Frames:
         All Enabled: true
-        base_link:
-          Value: true
-        base_link_projected:
-          Value: true
-        floor:
-          Value: true
-        front_left_in:
-          Value: true
-        front_left_out:
-          Value: true
-        front_right_in:
-          Value: true
-        front_right_out:
-          Value: true
-        hokuyo3d_front:
-          Value: true
-        hokuyo3d_rear:
-          Value: true
-        imu_link:
-          Value: true
-        map:
-          Value: true
-        odom:
-          Value: true
-        rear_left_in:
-          Value: true
-        rear_left_out:
-          Value: true
-        rear_right_in:
-          Value: true
-        rear_right_out:
-          Value: true
-        thermal_camera:
-          Value: true
       Marker Scale: 0.5
       Name: TF
       Show Arrows: false
       Show Axes: true
       Show Names: false
       Tree:
-        map:
-          floor:
-            {}
-          odom:
-            base_link:
-              front_left_in:
-                front_left_out:
-                  {}
-              front_right_in:
-                front_right_out:
-                  {}
-              hokuyo3d_front:
-                {}
-              hokuyo3d_rear:
-                {}
-              imu_link:
-                {}
-              rear_left_in:
-                rear_left_out:
-                  {}
-              rear_right_in:
-                rear_right_out:
-                  {}
-              thermal_camera:
-                {}
-            base_link_projected:
-              {}
+        {}
       Update Interval: 0
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /mcl_3dl/debug_marker
+      Name: MarkerArray
+      Namespaces:
+        {}
+      Queue Size: 100
       Value: true
   Enabled: true
   Global Options:
@@ -297,5 +257,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1920
-  X: -10
-  Y: 19
+  X: 0
+  Y: 27
