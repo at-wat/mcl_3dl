@@ -30,13 +30,13 @@
 		/odom_raw (Raw wheel odometry)
 	-->
 
-	<group ns="mcl_3dl" if="$arg without_odom)">
-		<param name="num_particles" value="256" />
-		<param name="resample_var_x" value="0.2" />
-		<param name="resample_var_y" value="0.2" />
-		<param name="resample_var_z" value="0.1" />
-		<param name="match_dist_min" value="0.8" />
-		<param name="lpf_step" value="8.0" />
+	<group if="$(arg without_odom)">
+		<param name="/mcl_3dl/num_particles" value="256" />
+		<param name="/mcl_3dl/resample_var_x" value="0.2" />
+		<param name="/mcl_3dl/resample_var_y" value="0.2" />
+		<param name="/mcl_3dl/resample_var_z" value="0.1" />
+		<param name="/mcl_3dl/match_dist_min" value="0.8" />
+		<param name="/mcl_3dl/lpf_step" value="8.0" />
 	</group>
 
 	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find mcl_3dl)/launch/mcl_3dl.rviz" />
