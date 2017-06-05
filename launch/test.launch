@@ -46,6 +46,7 @@
 		<remap from="~/odom" to="/odom" />
 		<remap from="~/imu" to="/imu/data" />
 		<remap from="~/initialpose" to="/initialpose" />
+		<param name="accum_cloud" value="2" />
 	</node>
 	<node pkg="obj_to_pointcloud" type="obj_to_pointcloud" name="obj_to_pointcloud"
 			if="$(arg use_cad_map)">

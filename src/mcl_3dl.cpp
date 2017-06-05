@@ -106,6 +106,7 @@ private:
 		int num_points;
 		int num_points_beam;
 		int skip_measure;
+		int accum_cloud;
 		double match_output_dist;
 		double unmatch_output_dist;
 		double bias_var_dist;
@@ -118,6 +119,7 @@ private:
 		std::shared_ptr<ros::Duration> tf_tolerance;
 	} params;
 	int cnt_measure;
+	int cnt_accum;
 	ros::Time match_output_last;
 	bool output_pcd;
 	bool publish_tf;
@@ -477,6 +479,9 @@ private:
 		//ROS_INFO("cloud %s  %d/%d", msg->header.frame_id.c_str(), frame_num, frames_v.size());
 
 		if(frame_num != 0) return;
+
+		cnt_accum ++;
+		if(cnt_accum % params.accum_cloud != 0) return;
 
 		cnt_measure ++;
 		if(cnt_measure % params.skip_measure != 0)
@@ -1111,6 +1116,8 @@ public:
 
 		nh.param("skip_measure", params.skip_measure, 1);
 		cnt_measure = 0;
+		nh.param("accum_cloud", params.accum_cloud, 1);
+		cnt_accum = 0;
 
 		nh.param("match_output_dist", params.match_output_dist, 0.1);
 		nh.param("unmatch_output_dist", params.unmatch_output_dist, 0.5);
