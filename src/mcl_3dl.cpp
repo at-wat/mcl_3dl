@@ -745,7 +745,7 @@ private:
 			state_prev = e;
 		}
 		tf::StampedTransform trans;
-		trans.stamp_ = msg->header.stamp + tf_tolerance_base + *params.tf_tolerance;
+		trans.stamp_ = odom_last + tf_tolerance_base + *params.tf_tolerance;
 		trans.frame_id_ = frame_ids["map"];
 		trans.child_frame_id_ = frame_ids["odom"];
 		auto rpy = map_rot.get_rpy();
@@ -881,7 +881,7 @@ private:
 		}
 			
 		geometry_msgs::PoseArray pa;
-		pa.header.stamp = msg->header.stamp + tf_tolerance_base + *params.tf_tolerance;
+		pa.header.stamp = odom_last + tf_tolerance_base + *params.tf_tolerance;
 		pa.header.frame_id = frame_ids["map"];
 		for(size_t i = 0; i < pf->get_particle_size(); i ++)
 		{
