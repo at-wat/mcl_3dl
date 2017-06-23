@@ -1,4 +1,4 @@
-FROM ros:kinetic
+FROM ros:kinetic-ros-core
 
 RUN apt-get -qq update && \
 	apt-get install -y --no-install-recommends sudo libeigen3-dev libpcl-dev libproj-dev libqtgui4 libgtest-dev wget curl && \
