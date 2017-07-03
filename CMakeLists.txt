@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(mcl_3dl)
 
 find_package(catkin REQUIRED COMPONENTS
-	roscpp std_msgs message_generation sensor_msgs pcl_ros visualization_msgs
+	roscpp std_msgs message_generation sensor_msgs pcl_ros visualization_msgs roslint rostest
 )
 
 find_package(PCL 1.7 REQUIRED)
@@ -26,15 +26,19 @@ endif()
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O1")
 
 
-include_directories(${catkin_INCLUDE_DIRS} ${PCL_INCLUDE_DIR} src)
+include_directories(${catkin_INCLUDE_DIRS} ${PCL_INCLUDE_DIR} include)
 link_directories(${PCL_LIBRARY_DIR})
 add_definitions(${PCL_DEFINITIONS})
 
 add_executable(mcl_3dl src/mcl_3dl.cpp)
 target_link_libraries(mcl_3dl ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
+
+roslint_cpp()
+
 if(CATKIN_ENABLE_TESTING)
 	add_subdirectory(test)
+  roslint_add_test()
 endif()
 
 install(TARGETS ${PROJECT_NAME}
