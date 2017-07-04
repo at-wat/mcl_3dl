@@ -7,7 +7,8 @@ function post_error()
 {
 	if [[ ${TRAVIS_PULL_REQUEST} != "false" ]];
 	then
-		curl -X POST -H 'Content-Type:application/json' -d "{\"body\":\"## Travis-CI status notifier bot [$1]\n\n$2\"}" \
+    text=`echo "$2" | sed -n '1h;1!H;${x;s/\n/\\\\n/g;p;}' | sed 's/\"/\\\\"/g'`
+		curl -X POST -H 'Content-Type:application/json' -d "{\"body\":\"## Travis-CI status notifier bot [$1]\n\n$text\"}" \
 			https://api.github.com/repos/${TRAVIS_REPO_SLUG}/issues/${TRAVIS_PULL_REQUEST}/comments?access_token=${TRAVIS_BOT_GITHUB_TOKEN}
 	fi
 }
@@ -31,9 +32,14 @@ catkin_make || (post_error FAILED '```catkin_make``` failed'; false)
 catkin_make tests --cmake-args -DMCL_3DL_EXTRA_TESTS:=ON || (post_error FAILED '```catkin_make tests``` failed'; false)
 catkin_make run_tests  --cmake-args -DMCL_3DL_EXTRA_TESTS:=ON || (post_error FAILED '```catkin_make run_tests``` failed'; false)
 
-catkin_test_results || (post_error FAILED 'Test failed'; false)
+result_text="
+\`\`\`
+`catkin_test_results --all`
+\`\`\`
+"
+catkin_test_results || (post_error FAILED "Test failed$result_text"; false)
 
-post_error PASSED 'All tests passed'
+post_error PASSED "All tests passed$result_text"
 
 cd ..
 rm -rf /catkin_ws || true
