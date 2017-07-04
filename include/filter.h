@@ -30,6 +30,8 @@
 #ifndef FILTER_H
 #define FILTER_H
 
+#include <cmath>
+
 class filter
 {
 public:
@@ -85,12 +87,20 @@ public:
   float in(const float &i)
   {
     float in = i;
+    assert(std::isfinite(in));
+
     if (angle)
     {
       in = out + remainder(in - out, M_PI * 2.0);
     }
     x = k[0] * in + k[1] * x;
     out = k[2] * in + k[3] * x;
+
+    assert(std::isfinite(out));
+    return out;
+  }
+  float get()
+  {
     return out;
   }
 };

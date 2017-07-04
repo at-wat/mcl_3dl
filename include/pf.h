@@ -34,6 +34,7 @@
 #include <vector>
 #include <algorithm>
 #include <functional>
+#include <cmath>
 
 namespace pf
 {
@@ -165,15 +166,24 @@ public:
   }
   void measure(std::function<FLT_TYPE(const T &)> likelihood)
   {
+    auto particles_prev = particles;  // backup old
     FLT_TYPE sum = 0;
     for (auto &p : particles)
     {
       p.probability *= likelihood(p.state);
       sum += p.probability;
     }
-    for (auto &p : particles)
+    if (sum > 0.0)
     {
-      p.probability /= sum;
+      for (auto &p : particles)
+      {
+        p.probability /= sum;
+      }
+    }
+    else
+    {
+      particles = particles_prev;
+      // std::cerr << "No particle alive, restoring." << std::endl;
     }
   }
   T expectation(const FLT_TYPE pass_ratio = 1.0)
