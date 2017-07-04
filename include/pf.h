@@ -56,13 +56,6 @@ public:
     }
     return ret;
   }
-  void weight(const FLT_TYPE &s)
-  {
-    for (size_t i = 0; i < size(); i++)
-    {
-      (*this)[i] = (*this)[i] * s;
-    }
-  }
   template <typename T>
   FLT_TYPE cov_element(
       const T &e, const size_t &j, const size_t &k)
@@ -88,6 +81,74 @@ private:
 };
 
 template <typename T, typename FLT_TYPE = float>
+class particle
+{
+public:
+  particle()
+  {
+    probability = 0.0;
+    probability_bias = 0.0;
+  }
+  explicit particle(FLT_TYPE prob)
+  {
+    accum_probability = prob;
+  }
+  T state;
+  FLT_TYPE probability;
+  FLT_TYPE probability_bias;
+  FLT_TYPE accum_probability;
+  const bool operator<(const particle &p2) const
+  {
+    return this->accum_probability < p2.accum_probability;
+  }
+};
+
+template <typename T, typename FLT_TYPE = float>
+class particle_weighted_mean
+{
+protected:
+  T e_;
+  FLT_TYPE p_sum_;
+
+public:
+  particle_weighted_mean()
+    : e_(), p_sum_(0.0)
+  {
+  }
+
+  void add(const T &s, const FLT_TYPE &prob)
+  {
+    p_sum_ += prob;
+
+    T e1 = s;
+    for (size_t i = 0; i < e1.size(); i++)
+    {
+      e1[i] = e1[i] * prob;
+    }
+    e_ = e1 + e_;
+  }
+
+  T get_mean()
+  {
+    assert(p_sum_ > 0.0);
+
+    T s = e_;
+
+    for (size_t i = 0; i < s.size(); i++)
+    {
+      s[i] = s[i] / p_sum_;
+    }
+
+    return s;
+  }
+
+  FLT_TYPE get_total_probability()
+  {
+    return p_sum_;
+  }
+};
+
+template <typename T, typename FLT_TYPE = float, typename MEAN = particle_weighted_mean<T, FLT_TYPE>>
 class particle_filter
 {
 public:
@@ -125,7 +186,7 @@ public:
     for (auto &p : particles)
     {
       pscan += pstep;
-      it = std::lower_bound(it, particles_dup.end(), particle(pscan));
+      it = std::lower_bound(it, particles_dup.end(), particle<T, FLT_TYPE>(pscan));
       if (it == particles_dup.end())
       {
         p.state = it_prev->state;
@@ -188,22 +249,27 @@ public:
   }
   T expectation(const FLT_TYPE pass_ratio = 1.0)
   {
-    T e;
-    FLT_TYPE p_sum = 0;
+    MEAN mean;
 
     if (pass_ratio < 1.0)
       std::sort(particles.rbegin(), particles.rend());
     for (auto &p : particles)
     {
-      T e1 = p.state;
-      e1.weight(p.probability);
-      e = e1 + e;
-      p_sum += p.probability;
-      if (p_sum > pass_ratio)
+      mean.add(p.state, p.probability);
+      if (mean.get_total_probability() > pass_ratio)
         break;
     }
-    e.weight(1.0f / p_sum);
-    return e;
+    return mean.get_mean();
+  }
+  T expectation_biased()
+  {
+    MEAN mean;
+
+    for (auto &p : particles)
+    {
+      mean.add(p.state, p.probability * p.probability_bias);
+    }
+    return mean.get_mean();
   }
   std::vector<T> covariance(const FLT_TYPE pass_ratio = 1.0)
   {
@@ -267,9 +333,10 @@ public:
         particles[0].probability * particles[0].probability_bias;
     for (auto &p : particles)
     {
-      if (max_probability < p.probability * p.probability_bias)
+      const FLT_TYPE prob = p.probability * p.probability_bias;
+      if (max_probability < prob)
       {
-        max_probability = p.probability * p.probability_bias;
+        max_probability = prob;
         m = &p.state;
       }
     }
@@ -284,30 +351,9 @@ public:
     return particles.size();
   }
 
-private:
-  class particle
-  {
-  public:
-    particle()
-    {
-      probability = 0.0;
-      probability_bias = 0.0;
-    }
-    explicit particle(FLT_TYPE prob)
-    {
-      accum_probability = prob;
-    }
-    T state;
-    FLT_TYPE probability;
-    FLT_TYPE probability_bias;
-    FLT_TYPE accum_probability;
-    const bool operator<(const particle &p2) const
-    {
-      return this->accum_probability < p2.accum_probability;
-    }
-  };
-  std::vector<particle> particles;
-  std::vector<particle> particles_dup;
+protected:
+  std::vector<particle<T, FLT_TYPE>> particles;
+  std::vector<particle<T, FLT_TYPE>> particles_dup;
   std::random_device seed_gen;
   std::default_random_engine engine;
   T ie;

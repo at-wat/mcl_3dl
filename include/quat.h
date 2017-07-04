@@ -30,6 +30,8 @@
 #ifndef QUAT_H
 #define QUAT_H
 
+#include <algorithm>
+
 #include <vec3.h>
 
 class quat
@@ -50,6 +52,23 @@ public:
   quat(const vec3 &axis, const float &ang)
   {
     set_axis_ang(axis, ang);
+  }
+  quat(const vec3 &forward, const vec3 &up_raw)
+  {
+    const vec3 xv = forward.normalized();
+    const vec3 yv = up_raw.cross(xv).normalized();
+    const vec3 zv = xv.cross(yv).normalized();
+
+    w = sqrtf(std::max(0.0, 1.0 + xv.x + yv.y + zv.z)) / 2.0;
+    x = sqrtf(std::max(0.0, 1.0 + xv.x - yv.y - zv.z)) / 2.0;
+    y = sqrtf(std::max(0.0, 1.0 - xv.x + yv.y - zv.z)) / 2.0;
+    z = sqrtf(std::max(0.0, 1.0 - xv.x - yv.y + zv.z)) / 2.0;
+    if (zv.y - yv.z > 0)
+      x = -x;
+    if (xv.z - zv.x > 0)
+      y = -y;
+    if (yv.x - xv.y > 0)
+      z = -z;
   }
   explicit quat(const vec3 &rpy)
   {
