@@ -31,9 +31,15 @@ catkin_make || (post_error FAILED '```catkin_make``` failed'; false)
 catkin_make tests --cmake-args -DMCL_3DL_EXTRA_TESTS:=ON || (post_error FAILED '```catkin_make tests``` failed'; false)
 catkin_make run_tests  --cmake-args -DMCL_3DL_EXTRA_TESTS:=ON || (post_error FAILED '```catkin_make run_tests``` failed'; false)
 
-catkin_test_results || (post_error FAILED "Test failed\n\`\`\`\n`catkin_test_results --all`\n\`\`\`"; false)
+quate='```'
+result=`catkin_test_results --all`
+result_text="
+$quate
+$result
+$quate"
+catkin_test_results || (post_error FAILED "Test failed$result_text"; false)
 
-post_error PASSED "All tests passed\n\`\`\`\n`catkin_test_results --all`\n\`\`\`"
+post_error PASSED "All tests passed$result_text"
 
 cd ..
 rm -rf /catkin_ws || true
