@@ -603,8 +603,25 @@ private:
         continue;
       num_valid++;
     }
-    const float use_rate = static_cast<float>(params.num_points) / num_valid;
-    auto local_points_filter = [this, &ud, &use_rate](const pcl::PointXYZI &p)
+    auto random_sample = [this](
+        const pcl::PointCloud<pcl::PointXYZI>::Ptr &pc, const size_t &num)
+        -> pcl::PointCloud<pcl::PointXYZI>::Ptr
+    {
+      pcl::PointCloud<pcl::PointXYZI>::Ptr output(new pcl::PointCloud<pcl::PointXYZI>);
+      std::uniform_int_distribution<size_t> ud(0, pc->points.size() - 1);
+
+      for (size_t i = 0; i < num; i++)
+      {
+        output->points.push_back(pc->points[ud(engine)]);
+      }
+      output->width = 1;
+      output->height = output->points.size();
+      output->header.frame_id = pc->header.frame_id;
+      output->header.stamp = pc->header.stamp;
+
+      return output;
+    };
+    auto local_points_filter = [this](const pcl::PointXYZI &p)
     {
       if (p.x * p.x + p.y * p.y > params.clip_far_sq)
         return true;
@@ -612,13 +629,14 @@ private:
         return true;
       if (p.z < params.clip_z_min || params.clip_z_max < p.z)
         return true;
-      return ud(engine) > use_rate;
+      return false;
     };
     pc_local->points.erase(
         std::remove_if(pc_local->points.begin(), pc_local->points.end(), local_points_filter),
         pc_local->points.end());
     pc_local->width = 1;
     pc_local->height = pc_local->points.size();
+    pc_local = random_sample(pc_local, static_cast<size_t>(params.num_points));
 
     pcl::PointCloud<pcl::PointXYZI>::Ptr pc_local_beam(new pcl::PointCloud<pcl::PointXYZI>);
     *pc_local_beam = *pc_local;
@@ -630,23 +648,18 @@ private:
         return true;
       if (p.z < params.clip_beam_z_min || params.clip_beam_z_max < p.z)
         return true;
+      if (p.intensity - roundf(p.intensity) > 0.01)
+        return true;
       return false;
     };
     pc_local_beam->points.erase(
         std::remove_if(pc_local_beam->points.begin(), pc_local_beam->points.end(), local_beam_filter),
         pc_local_beam->points.end());
-    float use_rate_beam = static_cast<float>(params.num_points_beam) / pc_local->points.size();
-    auto local_beam_rate = [this, &use_rate_beam, &ud](const pcl::PointXYZI &p)
-    {
-      if (p.intensity - roundf(p.intensity) > 0.01)
-        return true;
-      return ud(engine) > use_rate_beam;
-    };
-    pc_local_beam->points.erase(
-        std::remove_if(pc_local_beam->points.begin(), pc_local_beam->points.end(), local_beam_rate),
-        pc_local_beam->points.end());
     pc_local_beam->width = 1;
     pc_local_beam->height = pc_local_beam->points.size();
+    pc_local_beam = random_sample(pc_local_beam, static_cast<size_t>(params.num_points_beam));
+
+    assert(pc_local_beam->points.size() > 0 && pc_local->points.size() > 0);
 
     pcl::PointCloud<pcl::PointXYZI>::Ptr pc_particle(new pcl::PointCloud<pcl::PointXYZI>);
     pcl::PointCloud<pcl::PointXYZI>::Ptr pc_particle_beam(new pcl::PointCloud<pcl::PointXYZI>);
@@ -739,10 +752,20 @@ private:
       vec3 axis;
       float ang_diff;
       (s.rot * state_prev.rot.inv()).get_axis_ang(axis, ang_diff);
-      p_bias = nl_lin(lin_diff) * nl_ang(ang_diff);
+      p_bias = nl_lin(lin_diff) * nl_ang(ang_diff) + 1e-6;
+      assert(std::isfinite(p_bias));
     };
     pf->bias(bias_func);
     auto e = pf->max_biased();
+
+    assert(std::isfinite(e.pos.x));
+    assert(std::isfinite(e.pos.y));
+    assert(std::isfinite(e.pos.z));
+    assert(std::isfinite(e.rot.x));
+    assert(std::isfinite(e.rot.y));
+    assert(std::isfinite(e.rot.z));
+    assert(std::isfinite(e.rot.w));
+
     e.rot.normalize();
 
     {
@@ -843,6 +866,14 @@ private:
 
     e.rot = map_rot * odom.rot;
     e.pos = map_pos + e.rot * odom.rot.inv() * odom.pos;
+
+    assert(std::isfinite(e.pos.x));
+    assert(std::isfinite(e.pos.y));
+    assert(std::isfinite(e.pos.z));
+    assert(std::isfinite(e.rot.x));
+    assert(std::isfinite(e.rot.y));
+    assert(std::isfinite(e.rot.z));
+    assert(std::isfinite(e.rot.w));
 
     trans.frame_id_ = frame_ids["map"];
     trans.child_frame_id_ = frame_ids["floor"];
@@ -1221,7 +1252,7 @@ public:
         map_update_interval_start = now;
         if (has_map)
         {
-          const auto e = pf->expectation(1.0);
+          const auto e = state_prev;
           *pc_map2 = *pc_map + *pc_update;
 
           auto pc_map_filter = [this, &e](const pcl::PointXYZI &p)
