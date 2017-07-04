@@ -305,21 +305,46 @@ private:
       ret.rot = a.rot * rot;
       return ret;
     }
-    void weight(const float &s)
+  };
+  class particle_weighted_mean_quat : public pf::particle_weighted_mean<state, float>
+  {
+  protected:
+    vec3 front_sum_;
+    vec3 up_sum_;
+
+  public:
+    particle_weighted_mean_quat()
+      : particle_weighted_mean(), front_sum_(0.0, 0.0, 0.0), up_sum_(0.0, 0.0, 0.0)
     {
-      for (size_t i = 0; i < size(); i++)
-      {
-        if (3 <= i && i <= 6)
-          continue;
-        (*this)[i] = (*this)[i] * s;
-      }
-      vec3 axis;
-      float ang;
-      rot.get_axis_ang(axis, ang);
-      rot.set_axis_ang(axis, ang * s);
+    }
+
+    void add(const state &s, const float &prob)
+    {
+      p_sum_ += prob;
+
+      state e1 = s;
+      e_.pos += e1.pos * prob;
+
+      const vec3 front = s.rot * vec3(1.0, 0.0, 0.0) * prob;
+      const vec3 up = s.rot * vec3(0.0, 0.0, 1.0) * prob;
+
+      front_sum_ += front;
+      up_sum_ += up;
+    }
+
+    state get_mean()
+    {
+      assert(p_sum_ > 0.0);
+
+      return state(e_.pos / p_sum_, quat(front_sum_, up_sum_));
+    }
+
+    float get_total_probability()
+    {
+      return p_sum_;
     }
   };
-  std::shared_ptr<pf::particle_filter<state>> pf;
+  std::shared_ptr<pf::particle_filter<state, float, particle_weighted_mean_quat>> pf;
 
   class MyPointRepresentation : public pcl::PointRepresentation<pcl::PointXYZI>
   {
@@ -756,7 +781,7 @@ private:
       assert(std::isfinite(p_bias));
     };
     pf->bias(bias_func);
-    auto e = pf->max_biased();
+    auto e = pf->expectation_biased();
 
     assert(std::isfinite(e.pos.x));
     assert(std::isfinite(e.pos.y));
@@ -1140,7 +1165,7 @@ public:
     point_rep.setRescaleValues(weight_f);
 
     nh.param("num_particles", params.num_particles, 64);
-    pf.reset(new pf::particle_filter<state>(params.num_particles));
+    pf.reset(new pf::particle_filter<state, float, particle_weighted_mean_quat>(params.num_particles));
     nh.param("num_points", params.num_points, 96);
     nh.param("num_points_beam", params.num_points_beam, 3);
 

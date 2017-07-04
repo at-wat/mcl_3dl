@@ -98,13 +98,33 @@ public:
     *this = *this * q;
     return *this;
   }
+  vec3 &operator*=(const float &s)
+  {
+    *this = *this * s;
+    return *this;
+  }
+  vec3 &operator/=(const float &s)
+  {
+    *this = *this / s;
+    return *this;
+  }
   float dot(const vec3 &q) const
   {
     return x * q.x + y * q.y + z * q.z;
   }
+  vec3 cross(const vec3 &q) const
+  {
+    return vec3(y * q.z - z * q.y,
+                z * q.x - x * q.z,
+                x * q.y - y * q.x);
+  }
   float norm() const
   {
     return sqrtf(dot(*this));
+  }
+  vec3 normalized() const
+  {
+    return *this / norm();
   }
 };
 
