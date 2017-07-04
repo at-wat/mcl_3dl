@@ -34,7 +34,7 @@ catkin_make run_tests  --cmake-args -DMCL_3DL_EXTRA_TESTS:=ON || (post_error FAI
 
 result_text="
 \`\`\`
-`catkin_test_results --all`
+`catkin_test_results --all || true`
 \`\`\`
 "
 catkin_test_results || (post_error FAILED "Test failed$result_text"; false)
