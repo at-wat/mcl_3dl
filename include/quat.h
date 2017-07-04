@@ -30,6 +30,8 @@
 #ifndef QUAT_H
 #define QUAT_H
 
+#include <algorithm>
+
 #include <vec3.h>
 
 class quat
