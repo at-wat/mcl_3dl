@@ -866,7 +866,7 @@ private:
 
     e.rot = map_rot * odom.rot;
     e.pos = map_pos + e.rot * odom.rot.inv() * odom.pos;
-
+ 
     assert(std::isfinite(e.pos.x));
     assert(std::isfinite(e.pos.y));
     assert(std::isfinite(e.pos.z));
