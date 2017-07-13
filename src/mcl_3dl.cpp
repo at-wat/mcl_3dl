@@ -684,7 +684,8 @@ private:
     pc_local_beam->height = pc_local_beam->points.size();
     pc_local_beam = random_sample(pc_local_beam, static_cast<size_t>(params.num_points_beam));
 
-    assert(pc_local_beam->points.size() > 0 && pc_local->points.size() > 0);
+    assert(pc_local_beam->points.size() == params.num_points_beam &&
+           pc_local->points.size() == params.num_points);
 
     pcl::PointCloud<pcl::PointXYZI>::Ptr pc_particle(new pcl::PointCloud<pcl::PointXYZI>);
     pcl::PointCloud<pcl::PointXYZI>::Ptr pc_particle_beam(new pcl::PointCloud<pcl::PointXYZI>);
