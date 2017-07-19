@@ -65,7 +65,7 @@
 class MCL3dlNode
 {
 protected:
-  class parameters
+  class Parameters
   {
   public:
     double clip_near;
@@ -132,12 +132,13 @@ protected:
     Vec3 pos;
     Quat rot;
     bool diff;
-    struct twist
+    class Twist
     {
+    public:
       Vec3 lin;
       Vec3 ang;
     };
-    twist vel;
+    Twist vel;
     class RPYVec
     {
     public:
@@ -222,7 +223,7 @@ protected:
       this->vel.ang = ang;
       diff = false;
     };
-    bool is_diff()
+    bool isDiff()
     {
       return diff;
     }
@@ -242,7 +243,7 @@ protected:
         State mean, State sigma)
     {
       State noise;
-      if (mean.is_diff() || !sigma.is_diff())
+      if (mean.isDiff() || !sigma.isDiff())
       {
         ROS_ERROR("Failed to generate noise. mean must be Quat and sigma must be rpy vec.");
       }
@@ -1287,7 +1288,7 @@ protected:
   ros::Time localized_last_;
   ros::Duration tf_tolerance_base_;
 
-  parameters params_;
+  Parameters params_;
   std::map<std::string, std::string> frame_ids_;
   bool output_pcd_;
   bool publish_tf_;
