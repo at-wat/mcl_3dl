@@ -27,19 +27,110 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <ros/ros.h>
-
-#include <vec3.h>
+#include <cstddef>
+#include <cmath>
 
 #include <gtest/gtest.h>
+
+#include <vec3.h>
 
 TEST(Vec3Test, testOperators)
 {
   const Vec3 a(1.0, 2.0, 3.0);
+
+  // Test ==,!= operators
   ASSERT_TRUE(Vec3(1.0, 2.0, 3.0) == a);
-  ASSERT_FALSE(Vec3(1.1, 2.0, 3.0) == a);
   ASSERT_FALSE(Vec3(1.0, 2.0, 3.0) != a);
+
   ASSERT_TRUE(Vec3(1.1, 2.0, 3.0) != a);
+  ASSERT_FALSE(Vec3(1.1, 2.0, 3.0) == a);
+  ASSERT_TRUE(Vec3(1.0, 2.1, 3.0) != a);
+  ASSERT_FALSE(Vec3(1.0, 2.1, 3.0) == a);
+  ASSERT_TRUE(Vec3(1.0, 2.0, 3.1) != a);
+  ASSERT_FALSE(Vec3(1.0, 2.0, 3.1) == a);
+  ASSERT_TRUE(Vec3(1.1, 2.1, 3.0) != a);
+  ASSERT_FALSE(Vec3(1.1, 2.1, 3.0) == a);
+  ASSERT_TRUE(Vec3(1.0, 2.1, 3.1) != a);
+  ASSERT_FALSE(Vec3(1.0, 2.1, 3.1) == a);
+  ASSERT_TRUE(Vec3(1.1, 2.0, 3.1) != a);
+  ASSERT_FALSE(Vec3(1.1, 2.0, 3.1) == a);
+  ASSERT_TRUE(Vec3(1.1, 2.1, 3.1) != a);
+  ASSERT_FALSE(Vec3(1.1, 2.1, 3.1) == a);
+
+  // Test +, -, +=, -= operators
+  Vec3 a_plus = a;
+  Vec3 a_minus = a;
+  a_plus += Vec3(0.5, -0.5, 1.0);
+  a_minus -= Vec3(0.5, -0.5, 1.0);
+  ASSERT_TRUE(a + Vec3(0.5, -0.5, 1.0) == Vec3(1.5, 1.5, 4.0));
+  ASSERT_TRUE(a + Vec3(0.5, -0.5, 1.0) == a_plus);
+  ASSERT_TRUE(a - Vec3(0.5, -0.5, 1.0) == Vec3(0.5, 2.5, 2.0));
+  ASSERT_TRUE(a - Vec3(0.5, -0.5, 1.0) == a_minus);
+
+  // Test -() operator
+  ASSERT_TRUE(-a == Vec3(-1.0, -2.0, -3.0));
+
+  // Test scalar *, / operators
+  Vec3 a_mul = a;
+  Vec3 a_div = a;
+  a_mul *= 0.5;
+  a_div /= 2.0;
+  ASSERT_TRUE(a * 0.5 == Vec3(0.5, 1.0, 1.5));
+  ASSERT_TRUE(a / 2.0 == a * 0.5);
+  ASSERT_TRUE(a * 0.5 == a_mul);
+  ASSERT_TRUE(a / 2.0 == a_div);
+}
+
+TEST(Vec3Test, testTimes)
+{
+  // Check times operation (element-by-element multiplication)
+  const Vec3 a(1.0, 2.0, 3.0);
+  const Vec3 b(-4.0, 5.0, 6.0);
+  ASSERT_TRUE(a.times(b) == Vec3(-4.0, 10.0, 18.0));
+}
+
+TEST(Vec3Test, testNorm)
+{
+  // Check norm operations
+  const Vec3 a(1.0, 2.0, 3.0);
+  const Vec3 b(-4.0, 5.0, 6.0);
+  ASSERT_LT(fabs(a.norm() - 3.741657), 1e-6);
+  ASSERT_LT(fabs(b.norm() - 8.774964), 1e-6);
+  ASSERT_LT(fabs(a.normalized().norm() - 1.0), 1e-6);
+  ASSERT_LT(fabs(b.normalized().norm() - 1.0), 1e-6);
+}
+
+TEST(Vec3Test, testProducts)
+{
+  // Check cross and dot products
+  const int num_samples = 8;
+  const Vec3 samples[num_samples] =
+      {
+        Vec3(1.5, 2.5, 3.5),
+        Vec3(-0.5, 1.0, 1.0),
+        Vec3(0.5, -1.0, 2.0),
+        Vec3(0.5, 1.0, -2.0),
+        Vec3(-2.0, -5.0, 4.0),
+        Vec3(2.0, -5.0, -4.0),
+        Vec3(-2.0, 5.0, -4.0),
+        Vec3(-3.0, -1.0, -2.0)
+      };
+
+  for (int i = 0; i < num_samples; ++i)
+  {
+    for (int j = 0; j < num_samples; ++j)
+    {
+      const Vec3 &a = samples[i];
+      const Vec3 &b = samples[j];
+
+      // Check dot products based on the distributive property
+      ASSERT_LT((a - b).dot(a - b) - a.dot(a) - b.dot(b) + 2.0 * a.dot(b), 1e-6);
+
+      // Check cross products based on the geometric meaning
+      ASSERT_LT(a.dot(a.cross(b)), 1e-6);
+      ASSERT_LT(a.dot(a.cross(b)), 1e-6);
+    }
+  }
 }
 
 int main(int argc, char **argv)
