@@ -1,7 +1,7 @@
 mcl_3dl:
   map_frame: "map"
-  accum_cloud: 2
-  lpf_step: 8.0
+  accum_cloud: 1
+  lpf_step: 0.0
   num_particles: 256
   resample_var_x: 0.2
   resample_var_y: 0.2
