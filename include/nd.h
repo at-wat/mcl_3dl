@@ -31,22 +31,22 @@
 #define ND_H
 
 template <typename FLT_TYPE = float>
-class normal_likelihood
+class NormalLikelihood
 {
 public:
-  explicit normal_likelihood(const FLT_TYPE sigma)
+  explicit NormalLikelihood(const FLT_TYPE sigma)
   {
-    a = 1.0 / sqrtf(2.0 * sigma * sigma);
-    sq2 = sigma * sigma * 2.0;
+    a_ = 1.0 / sqrtf(2.0 * sigma * sigma);
+    sq2_ = sigma * sigma * 2.0;
   }
   FLT_TYPE operator()(const FLT_TYPE x)
   {
-    return a * expf(-x * x / sq2);
+    return a_ * expf(-x * x / sq2_);
   }
 
 private:
-  FLT_TYPE a;
-  FLT_TYPE sq2;
+  FLT_TYPE a_;
+  FLT_TYPE sq2_;
 };
 
 #endif  // ND_H

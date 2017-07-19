@@ -160,7 +160,7 @@ private:
   {
   public:
     vec3 pos;
-    quat rot;
+    Quat rot;
     bool diff;
     struct twist
     {
@@ -232,7 +232,7 @@ private:
     {
       diff = false;
     };
-    state(const vec3 pos, const quat rot)
+    state(const vec3 pos, const Quat rot)
     {
       this->pos = pos;
       this->rot = rot;
@@ -244,7 +244,7 @@ private:
       this->rpy = rpy_vec(rpy);
       diff = true;
     };
-    state(const vec3 pos, const quat rot, const vec3 lin, const vec3 ang)
+    state(const vec3 pos, const Quat rot, const vec3 lin, const vec3 ang)
     {
       this->pos = pos;
       this->rot = rot;
@@ -274,7 +274,7 @@ private:
       state noise;
       if (mean.is_diff() || !sigma.is_diff())
       {
-        ROS_ERROR("Failed to generate noise. mean must be quat and sigma must be rpy vec.");
+        ROS_ERROR("Failed to generate noise. mean must be Quat and sigma must be rpy vec.");
       }
       for (size_t i = 0; i < size(); i++)
       {
@@ -289,7 +289,7 @@ private:
         std::normal_distribution<float> nd(0.0, sigma.rpy.v[i]);
         rpy_noise[i] = nd(engine);
       }
-      noise.rot = quat(rpy_noise) * mean.rot;
+      noise.rot = Quat(rpy_noise) * mean.rot;
       return noise;
     }
     state operator+(const state &a)
@@ -336,7 +336,7 @@ private:
     {
       assert(p_sum_ > 0.0);
 
-      return state(e_.pos / p_sum_, quat(front_sum_, up_sum_));
+      return state(e_.pos / p_sum_, Quat(front_sum_, up_sum_));
     }
 
     float get_total_probability()
@@ -439,7 +439,7 @@ private:
     pf->init(
         state(
             vec3(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z),
-            quat(pose.pose.orientation.x,
+            Quat(pose.pose.orientation.x,
                  pose.pose.orientation.y,
                  pose.pose.orientation.z,
                  pose.pose.orientation.w)),
@@ -467,7 +467,7 @@ private:
             vec3(msg->pose.pose.position.x,
                  msg->pose.pose.position.y,
                  msg->pose.pose.position.z),
-            quat(msg->pose.pose.orientation.x,
+            Quat(msg->pose.pose.orientation.x,
                  msg->pose.pose.orientation.y,
                  msg->pose.pose.orientation.z,
                  msg->pose.pose.orientation.w));
@@ -482,11 +482,11 @@ private:
       {
         // ROS_INFO("dt %0.3f", dt);
         vec3 v = odom_prev.rot.inv() * (odom.pos - odom_prev.pos);
-        quat r = odom.rot * odom_prev.rot.inv();
-        r.rotate_axis(odom_prev.rot.inv());
+        Quat r = odom.rot * odom_prev.rot.inv();
+        r.rotateAxis(odom_prev.rot.inv());
         vec3 axis;
         float ang;
-        r.get_axis_ang(axis, ang);
+        r.getAxisAng(axis, ang);
         r.normalize();
 
         const float trans = v.norm();
@@ -497,8 +497,8 @@ private:
         auto prediction_func = [this, &ll, &la, &al, &aa, &v, &r](state &s)
         {
           s.rot.normalize();
-          quat r2 = r;
-          r2.rotate_axis(s.rot);
+          Quat r2 = r;
+          r2.rotateAxis(s.rot);
           s.rot = (r2 * aa(engine) * la(engine)) * s.rot;
           s.pos += s.rot * (v * ll(engine) * al(engine));
         };
@@ -770,14 +770,14 @@ private:
     };
     pf->measure(measure_func);
 
-    normal_likelihood<float> nl_lin(params.bias_var_dist);
-    normal_likelihood<float> nl_ang(params.bias_var_ang);
+    NormalLikelihood<float> nl_lin(params.bias_var_dist);
+    NormalLikelihood<float> nl_ang(params.bias_var_ang);
     auto bias_func = [this, &nl_lin, &nl_ang](const state &s, float &p_bias) -> void
     {
       const float lin_diff = (s.pos - state_prev.pos).norm();
       vec3 axis;
       float ang_diff;
-      (s.rot * state_prev.rot.inv()).get_axis_ang(axis, ang_diff);
+      (s.rot * state_prev.rot.inv()).getAxisAng(axis, ang_diff);
       p_bias = nl_lin(lin_diff) * nl_ang(ang_diff) + 1e-6;
       assert(std::isfinite(p_bias));
     };
@@ -845,7 +845,7 @@ private:
     }
 
     vec3 map_pos;
-    quat map_rot;
+    Quat map_rot;
     map_pos = e.pos - e.rot * odom.rot.inv() * odom.pos;
     map_rot = e.rot * odom.rot.inv();
 
@@ -854,7 +854,7 @@ private:
       vec3 jump_axis;
       float jump_ang;
       float jump_dist = (e.pos - state_prev.pos).norm();
-      (e.rot.inv() * state_prev.rot).get_axis_ang(jump_axis, jump_ang);
+      (e.rot.inv() * state_prev.rot).getAxisAng(jump_axis, jump_ang);
       if (jump_dist > params.jump_dist ||
           fabs(jump_ang) > params.jump_ang)
       {
@@ -867,7 +867,7 @@ private:
     trans.stamp_ = odom_last + tf_tolerance_base + *params.tf_tolerance;
     trans.frame_id_ = frame_ids["map"];
     trans.child_frame_id_ = frame_ids["odom"];
-    auto rpy = map_rot.get_rpy();
+    auto rpy = map_rot.getRPY();
     if (jump)
     {
       f_ang[0]->set(rpy.x);
@@ -880,7 +880,7 @@ private:
     rpy.x = f_ang[0]->in(rpy.x);
     rpy.y = f_ang[1]->in(rpy.y);
     rpy.z = f_ang[2]->in(rpy.z);
-    map_rot.set_rpy(rpy);
+    map_rot.setRPY(rpy);
     map_pos.x = f_pos[0]->in(map_pos.x);
     map_pos.y = f_pos[1]->in(map_pos.y);
     map_pos.z = f_pos[2]->in(map_pos.z);
@@ -1087,7 +1087,7 @@ private:
         return;
       }
       const float acc_measure_norm = acc_measure.norm();
-      normal_likelihood<float> nd(params.acc_var);
+      NormalLikelihood<float> nd(params.acc_var);
       auto imu_measure_func = [this, &nd, &acc_measure, &acc_measure_norm](const state &s) -> float
       {
         const vec3 acc_estim = s.rot.inv() * vec3(0.0, 0.0, 1.0);
@@ -1207,7 +1207,7 @@ public:
     pf->init(
         state(
             vec3(x, y, z),
-            quat(vec3(roll, pitch, yaw))),
+            Quat(vec3(roll, pitch, yaw))),
         state(
             vec3(v_x, v_y, v_z),
             vec3(v_roll, v_pitch, v_yaw)));
