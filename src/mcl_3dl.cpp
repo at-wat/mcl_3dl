@@ -533,7 +533,7 @@ private:
     }
 
     sensor_msgs::PointCloud2 pc_bl;
-    if (!pcl_ros::transformPointCloud(frame_ids_["odom_"], *msg, pc_bl, tfl_))
+    if (!pcl_ros::transformPointCloud(frame_ids_["odom"], *msg, pc_bl, tfl_))
     {
       return;
     }
@@ -544,7 +544,7 @@ private:
       p.intensity = pc_accum_header_.size();
     }
     *pc_local_accum_ += *pc_tmp;
-    pc_local_accum_->header.frame_id = frame_ids_["odom_"];
+    pc_local_accum_->header.frame_id = frame_ids_["odom"];
     pc_accum_header_.push_back(msg->header);
 
     if (frames_v_[frame_num_].compare(msg->header.frame_id) != 0)
@@ -586,10 +586,10 @@ private:
         tf::StampedTransform trans;
         tfl_.waitForTransform(frame_ids_["base_link"], msg->header.stamp,
                               h.frame_id, h.stamp,
-                              frame_ids_["odom_"], ros::Duration(0.05));
+                              frame_ids_["odom"], ros::Duration(0.05));
         tfl_.lookupTransform(frame_ids_["base_link"], msg->header.stamp,
                              h.frame_id, h.stamp,
-                             frame_ids_["odom_"], trans);
+                             frame_ids_["odom"], trans);
         auto origin = trans.getOrigin();
         origins.push_back(Vec3(origin.x(), origin.y(), origin.z()));
       }
@@ -866,7 +866,7 @@ private:
     tf::StampedTransform trans;
     trans.stamp_ = odom_last_ + tf_tolerance_base_ + *params_.tf_tolerance;
     trans.frame_id_ = frame_ids_["map"];
-    trans.child_frame_id_ = frame_ids_["odom_"];
+    trans.child_frame_id_ = frame_ids_["odom"];
     auto rpy = map_rot.getRPY();
     if (jump)
     {
@@ -1108,7 +1108,7 @@ public:
     ros::NodeHandle nh("~");
 
     sub_cloud_ = nh.subscribe("cloud", 20, &MCL3dlNode::cbCloud, this);
-    sub_odom_ = nh.subscribe("odom_", 200, &MCL3dlNode::cbOdom, this);
+    sub_odom_ = nh.subscribe("odom", 200, &MCL3dlNode::cbOdom, this);
     sub_imu_ = nh.subscribe("imu", 200, &MCL3dlNode::cbImu, this);
     sub_mapcloud_ = nh.subscribe("mapcloud", 1, &MCL3dlNode::cbMapcloud, this);
     sub_mapcloud_update_ = nh.subscribe("mapcloud_update", 1, &MCL3dlNode::cbMapcloudUpdate, this);
@@ -1121,7 +1121,7 @@ public:
 
     nh.param("map_frame", frame_ids_["map"], std::string("map"));
     nh.param("robot_frame", frame_ids_["base_link"], std::string("base_link"));
-    nh.param("odom_frame", frame_ids_["odom_"], std::string("odom_"));
+    nh.param("odom_frame", frame_ids_["odom"], std::string("odom"));
     nh.param("floor_frame", frame_ids_["floor"], std::string("floor"));
     nh.param("clip_near", params_.clip_near, 0.5);
     nh.param("clip_far", params_.clip_far, 10.0);
@@ -1251,8 +1251,8 @@ public:
     nh.param("tf_tolerance", tf_tolerance_t, 0.05);
     params_.tf_tolerance.reset(new ros::Duration(tf_tolerance_t));
 
-    nh.param("publish_tf_", publish_tf_, true);
-    nh.param("output_pcd_", output_pcd_, false);
+    nh.param("publish_tf", publish_tf_, true);
+    nh.param("output_pcd", output_pcd_, false);
 
     has_odom_ = has_map_ = false;
     match_output_last_ = ros::Time::now();
