@@ -30,19 +30,19 @@
 #ifndef VEC3_H
 #define VEC3_H
 
-class vec3
+class Vec3
 {
 public:
   float x;
   float y;
   float z;
-  vec3(const float x, const float y, const float z)
+  Vec3(const float x, const float y, const float z)
   {
     this->x = x;
     this->y = y;
     this->z = z;
   }
-  vec3()
+  Vec3()
   {
     x = y = z = 0.0;
   }
@@ -64,57 +64,57 @@ public:
     }
     return x;
   }
-  vec3 operator+(const vec3 &q) const
+  Vec3 operator+(const Vec3 &q) const
   {
-    return vec3(x + q.x, y + q.y, z + q.z);
+    return Vec3(x + q.x, y + q.y, z + q.z);
   }
-  vec3 operator-(const vec3 &q) const
+  Vec3 operator-(const Vec3 &q) const
   {
-    return vec3(x - q.x, y - q.y, z - q.z);
+    return Vec3(x - q.x, y - q.y, z - q.z);
   }
-  vec3 operator-() const
+  Vec3 operator-() const
   {
-    return vec3(-x, -y, -z);
+    return Vec3(-x, -y, -z);
   }
-  vec3 operator*(const float &s) const
+  Vec3 operator*(const float &s) const
   {
-    return vec3(x * s, y * s, z * s);
+    return Vec3(x * s, y * s, z * s);
   }
-  vec3 operator/(const float &s) const
+  Vec3 operator/(const float &s) const
   {
-    return vec3(x / s, y / s, z / s);
+    return Vec3(x / s, y / s, z / s);
   }
-  vec3 &operator+=(const vec3 &q)
+  Vec3 &operator+=(const Vec3 &q)
   {
     *this = *this + q;
     return *this;
   }
-  vec3 operator*(const vec3 &q) const
+  Vec3 operator*(const Vec3 &q) const
   {
-    return vec3(x * q.x, y * q.y, z * q.z);
+    return Vec3(x * q.x, y * q.y, z * q.z);
   }
-  vec3 &operator*=(const vec3 &q)
+  Vec3 &operator*=(const Vec3 &q)
   {
     *this = *this * q;
     return *this;
   }
-  vec3 &operator*=(const float &s)
+  Vec3 &operator*=(const float &s)
   {
     *this = *this * s;
     return *this;
   }
-  vec3 &operator/=(const float &s)
+  Vec3 &operator/=(const float &s)
   {
     *this = *this / s;
     return *this;
   }
-  float dot(const vec3 &q) const
+  float dot(const Vec3 &q) const
   {
     return x * q.x + y * q.y + z * q.z;
   }
-  vec3 cross(const vec3 &q) const
+  Vec3 cross(const Vec3 &q) const
   {
-    return vec3(y * q.z - z * q.y,
+    return Vec3(y * q.z - z * q.y,
                 z * q.x - x * q.z,
                 x * q.y - y * q.x);
   }
@@ -122,7 +122,7 @@ public:
   {
     return sqrtf(dot(*this));
   }
-  vec3 normalized() const
+  Vec3 normalized() const
   {
     return *this / norm();
   }

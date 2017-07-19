@@ -39,7 +39,7 @@
 namespace pf
 {
 template <typename FLT_TYPE = float>
-class particleBase
+class ParticleBase
 {
 public:
   virtual FLT_TYPE &operator[](const size_t i) = 0;
@@ -57,39 +57,39 @@ public:
     return ret;
   }
   template <typename T>
-  FLT_TYPE cov_element(
+  FLT_TYPE covElement(
       const T &e, const size_t &j, const size_t &k)
   {
     T exp = e;
     return ((*this)[k] - exp[k]) * ((*this)[j] - exp[j]);
   }
   template <typename T>
-  T generate_noise(
-      std::default_random_engine &engine,
+  T generateNoise(
+      std::default_random_engine &engine_,
       T mean, T sigma)
   {
     T noise;
     for (size_t i = 0; i < size(); i++)
     {
       std::normal_distribution<FLT_TYPE> nd(mean[i], sigma[i]);
-      noise[i] = nd(engine);
+      noise[i] = nd(engine_);
     }
     return noise;
   }
 
-private:
+protected:
 };
 
 template <typename T, typename FLT_TYPE = float>
-class particle
+class Particle
 {
 public:
-  particle()
+  Particle()
   {
     probability = 0.0;
     probability_bias = 0.0;
   }
-  explicit particle(FLT_TYPE prob)
+  explicit Particle(FLT_TYPE prob)
   {
     accum_probability = prob;
   }
@@ -97,21 +97,21 @@ public:
   FLT_TYPE probability;
   FLT_TYPE probability_bias;
   FLT_TYPE accum_probability;
-  const bool operator<(const particle &p2) const
+  const bool operator<(const Particle &p2) const
   {
     return this->accum_probability < p2.accum_probability;
   }
 };
 
 template <typename T, typename FLT_TYPE = float>
-class particle_weighted_mean
+class ParticleWeightedMean
 {
 protected:
   T e_;
   FLT_TYPE p_sum_;
 
 public:
-  particle_weighted_mean()
+  ParticleWeightedMean()
     : e_(), p_sum_(0.0)
   {
   }
@@ -128,7 +128,7 @@ public:
     e_ = e1 + e_;
   }
 
-  T get_mean()
+  T getMean()
   {
     assert(p_sum_ > 0.0);
 
@@ -142,58 +142,58 @@ public:
     return s;
   }
 
-  FLT_TYPE get_total_probability()
+  FLT_TYPE getTotalProbability()
   {
     return p_sum_;
   }
 };
 
-template <typename T, typename FLT_TYPE = float, typename MEAN = particle_weighted_mean<T, FLT_TYPE>>
-class particle_filter
+template <typename T, typename FLT_TYPE = float, typename MEAN = ParticleWeightedMean<T, FLT_TYPE>>
+class ParticleFilter
 {
 public:
-  explicit particle_filter(const int nParticles)
-    : engine(seed_gen())
+  explicit ParticleFilter(const int nParticles)
+    : engine_(seed_gen_())
   {
-    particles.resize(nParticles);
+    particles_.resize(nParticles);
   }
   void init(T mean, T sigma)
   {
-    for (auto &p : particles)
+    for (auto &p : particles_)
     {
-      p.state = p.state.generate_noise(engine, mean, sigma);
-      p.probability = 1.0 / particles.size();
+      p.state = p.state.generateNoise(engine_, mean, sigma);
+      p.probability = 1.0 / particles_.size();
     }
   }
   void resample(T sigma)
   {
     FLT_TYPE accum = 0;
-    for (auto &p : particles)
+    for (auto &p : particles_)
     {
       accum += p.probability;
       p.accum_probability = accum;
     }
 
-    particles_dup = particles;
-    std::sort(particles_dup.begin(), particles_dup.end());
+    particles_dup_ = particles_;
+    std::sort(particles_dup_.begin(), particles_dup_.end());
 
-    FLT_TYPE pstep = accum / particles.size();
+    FLT_TYPE pstep = accum / particles_.size();
     FLT_TYPE pscan = 0;
-    auto it = particles_dup.begin();
-    auto it_prev = particles_dup.begin();
+    auto it = particles_dup_.begin();
+    auto it_prev = particles_dup_.begin();
 
-    FLT_TYPE prob = 1.0 / particles.size();
-    for (auto &p : particles)
+    FLT_TYPE prob = 1.0 / particles_.size();
+    for (auto &p : particles_)
     {
       pscan += pstep;
-      it = std::lower_bound(it, particles_dup.end(), particle<T, FLT_TYPE>(pscan));
-      if (it == particles_dup.end())
+      it = std::lower_bound(it, particles_dup_.end(), Particle<T, FLT_TYPE>(pscan));
+      if (it == particles_dup_.end())
       {
         p.state = it_prev->state;
       }
       else if (it == it_prev)
       {
-        p.state = it->state + it->state.generate_noise(engine, T(), sigma);
+        p.state = it->state + it->state.generateNoise(engine_, T(), sigma);
         p.state.normalize();
       }
       else
@@ -206,45 +206,45 @@ public:
   }
   void noise(T sigma)
   {
-    for (auto &p : particles)
+    for (auto &p : particles_)
     {
-      p.state = p.state + p.state.generate_noise(engine, T(), sigma);
+      p.state = p.state + p.state.generateNoise(engine_, T(), sigma);
     }
   }
   void predict(std::function<void(T &)> model)
   {
-    for (auto &p : particles)
+    for (auto &p : particles_)
     {
       model(p.state);
     }
   }
   void bias(std::function<void(const T &, float &p_bias)> prob)
   {
-    for (auto &p : particles)
+    for (auto &p : particles_)
     {
       prob(p.state, p.probability_bias);
     }
   }
   void measure(std::function<FLT_TYPE(const T &)> likelihood)
   {
-    auto particles_prev = particles;  // backup old
+    auto particles_prev = particles_;  // backup old
     FLT_TYPE sum = 0;
-    for (auto &p : particles)
+    for (auto &p : particles_)
     {
       p.probability *= likelihood(p.state);
       sum += p.probability;
     }
     if (sum > 0.0)
     {
-      for (auto &p : particles)
+      for (auto &p : particles_)
       {
         p.probability /= sum;
       }
     }
     else
     {
-      particles = particles_prev;
-      // std::cerr << "No particle alive, restoring." << std::endl;
+      particles_ = particles_prev;
+      // std::cerr << "No Particle alive, restoring." << std::endl;
     }
   }
   T expectation(const FLT_TYPE pass_ratio = 1.0)
@@ -252,24 +252,24 @@ public:
     MEAN mean;
 
     if (pass_ratio < 1.0)
-      std::sort(particles.rbegin(), particles.rend());
-    for (auto &p : particles)
+      std::sort(particles_.rbegin(), particles_.rend());
+    for (auto &p : particles_)
     {
       mean.add(p.state, p.probability);
-      if (mean.get_total_probability() > pass_ratio)
+      if (mean.getTotalProbability() > pass_ratio)
         break;
     }
-    return mean.get_mean();
+    return mean.getMean();
   }
-  T expectation_biased()
+  T expectationBiased()
   {
     MEAN mean;
 
-    for (auto &p : particles)
+    for (auto &p : particles_)
     {
       mean.add(p.state, p.probability * p.probability_bias);
     }
-    return mean.get_mean();
+    return mean.getMean();
   }
   std::vector<T> covariance(const FLT_TYPE pass_ratio = 1.0)
   {
@@ -279,7 +279,7 @@ public:
     std::vector<T> cov;
     cov.resize(e.size());
 
-    for (auto &p : particles)
+    for (auto &p : particles_)
     {
       p_num++;
       p_sum += p.probability;
@@ -287,13 +287,13 @@ public:
         break;
     }
     p_sum = 0;
-    for (auto &p : particles)
+    for (auto &p : particles_)
     {
-      for (size_t j = 0; j < ie.size(); j++)
+      for (size_t j = 0; j < ie_.size(); j++)
       {
-        for (size_t k = j; k < ie.size(); k++)
+        for (size_t k = j; k < ie_.size(); k++)
         {
-          cov[k][j] = cov[j][k] += p.state.cov_element(e, j, k) * p.probability;
+          cov[k][j] = cov[j][k] += p.state.covElement(e, j, k) * p.probability;
         }
       }
 
@@ -301,9 +301,9 @@ public:
       if (p_sum > pass_ratio)
         break;
     }
-    for (size_t j = 0; j < ie.size(); j++)
+    for (size_t j = 0; j < ie_.size(); j++)
     {
-      for (size_t k = j; k < ie.size(); k++)
+      for (size_t k = j; k < ie_.size(); k++)
       {
         cov[k][j] /= p_sum;
         cov[j][k] /= p_sum;
@@ -314,9 +314,9 @@ public:
   }
   T max()
   {
-    T *m = &particles[0].state;
-    FLT_TYPE max_probability = particles[0].probability;
-    for (auto &p : particles)
+    T *m = &particles_[0].state;
+    FLT_TYPE max_probability = particles_[0].probability;
+    for (auto &p : particles_)
     {
       if (max_probability < p.probability)
       {
@@ -326,12 +326,12 @@ public:
     }
     return *m;
   }
-  T max_biased()
+  T maxBiased()
   {
-    T *m = &particles[0].state;
+    T *m = &particles_[0].state;
     FLT_TYPE max_probability =
-        particles[0].probability * particles[0].probability_bias;
-    for (auto &p : particles)
+        particles_[0].probability * particles_[0].probability_bias;
+    for (auto &p : particles_)
     {
       const FLT_TYPE prob = p.probability * p.probability_bias;
       if (max_probability < prob)
@@ -342,21 +342,21 @@ public:
     }
     return *m;
   }
-  const T get_particle(const size_t i)
+  const T getParticle(const size_t i)
   {
-    return particles[i].state;
+    return particles_[i].state;
   }
-  const size_t get_particle_size()
+  const size_t getParticleSize()
   {
-    return particles.size();
+    return particles_.size();
   }
 
 protected:
-  std::vector<particle<T, FLT_TYPE>> particles;
-  std::vector<particle<T, FLT_TYPE>> particles_dup;
-  std::random_device seed_gen;
-  std::default_random_engine engine;
-  T ie;
+  std::vector<Particle<T, FLT_TYPE>> particles_;
+  std::vector<Particle<T, FLT_TYPE>> particles_dup_;
+  std::random_device seed_gen_;
+  std::default_random_engine engine_;
+  T ie_;
 };
 
 }  // namespace pf
