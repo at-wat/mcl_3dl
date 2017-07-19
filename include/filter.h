@@ -32,7 +32,7 @@
 
 #include <cmath>
 
-class filter
+class Filter
 {
 public:
   enum type_t
@@ -42,66 +42,67 @@ public:
   };
 
 private:
-  type_t type;
-  float time_const;
-  float x;
-  float out;
-  float k[4];
-  bool angle;
+  type_t type_;
+  float time_const_;
+  float x_;
+  float out_;
+  float k_[4];
+  bool angle_;
 
 public:
-  filter(const enum type_t type, const float tc, const float out0, const bool angle = false)
+  Filter(const enum type_t type, const float tc, const float out0, const bool angle = false)
   {
-    this->angle = angle;
-    time_const = tc;
-    switch (type)
+    angle_ = angle;
+    time_const_ = tc;
+    type_ = type;
+    switch (type_)
     {
       case FILTER_LPF:
-        k[3] = -1 / (1.0 + 2 * time_const);
-        k[2] = -k[3];
-        k[1] = (1.0 - 2 * time_const) * k[3];
-        k[0] = -k[1] - 1.0;
-        x = (1 - k[2]) * out0 / k[3];
+        k_[3] = -1 / (1.0 + 2 * time_const_);
+        k_[2] = -k_[3];
+        k_[1] = (1.0 - 2 * time_const_) * k_[3];
+        k_[0] = -k_[1] - 1.0;
+        x_ = (1 - k_[2]) * out0 / k_[3];
         break;
       case FILTER_HPF:
-        k[3] = -1 / (1.0 + 2 * time_const);
-        k[2] = -k[3] * 2 * time_const;
-        k[1] = (1.0 - 2 * time_const) * k[3];
-        k[0] = 2 * time_const * (-k[1] + 1.0);
-        x = (1 - k[2]) * out0 / k[3];
+        k_[3] = -1 / (1.0 + 2 * time_const_);
+        k_[2] = -k_[3] * 2 * time_const_;
+        k_[1] = (1.0 - 2 * time_const_) * k_[3];
+        k_[0] = 2 * time_const_ * (-k_[1] + 1.0);
+        x_ = (1 - k_[2]) * out0 / k_[3];
         break;
     }
   }
   void set(const float &out0)
   {
-    if (angle)
+    if (angle_)
     {
-      x = (1 - k[2]) * remainder(out0, M_PI * 2.0) / k[3];
+      x_ = (1 - k_[2]) * remainder(out0, M_PI * 2.0) / k_[3];
     }
     else
     {
-      x = (1 - k[2]) * out0 / k[3];
+      x_ = (1 - k_[2]) * out0 / k_[3];
     }
-    out = out0;
+    out_ = out0;
   }
   float in(const float &i)
   {
     float in = i;
     assert(std::isfinite(in));
 
-    if (angle)
+    if (angle_)
     {
-      in = out + remainder(in - out, M_PI * 2.0);
+      in = out_ + remainder(in - out_, M_PI * 2.0);
     }
-    x = k[0] * in + k[1] * x;
-    out = k[2] * in + k[3] * x;
+    x_ = k_[0] * in + k_[1] * x_;
+    out_ = k_[2] * in + k_[3] * x_;
 
-    assert(std::isfinite(out));
-    return out;
+    assert(std::isfinite(out_));
+    return out_;
   }
   float get()
   {
-    return out;
+    return out_;
   }
 };
 

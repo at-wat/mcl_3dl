@@ -82,10 +82,10 @@ private:
   tf::TransformListener tfl;
   tf::TransformBroadcaster tfb;
 
-  std::shared_ptr<filter> f_pos[3];
-  std::shared_ptr<filter> f_ang[3];
-  std::shared_ptr<filter> f_acc[3];
-  std::shared_ptr<filter> localize_rate;
+  std::shared_ptr<Filter> f_pos[3];
+  std::shared_ptr<Filter> f_ang[3];
+  std::shared_ptr<Filter> f_acc[3];
+  std::shared_ptr<Filter> localize_rate;
   ros::Time localized_last;
   ros::Duration tf_tolerance_base;
 
@@ -1214,17 +1214,17 @@ public:
 
     double lpf_step;
     nh.param("lpf_step", lpf_step, 16.0);
-    f_pos[0].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0));
-    f_pos[1].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0));
-    f_pos[2].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0));
-    f_ang[0].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0, true));
-    f_ang[1].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0, true));
-    f_ang[2].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0, true));
+    f_pos[0].reset(new Filter(Filter::FILTER_LPF, lpf_step, 0.0));
+    f_pos[1].reset(new Filter(Filter::FILTER_LPF, lpf_step, 0.0));
+    f_pos[2].reset(new Filter(Filter::FILTER_LPF, lpf_step, 0.0));
+    f_ang[0].reset(new Filter(Filter::FILTER_LPF, lpf_step, 0.0, true));
+    f_ang[1].reset(new Filter(Filter::FILTER_LPF, lpf_step, 0.0, true));
+    f_ang[2].reset(new Filter(Filter::FILTER_LPF, lpf_step, 0.0, true));
 
     nh.param("acc_lpf_step", lpf_step, 128.0);
-    f_acc[0].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0));
-    f_acc[1].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0));
-    f_acc[2].reset(new filter(filter::FILTER_LPF, lpf_step, 0.0));
+    f_acc[0].reset(new Filter(Filter::FILTER_LPF, lpf_step, 0.0));
+    f_acc[1].reset(new Filter(Filter::FILTER_LPF, lpf_step, 0.0));
+    f_acc[2].reset(new Filter(Filter::FILTER_LPF, lpf_step, 0.0));
     nh.param("acc_var", params.acc_var, M_PI / 4.0);  // 45 deg
 
     nh.param("jump_dist", params.jump_dist, 1.0);
@@ -1256,7 +1256,7 @@ public:
 
     has_odom = has_map = false;
     match_output_last = ros::Time::now();
-    localize_rate.reset(new filter(filter::FILTER_LPF, 5.0, 0.0));
+    localize_rate.reset(new Filter(Filter::FILTER_LPF, 5.0, 0.0));
     localized_last = ros::Time::now();
   }
   ~mcl_3dl_node()
