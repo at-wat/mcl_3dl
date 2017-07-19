@@ -49,15 +49,15 @@ public:
     this->z = z;
     this->w = w;
   }
-  Quat(const vec3 &axis, const float &ang)
+  Quat(const Vec3 &axis, const float &ang)
   {
     setAxisAng(axis, ang);
   }
-  Quat(const vec3 &forward, const vec3 &up_raw)
+  Quat(const Vec3 &forward, const Vec3 &up_raw)
   {
-    const vec3 xv = forward.normalized();
-    const vec3 yv = up_raw.cross(xv).normalized();
-    const vec3 zv = xv.cross(yv).normalized();
+    const Vec3 xv = forward.normalized();
+    const Vec3 yv = up_raw.cross(xv).normalized();
+    const Vec3 zv = xv.cross(yv).normalized();
 
     w = sqrtf(std::max(0.0, 1.0 + xv.x + yv.y + zv.z)) / 2.0;
     x = sqrtf(std::max(0.0, 1.0 + xv.x - yv.y - zv.z)) / 2.0;
@@ -70,7 +70,7 @@ public:
     if (yv.x - xv.y > 0)
       z = -z;
   }
-  explicit Quat(const vec3 &rpy)
+  explicit Quat(const Vec3 &rpy)
   {
     setRPY(rpy);
   }
@@ -107,14 +107,14 @@ public:
   {
     return operator*(1.0 / s);
   }
-  vec3 operator*(const vec3 &v) const
+  Vec3 operator*(const Vec3 &v) const
   {
     Quat ret = *this * Quat(v.x, v.y, v.z, 0.0) * conj();
-    return vec3(ret.x, ret.y, ret.z);
+    return Vec3(ret.x, ret.y, ret.z);
   }
   Quat operator*(const float &s) const
   {
-    vec3 axis;
+    Vec3 axis;
     float ang;
     getAxisAng(axis, ang);
     return Quat(axis, ang * s);
@@ -141,7 +141,7 @@ public:
   {
     return conj() / dot(*this);
   }
-  vec3 getRPY() const
+  Vec3 getRPY() const
   {
     const float ysq = y * y;
     const float t0 = -2.0 * (ysq + z * z) + 1.0;
@@ -155,9 +155,9 @@ public:
     if (t2 < -1.0)
       t2 = -1.0;
 
-    return vec3(std::atan2(t3, t4), std::asin(t2), std::atan2(t1, t0));
+    return Vec3(std::atan2(t3, t4), std::asin(t2), std::atan2(t1, t0));
   }
-  void setRPY(const vec3 &rpy)
+  void setRPY(const Vec3 &rpy)
   {
     const float t2 = cos(rpy.x * 0.5);
     const float t3 = sin(rpy.x * 0.5);
@@ -171,9 +171,9 @@ public:
     z = t1 * t2 * t4 - t0 * t3 * t5;
     w = t0 * t2 * t4 + t1 * t3 * t5;
   }
-  void setAxisAng(const vec3 &axis, const float &ang)
+  void setAxisAng(const Vec3 &axis, const float &ang)
   {
-    const vec3 a = axis / axis.norm();
+    const Vec3 a = axis / axis.norm();
     const float s = sinf(ang / 2.0);
     this->x = a.x * s;
     this->y = a.y * s;
@@ -181,23 +181,23 @@ public:
     this->w = cosf(ang / 2.0);
     normalize();
   }
-  void getAxisAng(vec3 &axis, float &ang) const
+  void getAxisAng(Vec3 &axis, float &ang) const
   {
     if (fabs(w) >= 1.0 - 0.000001)
     {
       ang = 0.0;
-      axis = vec3(0.0, 0.0, 1.0);
+      axis = Vec3(0.0, 0.0, 1.0);
       return;
     }
     ang = acosf(w) * 2.0;
     if (ang > M_PI)
       ang -= 2.0 * M_PI;
     float wsq = 1.0 - w * w;
-    axis = vec3(x, y, z) / sqrtf(wsq);
+    axis = Vec3(x, y, z) / sqrtf(wsq);
   }
   void rotateAxis(const Quat &r)
   {
-    vec3 axis;
+    Vec3 axis;
     float ang;
     getAxisAng(axis, ang);
     setAxisAng(r * axis, ang);

@@ -159,23 +159,23 @@ private:
   class state : public pf::particleBase<float>
   {
   public:
-    vec3 pos;
+    Vec3 pos;
     Quat rot;
     bool diff;
     struct twist
     {
-      vec3 lin;
-      vec3 ang;
+      Vec3 lin;
+      Vec3 ang;
     };
     twist vel;
     class rpy_vec
     {
     public:
-      vec3 v;
+      Vec3 v;
       rpy_vec()
       {
       }
-      explicit rpy_vec(const vec3 &v)
+      explicit rpy_vec(const Vec3 &v)
       {
         this->v = v;
       }
@@ -232,19 +232,19 @@ private:
     {
       diff = false;
     };
-    state(const vec3 pos, const Quat rot)
+    state(const Vec3 pos, const Quat rot)
     {
       this->pos = pos;
       this->rot = rot;
       diff = false;
     };
-    state(const vec3 pos, const vec3 rpy)
+    state(const Vec3 pos, const Vec3 rpy)
     {
       this->pos = pos;
       this->rpy = rpy_vec(rpy);
       diff = true;
     };
-    state(const vec3 pos, const Quat rot, const vec3 lin, const vec3 ang)
+    state(const Vec3 pos, const Quat rot, const Vec3 lin, const Vec3 ang)
     {
       this->pos = pos;
       this->rot = rot;
@@ -261,7 +261,7 @@ private:
       auto r = rot.normalized();
       for (auto &p : pc.points)
       {
-        auto t = r * vec3(p.x, p.y, p.z) + pos;
+        auto t = r * Vec3(p.x, p.y, p.z) + pos;
         p.x = t.x;
         p.y = t.y;
         p.z = t.z;
@@ -283,7 +283,7 @@ private:
         std::normal_distribution<float> nd(mean[i], sigma[i]);
         noise[i] = nd(engine);
       }
-      vec3 rpy_noise;
+      Vec3 rpy_noise;
       for (size_t i = 0; i < 3; i++)
       {
         std::normal_distribution<float> nd(0.0, sigma.rpy.v[i]);
@@ -309,8 +309,8 @@ private:
   class particle_weighted_mean_quat : public pf::particle_weighted_mean<state, float>
   {
   protected:
-    vec3 front_sum_;
-    vec3 up_sum_;
+    Vec3 front_sum_;
+    Vec3 up_sum_;
 
   public:
     particle_weighted_mean_quat()
@@ -325,8 +325,8 @@ private:
       state e1 = s;
       e_.pos += e1.pos * prob;
 
-      const vec3 front = s.rot * vec3(1.0, 0.0, 0.0) * prob;
-      const vec3 up = s.rot * vec3(0.0, 0.0, 1.0) * prob;
+      const Vec3 front = s.rot * Vec3(1.0, 0.0, 0.0) * prob;
+      const Vec3 up = s.rot * Vec3(0.0, 0.0, 1.0) * prob;
 
       front_sum_ += front;
       up_sum_ += up;
@@ -438,16 +438,16 @@ private:
     }
     pf->init(
         state(
-            vec3(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z),
+            Vec3(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z),
             Quat(pose.pose.orientation.x,
                  pose.pose.orientation.y,
                  pose.pose.orientation.z,
                  pose.pose.orientation.w)),
         state(
-            vec3(msg->pose.covariance[0],
+            Vec3(msg->pose.covariance[0],
                  msg->pose.covariance[6 * 1 + 1],
                  msg->pose.covariance[6 * 2 + 2]),
-            vec3(msg->pose.covariance[6 * 3 + 3],
+            Vec3(msg->pose.covariance[6 * 3 + 3],
                  msg->pose.covariance[6 * 4 + 4],
                  msg->pose.covariance[6 * 5 + 5])));
     pc_update.reset(new pcl::PointCloud<pcl::PointXYZI>);
@@ -464,7 +464,7 @@ private:
   {
     odom =
         state(
-            vec3(msg->pose.pose.position.x,
+            Vec3(msg->pose.pose.position.x,
                  msg->pose.pose.position.y,
                  msg->pose.pose.position.z),
             Quat(msg->pose.pose.orientation.x,
@@ -481,10 +481,10 @@ private:
       else if (dt > 0.05)
       {
         // ROS_INFO("dt %0.3f", dt);
-        vec3 v = odom_prev.rot.inv() * (odom.pos - odom_prev.pos);
+        Vec3 v = odom_prev.rot.inv() * (odom.pos - odom_prev.pos);
         Quat r = odom.rot * odom_prev.rot.inv();
         r.rotateAxis(odom_prev.rot.inv());
-        vec3 axis;
+        Vec3 axis;
         float ang;
         r.getAxisAng(axis, ang);
         r.normalize();
@@ -578,7 +578,7 @@ private:
       pc_accum_header.clear();
       return;
     }
-    std::vector<vec3> origins;
+    std::vector<Vec3> origins;
     for (auto &h : pc_accum_header)
     {
       try
@@ -591,12 +591,12 @@ private:
                             h.frame_id, h.stamp,
                             frame_ids["odom"], trans);
         auto origin = trans.getOrigin();
-        origins.push_back(vec3(origin.x(), origin.y(), origin.z()));
+        origins.push_back(Vec3(origin.x(), origin.y(), origin.z()));
       }
       catch (tf::TransformException &e)
       {
         ROS_ERROR("Failed to transform laser origin.");
-        origins.push_back(vec3(0.0, 0.0, 0.0));
+        origins.push_back(Vec3(0.0, 0.0, 0.0));
       }
       /*ROS_INFO(" beam_origin[%d]  %0.3f %0.3f %0.3f",
 					(int)origins.size() - 1, 
@@ -728,10 +728,10 @@ private:
       for (auto &p : pc_particle_beam->points)
       {
         int beam_header_id = lroundf(p.intensity);
-        vec3 pos = s.pos + s.rot * origins[beam_header_id];
-        vec3 end(p.x, p.y, p.z);
+        Vec3 pos = s.pos + s.rot * origins[beam_header_id];
+        Vec3 end(p.x, p.y, p.z);
         int num = (end - pos).norm() / params.map_grid_min;
-        vec3 inc = (end - pos) / num;
+        Vec3 inc = (end - pos) / num;
         for (int i = 0; i < num - 1; i++)
         {
           pos += inc;
@@ -744,7 +744,7 @@ private:
                                    params.map_grid_min / 2.0, id, sqdist, 1))
           {
             float d0 = sqrtf(sqdist[0]);
-            vec3 pos_prev = pos - (inc * 2.0);
+            Vec3 pos_prev = pos - (inc * 2.0);
             pcl::PointXYZI center_prev;
             center_prev.x = pos_prev.x;
             center_prev.y = pos_prev.y;
@@ -775,7 +775,7 @@ private:
     auto bias_func = [this, &nl_lin, &nl_ang](const state &s, float &p_bias) -> void
     {
       const float lin_diff = (s.pos - state_prev.pos).norm();
-      vec3 axis;
+      Vec3 axis;
       float ang_diff;
       (s.rot * state_prev.rot.inv()).getAxisAng(axis, ang_diff);
       p_bias = nl_lin(lin_diff) * nl_ang(ang_diff) + 1e-6;
@@ -802,8 +802,8 @@ private:
       for (auto &p : pc_particle_beam->points)
       {
         int beam_header_id = lroundf(p.intensity);
-        vec3 pos = e.pos + e.rot * origins[beam_header_id];
-        vec3 end(p.x, p.y, p.z);
+        Vec3 pos = e.pos + e.rot * origins[beam_header_id];
+        Vec3 end(p.x, p.y, p.z);
 
         visualization_msgs::Marker marker;
         marker.header.frame_id = frame_ids["map"];
@@ -844,14 +844,14 @@ private:
       pub_debug_marker.publish(markers);
     }
 
-    vec3 map_pos;
+    Vec3 map_pos;
     Quat map_rot;
     map_pos = e.pos - e.rot * odom.rot.inv() * odom.pos;
     map_rot = e.rot * odom.rot.inv();
 
     bool jump = false;
     {
-      vec3 jump_axis;
+      Vec3 jump_axis;
       float jump_ang;
       float jump_dist = (e.pos - state_prev.pos).norm();
       (e.rot.inv() * state_prev.rot).getAxisAng(jump_axis, jump_ang);
@@ -931,7 +931,7 @@ private:
 
     {
       bool fix = false;
-      vec3 fix_axis;
+      Vec3 fix_axis;
       const float fix_ang = sqrtf(cov[3][3] + cov[4][4] + cov[5][5]);
       const float fix_dist = sqrtf(cov[0][0] + cov[1][1] + cov[2][2]);
       ROS_DEBUG("cov: lin %0.3f ang %0.3f", fix_dist, fix_ang);
@@ -1031,10 +1031,10 @@ private:
     pub_particle.publish(pa);
 
     pf->resample(state(
-        vec3(params.resample_var_x,
+        Vec3(params.resample_var_x,
              params.resample_var_y,
              params.resample_var_z),
-        vec3(params.resample_var_roll,
+        Vec3(params.resample_var_roll,
              params.resample_var_pitch,
              params.resample_var_yaw)));
 
@@ -1054,7 +1054,7 @@ private:
   ros::Time imu_last;
   void cb_imu(const sensor_msgs::Imu::ConstPtr &msg)
   {
-    vec3 acc;
+    Vec3 acc;
     acc.x = f_acc[0]->in(msg->linear_acceleration.x);
     acc.y = f_acc[1]->in(msg->linear_acceleration.y);
     acc.z = f_acc[2]->in(msg->linear_acceleration.z);
@@ -1068,7 +1068,7 @@ private:
     }
     else if (dt > 0.05)
     {
-      vec3 acc_measure = acc / acc.norm();
+      Vec3 acc_measure = acc / acc.norm();
       try
       {
         tfl.waitForTransform(msg->header.frame_id, frame_ids["base_link"],
@@ -1080,7 +1080,7 @@ private:
         in.setY(acc_measure.y);
         in.setZ(acc_measure.z);
         tfl.transformVector(frame_ids["base_link"], in, out);
-        acc_measure = vec3(out.x(), out.y(), out.z());
+        acc_measure = Vec3(out.x(), out.y(), out.z());
       }
       catch (tf::TransformException &e)
       {
@@ -1090,7 +1090,7 @@ private:
       NormalLikelihood<float> nd(params.acc_var);
       auto imu_measure_func = [this, &nd, &acc_measure, &acc_measure_norm](const state &s) -> float
       {
-        const vec3 acc_estim = s.rot.inv() * vec3(0.0, 0.0, 1.0);
+        const Vec3 acc_estim = s.rot.inv() * Vec3(0.0, 0.0, 1.0);
         const float diff = acosf(
             acc_estim.dot(acc_measure) / (acc_measure_norm * acc_estim.norm()));
         return nd(diff);
@@ -1206,11 +1206,11 @@ public:
     nh.param("init_var_yaw", v_yaw, 0.5);
     pf->init(
         state(
-            vec3(x, y, z),
-            Quat(vec3(roll, pitch, yaw))),
+            Vec3(x, y, z),
+            Quat(Vec3(roll, pitch, yaw))),
         state(
-            vec3(v_x, v_y, v_z),
-            vec3(v_roll, v_pitch, v_yaw)));
+            Vec3(v_x, v_y, v_z),
+            Vec3(v_roll, v_pitch, v_yaw)));
 
     double lpf_step;
     nh.param("lpf_step", lpf_step, 16.0);
