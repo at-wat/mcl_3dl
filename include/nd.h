@@ -44,7 +44,7 @@ public:
     return a_ * expf(-x * x / sq2_);
   }
 
-private:
+protected:
   FLT_TYPE a_;
   FLT_TYPE sq2_;
 };

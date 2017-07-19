@@ -41,7 +41,7 @@ public:
     FILTER_LPF
   };
 
-private:
+protected:
   type_t type_;
   float time_const_;
   float x_;

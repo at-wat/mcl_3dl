@@ -77,7 +77,7 @@ public:
     return noise;
   }
 
-private:
+protected:
 };
 
 template <typename T, typename FLT_TYPE = float>

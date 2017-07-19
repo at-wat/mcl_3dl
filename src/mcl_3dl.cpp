@@ -64,7 +64,7 @@
 
 class MCL3dlNode
 {
-private:
+protected:
   ros::Subscriber sub_cloud_;
   ros::Subscriber sub_mapcloud_;
   ros::Subscriber sub_mapcloud_update_;
