@@ -34,7 +34,7 @@
 
 #include <vec3.h>
 
-class quat
+class Quat
 {
 public:
   float x;
@@ -42,22 +42,22 @@ public:
   float z;
   float w;
 
-  quat(const float &x, const float &y, const float &z, const float &w)
+  Quat(const float &x, const float &y, const float &z, const float &w)
   {
     this->x = x;
     this->y = y;
     this->z = z;
     this->w = w;
   }
-  quat(const vec3 &axis, const float &ang)
+  Quat(const Vec3 &axis, const float &ang)
   {
-    set_axis_ang(axis, ang);
+    setAxisAng(axis, ang);
   }
-  quat(const vec3 &forward, const vec3 &up_raw)
+  Quat(const Vec3 &forward, const Vec3 &up_raw)
   {
-    const vec3 xv = forward.normalized();
-    const vec3 yv = up_raw.cross(xv).normalized();
-    const vec3 zv = xv.cross(yv).normalized();
+    const Vec3 xv = forward.normalized();
+    const Vec3 yv = up_raw.cross(xv).normalized();
+    const Vec3 zv = xv.cross(yv).normalized();
 
     w = sqrtf(std::max(0.0, 1.0 + xv.x + yv.y + zv.z)) / 2.0;
     x = sqrtf(std::max(0.0, 1.0 + xv.x - yv.y - zv.z)) / 2.0;
@@ -70,16 +70,16 @@ public:
     if (yv.x - xv.y > 0)
       z = -z;
   }
-  explicit quat(const vec3 &rpy)
+  explicit Quat(const Vec3 &rpy)
   {
-    set_rpy(rpy);
+    setRPY(rpy);
   }
-  quat()
+  Quat()
   {
     w = 1.0;
     x = y = z = 0.0;
   }
-  float dot(const quat &q) const
+  float dot(const Quat &q) const
   {
     return x * q.x + y * q.y + z * q.z + w * q.w;
   }
@@ -87,42 +87,42 @@ public:
   {
     return sqrtf(dot(*this));
   }
-  quat operator+(const quat &q) const
+  Quat operator+(const Quat &q) const
   {
-    return quat(x + q.x, y + q.y, z + q.z, w + q.w);
+    return Quat(x + q.x, y + q.y, z + q.z, w + q.w);
   }
-  quat operator-(const quat &q) const
+  Quat operator-(const Quat &q) const
   {
-    return quat(x - q.x, y - q.y, z - q.z, w - q.w);
+    return Quat(x - q.x, y - q.y, z - q.z, w - q.w);
   }
-  quat operator*(const quat &q) const
+  Quat operator*(const Quat &q) const
   {
-    return quat(
+    return Quat(
         w * q.x + x * q.w + y * q.z - z * q.y,
         w * q.y + y * q.w + z * q.x - x * q.z,
         w * q.z + z * q.w + x * q.y - y * q.x,
         w * q.w - x * q.x - y * q.y - z * q.z);
   }
-  quat operator/(const float &s) const
+  Quat operator/(const float &s) const
   {
     return operator*(1.0 / s);
   }
-  vec3 operator*(const vec3 &v) const
+  Vec3 operator*(const Vec3 &v) const
   {
-    quat ret = *this * quat(v.x, v.y, v.z, 0.0) * conj();
-    return vec3(ret.x, ret.y, ret.z);
+    Quat ret = *this * Quat(v.x, v.y, v.z, 0.0) * conj();
+    return Vec3(ret.x, ret.y, ret.z);
   }
-  quat operator*(const float &s) const
+  Quat operator*(const float &s) const
   {
-    vec3 axis;
+    Vec3 axis;
     float ang;
-    get_axis_ang(axis, ang);
-    return quat(axis, ang * s);
+    getAxisAng(axis, ang);
+    return Quat(axis, ang * s);
   }
-  quat normalized() const
+  Quat normalized() const
   {
     float n = norm();
-    quat ret = *this;
+    Quat ret = *this;
     ret.x /= n;
     ret.y /= n;
     ret.z /= n;
@@ -133,15 +133,15 @@ public:
   {
     *this = normalized();
   }
-  quat conj() const
+  Quat conj() const
   {
-    return quat(-x, -y, -z, w);
+    return Quat(-x, -y, -z, w);
   }
-  quat inv() const
+  Quat inv() const
   {
     return conj() / dot(*this);
   }
-  vec3 get_rpy() const
+  Vec3 getRPY() const
   {
     const float ysq = y * y;
     const float t0 = -2.0 * (ysq + z * z) + 1.0;
@@ -155,9 +155,9 @@ public:
     if (t2 < -1.0)
       t2 = -1.0;
 
-    return vec3(std::atan2(t3, t4), std::asin(t2), std::atan2(t1, t0));
+    return Vec3(std::atan2(t3, t4), std::asin(t2), std::atan2(t1, t0));
   }
-  void set_rpy(const vec3 &rpy)
+  void setRPY(const Vec3 &rpy)
   {
     const float t2 = cos(rpy.x * 0.5);
     const float t3 = sin(rpy.x * 0.5);
@@ -171,9 +171,9 @@ public:
     z = t1 * t2 * t4 - t0 * t3 * t5;
     w = t0 * t2 * t4 + t1 * t3 * t5;
   }
-  void set_axis_ang(const vec3 &axis, const float &ang)
+  void setAxisAng(const Vec3 &axis, const float &ang)
   {
-    const vec3 a = axis / axis.norm();
+    const Vec3 a = axis / axis.norm();
     const float s = sinf(ang / 2.0);
     this->x = a.x * s;
     this->y = a.y * s;
@@ -181,26 +181,26 @@ public:
     this->w = cosf(ang / 2.0);
     normalize();
   }
-  void get_axis_ang(vec3 &axis, float &ang) const
+  void getAxisAng(Vec3 &axis, float &ang) const
   {
     if (fabs(w) >= 1.0 - 0.000001)
     {
       ang = 0.0;
-      axis = vec3(0.0, 0.0, 1.0);
+      axis = Vec3(0.0, 0.0, 1.0);
       return;
     }
     ang = acosf(w) * 2.0;
     if (ang > M_PI)
       ang -= 2.0 * M_PI;
     float wsq = 1.0 - w * w;
-    axis = vec3(x, y, z) / sqrtf(wsq);
+    axis = Vec3(x, y, z) / sqrtf(wsq);
   }
-  void rotate_axis(const quat &r)
+  void rotateAxis(const Quat &r)
   {
-    vec3 axis;
+    Vec3 axis;
     float ang;
-    get_axis_ang(axis, ang);
-    set_axis_ang(r * axis, ang);
+    getAxisAng(axis, ang);
+    setAxisAng(r * axis, ang);
   }
 };
 
