@@ -65,30 +65,6 @@
 class MCL3dlNode
 {
 protected:
-  ros::Subscriber sub_cloud_;
-  ros::Subscriber sub_mapcloud_;
-  ros::Subscriber sub_mapcloud_update_;
-  ros::Subscriber sub_odom_;
-  ros::Subscriber sub_imu_;
-  ros::Subscriber sub_position_;
-  ros::Publisher pub_particle_;
-  ros::Publisher pub_debug_;
-  ros::Publisher pub_mapcloud_;
-  ros::Publisher pub_pose_;
-  ros::Publisher pub_matched_;
-  ros::Publisher pub_unmatched_;
-  ros::Publisher pub_debug_marker_;
-
-  tf::TransformListener tfl_;
-  tf::TransformBroadcaster tfb_;
-
-  std::shared_ptr<Filter> f_pos_[3];
-  std::shared_ptr<Filter> f_ang_[3];
-  std::shared_ptr<Filter> f_acc_[3];
-  std::shared_ptr<Filter> localize_rate_;
-  ros::Time localized_last_;
-  ros::Duration tf_tolerance_base_;
-
   class parameters
   {
   public:
@@ -149,12 +125,6 @@ protected:
     std::shared_ptr<ros::Duration> match_output_interval;
     std::shared_ptr<ros::Duration> tf_tolerance;
   };
-  parameters params_;
-  int cnt_measure_;
-  int cnt_accum_;
-  ros::Time match_output_last_;
-  bool output_pcd_;
-  bool publish_tf_;
 
   class State : public pf::ParticleBase<float>
   {
@@ -363,14 +333,6 @@ protected:
       out[2] = p.z;
     }
   };
-  MyPointRepresentation point_rep_;
-
-  pcl::PointCloud<pcl::PointXYZI>::Ptr pc_map_;
-  pcl::PointCloud<pcl::PointXYZI>::Ptr pc_map2_;
-  pcl::PointCloud<pcl::PointXYZI>::Ptr pc_update_;
-  pcl::PointCloud<pcl::PointXYZI>::Ptr pc_all_accum_;
-  pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtree_;
-  pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtree_orig_;
   void cbMapcloud(const sensor_msgs::PointCloud2::ConstPtr &msg)
   {
     ROS_INFO("map received");
@@ -453,13 +415,6 @@ protected:
     pc_update_.reset(new pcl::PointCloud<pcl::PointXYZI>);
   }
 
-  std::map<std::string, std::string> frame_ids_;
-
-  ros::Time odom_last_;
-  bool has_map_;
-  bool has_odom_;
-  State odom_;
-  State odom_prev_;
   void cbOdom(const nav_msgs::Odometry::ConstPtr &msg)
   {
     odom_ =
@@ -514,14 +469,6 @@ protected:
       has_odom_ = true;
     }
   }
-  std::random_device seed_gen_;
-  std::default_random_engine engine_;
-  std::map<std::string, bool> frames_;
-  std::vector<std::string> frames_v_;
-  size_t frame_num_;
-  pcl::PointCloud<pcl::PointXYZI>::Ptr pc_local_accum_;
-  std::vector<std_msgs::Header> pc_accum_header_;
-  State state_prev_;
   void cbCloud(const sensor_msgs::PointCloud2::ConstPtr &msg)
   {
     if (!has_map_)
@@ -1051,7 +998,6 @@ protected:
     tf_tolerance_base_ = ros::Duration(localize_rate_->in(dt));
     localized_last_ = localized_current;
   }
-  ros::Time imu_last;
   void cbImu(const sensor_msgs::Imu::ConstPtr &msg)
   {
     Vec3 acc;
@@ -1059,7 +1005,7 @@ protected:
     acc.y = f_acc_[1]->in(msg->linear_acceleration.y);
     acc.z = f_acc_[2]->in(msg->linear_acceleration.z);
 
-    float dt = (msg->header.stamp - imu_last).toSec();
+    float dt = (msg->header.stamp - imu_last_).toSec();
     if (dt < 0.0)
     {
       f_acc_[0]->set(0.0);
@@ -1097,7 +1043,7 @@ protected:
       };
       pf_->measure(imu_measure_func);
 
-      imu_last = msg->header.stamp;
+      imu_last_ = msg->header.stamp;
     }
   }
 
@@ -1315,6 +1261,64 @@ public:
       }
     }
   }
+
+protected:
+  ros::Subscriber sub_cloud_;
+  ros::Subscriber sub_mapcloud_;
+  ros::Subscriber sub_mapcloud_update_;
+  ros::Subscriber sub_odom_;
+  ros::Subscriber sub_imu_;
+  ros::Subscriber sub_position_;
+  ros::Publisher pub_particle_;
+  ros::Publisher pub_debug_;
+  ros::Publisher pub_mapcloud_;
+  ros::Publisher pub_pose_;
+  ros::Publisher pub_matched_;
+  ros::Publisher pub_unmatched_;
+  ros::Publisher pub_debug_marker_;
+
+  tf::TransformListener tfl_;
+  tf::TransformBroadcaster tfb_;
+
+  std::shared_ptr<Filter> f_pos_[3];
+  std::shared_ptr<Filter> f_ang_[3];
+  std::shared_ptr<Filter> f_acc_[3];
+  std::shared_ptr<Filter> localize_rate_;
+  ros::Time localized_last_;
+  ros::Duration tf_tolerance_base_;
+
+  parameters params_;
+  std::map<std::string, std::string> frame_ids_;
+  bool output_pcd_;
+  bool publish_tf_;
+
+  ros::Time match_output_last_;
+  ros::Time odom_last_;
+  bool has_map_;
+  bool has_odom_;
+  State odom_;
+  State odom_prev_;
+  std::map<std::string, bool> frames_;
+  std::vector<std::string> frames_v_;
+  size_t frame_num_;
+  State state_prev_;
+  ros::Time imu_last_;
+  int cnt_measure_;
+  int cnt_accum_;
+
+  MyPointRepresentation point_rep_;
+
+  pcl::PointCloud<pcl::PointXYZI>::Ptr pc_map_;
+  pcl::PointCloud<pcl::PointXYZI>::Ptr pc_map2_;
+  pcl::PointCloud<pcl::PointXYZI>::Ptr pc_update_;
+  pcl::PointCloud<pcl::PointXYZI>::Ptr pc_all_accum_;
+  pcl::PointCloud<pcl::PointXYZI>::Ptr pc_local_accum_;
+  pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtree_;
+  pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtree_orig_;
+  std::vector<std_msgs::Header> pc_accum_header_;
+
+  std::random_device seed_gen_;
+  std::default_random_engine engine_;
 };
 
 int main(int argc, char *argv[])
