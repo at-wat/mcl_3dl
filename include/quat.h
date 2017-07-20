@@ -87,13 +87,41 @@ public:
   {
     return sqrtf(dot(*this));
   }
+  bool operator==(const Quat &q) const
+  {
+    return x == q.x && y == q.y && z == q.z && w == q.w;
+  }
+  bool operator!=(const Quat &q) const
+  {
+    return !operator==(q);
+  }
   Quat operator+(const Quat &q) const
   {
     return Quat(x + q.x, y + q.y, z + q.z, w + q.w);
   }
+  Quat operator+=(const Quat &q)
+  {
+    x += q.x;
+    y += q.y;
+    z += q.z;
+    w += q.w;
+    return *this;
+  }
   Quat operator-(const Quat &q) const
   {
     return Quat(x - q.x, y - q.y, z - q.z, w - q.w);
+  }
+  Quat operator-=(const Quat &q)
+  {
+    x -= q.x;
+    y -= q.y;
+    z -= q.z;
+    w -= q.w;
+    return *this;
+  }
+  Quat operator-() const
+  {
+    return Quat(-x, -y, -z, -w);
   }
   Quat operator*(const Quat &q) const
   {
@@ -103,16 +131,36 @@ public:
         w * q.z + z * q.w + x * q.y - y * q.x,
         w * q.w - x * q.x - y * q.y - z * q.z);
   }
-  Quat operator/(const float &s) const
-  {
-    return operator*(1.0 / s);
-  }
   Vec3 operator*(const Vec3 &v) const
   {
     Quat ret = *this * Quat(v.x, v.y, v.z, 0.0) * conj();
     return Vec3(ret.x, ret.y, ret.z);
   }
   Quat operator*(const float &s) const
+  {
+    return Quat(x * s, y * s, z * s, w * s);
+  }
+  Quat operator/(const float &s) const
+  {
+    return operator*(1.0 / s);
+  }
+  Quat operator*=(const float &s)
+  {
+    x *= s;
+    y *= s;
+    z *= s;
+    w *= s;
+    return *this;
+  }
+  Quat operator/=(const float &s)
+  {
+    x /= s;
+    y /= s;
+    z /= s;
+    w /= s;
+    return *this;
+  }
+  Quat weighted(const float &s) const
   {
     Vec3 axis;
     float ang;
