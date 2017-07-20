@@ -34,7 +34,7 @@
 
 #include <vec3.h>
 
-TEST(Vec3Test, testConstractors)
+TEST(Vec3Test, testConstructors)
 {
   const Vec3 a(1.0, 2.0, 3.0);
   const Vec3 b(a);
