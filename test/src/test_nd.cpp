@@ -27,32 +27,40 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ND_H
-#define ND_H
-
-#define _USE_MATH_DEFINES
+#include <cstddef>
 #include <cmath>
 
-template <typename FLT_TYPE = float>
-class NormalLikelihood
+#include <gtest/gtest.h>
+
+#include <nd.h>
+
+TEST(NormalLiklihoodTest, testNormality)
 {
-public:
-  explicit NormalLikelihood(const FLT_TYPE sigma)
+  for (float sigma = 1.0; sigma <= 3.0; sigma += 1.0)
   {
-    a_ = 1.0 / sqrtf(2.0 * M_PI * sigma * sigma);
-    sq2_ = sigma * sigma * 2.0;
-  }
-  /**
-   @brief Returns likelihood of given value
-   */
-  FLT_TYPE operator()(const FLT_TYPE x)
-  {
-    return a_ * expf(-x * x / sq2_);
-  }
+    // Check distribution
+    NormalLikelihood<float> nl(sigma);
+    const float likelihood0 = 1.0 / sqrtf(M_PI * 2.0 * sigma * sigma);
+    ASSERT_LT(fabs(nl(0.0) - likelihood0), 1e-6);
+    ASSERT_LT(fabs(nl(sigma) - likelihood0 * 0.60653066), 1e-6);
+    ASSERT_LT(fabs(nl(-sigma) - likelihood0 * 0.60653066), 1e-6);
+    ASSERT_LT(fabs(nl(3.0 * sigma) - likelihood0 * 0.011108997), 1e-6);
+    ASSERT_LT(fabs(nl(-3.0 * sigma) - likelihood0 * 0.011108997), 1e-6);
 
-protected:
-  FLT_TYPE a_;
-  FLT_TYPE sq2_;
-};
+    // Check integral
+    float sum(0.0);
+    const float step = 0.01;
+    for (float i = -100.0; i < 100.0; i += step)
+    {
+      sum += nl(i) * step;
+    }
+    ASSERT_LT(fabs(sum) - 1.0, 1e-6);
+  }
+}
 
-#endif  // ND_H
+int main(int argc, char **argv)
+{
+  testing::InitGoogleTest(&argc, argv);
+
+  return RUN_ALL_TESTS();
+}

@@ -6,6 +6,8 @@ catkin_add_gtest(test_vec3 src/test_vec3.cpp)
 target_link_libraries(test_vec3 ${catkin_LIBRARIES})
 catkin_add_gtest(test_quat src/test_quat.cpp)
 target_link_libraries(test_quat ${catkin_LIBRARIES})
+catkin_add_gtest(test_nd src/test_nd.cpp)
+target_link_libraries(test_nd ${catkin_LIBRARIES})
 
 if(MCL_3DL_EXTRA_TESTS)
 
