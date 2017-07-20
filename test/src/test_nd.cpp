@@ -47,7 +47,7 @@ TEST(NormalLiklihoodTest, testNormality)
     ASSERT_LT(fabs(nl(3.0 * sigma) - likelihood0 * 0.011108997), 1e-6);
     ASSERT_LT(fabs(nl(-3.0 * sigma) - likelihood0 * 0.011108997), 1e-6);
 
-    // Check integral
+    // Check integrated value
     float sum(0.0);
     const float step = 0.01;
     for (float i = -100.0; i < 100.0; i += step)

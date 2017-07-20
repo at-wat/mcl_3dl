@@ -38,7 +38,7 @@
 
 TEST(QuatTest, testConstractors)
 {
-  // Test quaternion elements style constructor
+  // Test quaternion elements style constructor and copy constructor
   const Quat a(1.0, 2.0, 3.0, 4.0);
   const Quat b(a);
 
@@ -105,6 +105,7 @@ TEST(QuatTest, testConstractors)
 
       const Quat q(fw, up);
 
+      // Rotate forward and up vectors and validate
       const Vec3 f = q * Vec3(1.0, 0.0, 0.0);
       const Vec3 u = q * Vec3(0.0, 0.0, 1.0);
 

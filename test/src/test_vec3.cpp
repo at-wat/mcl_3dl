@@ -36,6 +36,7 @@
 
 TEST(Vec3Test, testConstructors)
 {
+  // Test vector elements constructor and copy constructor
   const Vec3 a(1.0, 2.0, 3.0);
   const Vec3 b(a);
 
