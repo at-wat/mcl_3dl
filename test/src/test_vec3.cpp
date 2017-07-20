@@ -34,6 +34,20 @@
 
 #include <vec3.h>
 
+TEST(Vec3Test, testConstractors)
+{
+  const Vec3 a(1.0, 2.0, 3.0);
+  const Vec3 b(a);
+
+  // Test elements
+  ASSERT_TRUE(a.x == 1.0);
+  ASSERT_TRUE(a.y == 2.0);
+  ASSERT_TRUE(a.z == 3.0);
+  ASSERT_TRUE(b.x == 1.0);
+  ASSERT_TRUE(b.y == 2.0);
+  ASSERT_TRUE(b.z == 3.0);
+}
+
 TEST(Vec3Test, testOperators)
 {
   const Vec3 a(1.0, 2.0, 3.0);
@@ -42,30 +56,25 @@ TEST(Vec3Test, testOperators)
   ASSERT_TRUE(Vec3(1.0, 2.0, 3.0) == a);
   ASSERT_FALSE(Vec3(1.0, 2.0, 3.0) != a);
 
-  ASSERT_TRUE(Vec3(1.1, 2.0, 3.0) != a);
-  ASSERT_FALSE(Vec3(1.1, 2.0, 3.0) == a);
-  ASSERT_TRUE(Vec3(1.0, 2.1, 3.0) != a);
-  ASSERT_FALSE(Vec3(1.0, 2.1, 3.0) == a);
-  ASSERT_TRUE(Vec3(1.0, 2.0, 3.1) != a);
-  ASSERT_FALSE(Vec3(1.0, 2.0, 3.1) == a);
-  ASSERT_TRUE(Vec3(1.1, 2.1, 3.0) != a);
-  ASSERT_FALSE(Vec3(1.1, 2.1, 3.0) == a);
-  ASSERT_TRUE(Vec3(1.0, 2.1, 3.1) != a);
-  ASSERT_FALSE(Vec3(1.0, 2.1, 3.1) == a);
-  ASSERT_TRUE(Vec3(1.1, 2.0, 3.1) != a);
-  ASSERT_FALSE(Vec3(1.1, 2.0, 3.1) == a);
-  ASSERT_TRUE(Vec3(1.1, 2.1, 3.1) != a);
-  ASSERT_FALSE(Vec3(1.1, 2.1, 3.1) == a);
+  for (uint32_t i = 1; i < (1 << 3); i++)
+  {
+    const float xp = (i & (1 << 0)) ? 0.1 : 0.0;
+    const float yp = (i & (1 << 1)) ? 0.1 : 0.0;
+    const float zp = (i & (1 << 2)) ? 0.1 : 0.0;
+    ASSERT_TRUE(Vec3(1.0 + xp, 2.0 + yp, 3.0 + zp) != a);
+    ASSERT_FALSE(Vec3(1.0 + xp, 2.0 + yp, 3.0 + zp) == a);
+  }
 
   // Test +, -, +=, -= operators
+  const Vec3 adding(0.5, -0.5, 1.0);
   Vec3 a_plus = a;
   Vec3 a_minus = a;
-  a_plus += Vec3(0.5, -0.5, 1.0);
-  a_minus -= Vec3(0.5, -0.5, 1.0);
-  ASSERT_TRUE(a + Vec3(0.5, -0.5, 1.0) == Vec3(1.5, 1.5, 4.0));
-  ASSERT_TRUE(a + Vec3(0.5, -0.5, 1.0) == a_plus);
-  ASSERT_TRUE(a - Vec3(0.5, -0.5, 1.0) == Vec3(0.5, 2.5, 2.0));
-  ASSERT_TRUE(a - Vec3(0.5, -0.5, 1.0) == a_minus);
+  a_plus += adding;
+  a_minus -= adding;
+  ASSERT_TRUE(a + adding == Vec3(1.5, 1.5, 4.0));
+  ASSERT_TRUE(a + adding == a_plus);
+  ASSERT_TRUE(a - adding == Vec3(0.5, 2.5, 2.0));
+  ASSERT_TRUE(a - adding == a_minus);
 
   // Test -() operator
   ASSERT_TRUE(-a == Vec3(-1.0, -2.0, -3.0));
