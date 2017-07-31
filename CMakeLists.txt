@@ -9,7 +9,6 @@ find_package(PCL 1.7 REQUIRED)
 
 catkin_package(
 	CATKIN_DEPENDS roscpp std_msgs sensor_msgs pcl_ros
-	DEPENDS system_lib
 )
 
 include(CheckCXXCompilerFlag)
