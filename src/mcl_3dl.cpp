@@ -455,7 +455,7 @@ protected:
           s.rot.normalize();
           Quat r2 = r;
           r2.rotateAxis(s.rot);
-          s.rot = (r2 * aa(engine_) * la(engine_)) * s.rot;
+          s.rot = (r2.weighted(aa(engine_) * la(engine_))) * s.rot;
           s.pos += s.rot * (v * ll(engine_) * al(engine_));
         };
         pf_->predict(prediction_func);
