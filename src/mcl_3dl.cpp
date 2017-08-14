@@ -36,6 +36,7 @@
 #include <geometry_msgs/PoseArray.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <visualization_msgs/MarkerArray.h>
+#include <mcl_3dl/ResizeParticle.h>
 
 #include <tf/transform_listener.h>
 #include <tf/transform_broadcaster.h>
@@ -1049,6 +1050,12 @@ protected:
       imu_last_ = msg->header.stamp;
     }
   }
+  bool cbResizeParticle(mcl_3dl::ResizeParticleRequest &request,
+                        mcl_3dl::ResizeParticleResponse &response)
+  {
+    pf_->resizeParticle(request.size);
+    return true;
+  }
 
 public:
   MCL3dlNode(int argc, char *argv[])
@@ -1067,6 +1074,7 @@ public:
     pub_debug_ = nh.advertise<sensor_msgs::PointCloud>("debug", 5, true);
     pub_mapcloud_ = nh.advertise<sensor_msgs::PointCloud2>("updated_map", 1, true);
     pub_debug_marker_ = nh.advertise<visualization_msgs::MarkerArray>("debug_marker", 1, true);
+    srv_particle_size_ = nh.advertiseService("resize_particle", &MCL3dlNode::cbResizeParticle, this);
 
     nh.param("map_frame", frame_ids_["map"], std::string("map"));
     nh.param("robot_frame", frame_ids_["base_link"], std::string("base_link"));
@@ -1279,6 +1287,7 @@ protected:
   ros::Publisher pub_matched_;
   ros::Publisher pub_unmatched_;
   ros::Publisher pub_debug_marker_;
+  ros::ServiceServer srv_particle_size_;
 
   tf::TransformListener tfl_;
   tf::TransformBroadcaster tfb_;

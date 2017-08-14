@@ -7,6 +7,13 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(PCL 1.7 REQUIRED)
 
+add_service_files(
+  FILES ResizeParticle.srv
+)
+generate_messages(
+  DEPENDENCIES std_msgs
+)
+
 catkin_package(
 	CATKIN_DEPENDS roscpp std_msgs sensor_msgs pcl_ros
 )
@@ -31,6 +38,7 @@ add_definitions(${PCL_DEFINITIONS})
 
 add_executable(mcl_3dl src/mcl_3dl.cpp)
 target_link_libraries(mcl_3dl ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+add_dependencies(mcl_3dl mcl_3dl_generate_messages)
 
 
 roslint_cpp()
