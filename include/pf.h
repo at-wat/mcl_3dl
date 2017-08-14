@@ -43,7 +43,7 @@ class ParticleBase
 {
 public:
   virtual FLT_TYPE &operator[](const size_t i) = 0;
-  virtual const size_t size() = 0;
+  virtual size_t size() const = 0;
   virtual void normalize() = 0;
   template <typename T>
   T operator+(const T &a)
@@ -97,7 +97,7 @@ public:
   FLT_TYPE probability;
   FLT_TYPE probability_bias;
   FLT_TYPE accum_probability;
-  const bool operator<(const Particle &p2) const
+  bool operator<(const Particle &p2) const
   {
     return this->accum_probability < p2.accum_probability;
   }
@@ -342,11 +342,11 @@ public:
     }
     return *m;
   }
-  const T getParticle(const size_t i)
+  T getParticle(const size_t i) const
   {
     return particles_[i].state;
   }
-  const size_t getParticleSize()
+  size_t getParticleSize() const
   {
     return particles_.size();
   }
