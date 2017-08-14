@@ -112,7 +112,8 @@ protected:
 
 public:
   ParticleWeightedMean()
-    : e_(), p_sum_(0.0)
+    : e_()
+    , p_sum_(0.0)
   {
   }
 
@@ -349,6 +350,32 @@ public:
   size_t getParticleSize() const
   {
     return particles_.size();
+  }
+  void resizeParticle(const size_t num)
+  {
+    FLT_TYPE accum = 0;
+    for (auto &p : particles_)
+    {
+      accum += p.probability;
+      p.accum_probability = accum;
+    }
+
+    particles_dup_ = particles_;
+    std::sort(particles_dup_.begin(), particles_dup_.end());
+
+    FLT_TYPE pstep = accum / particles_.size();
+    FLT_TYPE pscan = 0;
+    auto it = particles_dup_.begin();
+
+    particles_.resize(num);
+    FLT_TYPE prob = 1.0 / num;
+    for (auto &p : particles_)
+    {
+      pscan += pstep;
+      it = std::lower_bound(it, particles_dup_.end(), Particle<T, FLT_TYPE>(pscan));
+      p.state = it->state;
+      p.probability = prob;
+    }
   }
 
 protected:
