@@ -191,7 +191,7 @@ protected:
       }
       return pos.x;
     };
-    const size_t size() override
+    size_t size() const override
     {
       return 13;
     };
@@ -285,7 +285,9 @@ protected:
 
   public:
     ParticleWeightedMeanQuat()
-      : ParticleWeightedMean(), front_sum_(0.0, 0.0, 0.0), up_sum_(0.0, 0.0, 0.0)
+      : ParticleWeightedMean()
+      , front_sum_(0.0, 0.0, 0.0)
+      , up_sum_(0.0, 0.0, 0.0)
     {
     }
 
