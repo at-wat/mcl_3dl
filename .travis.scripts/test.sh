@@ -25,12 +25,21 @@ catkin_make || (gh-pr-comment FAILED '```catkin_make``` failed'; false)
 catkin_make tests --cmake-args -DMCL_3DL_EXTRA_TESTS:=ON || (gh-pr-comment FAILED '```catkin_make tests``` failed'; false)
 catkin_make run_tests  --cmake-args -DMCL_3DL_EXTRA_TESTS:=ON || (gh-pr-comment FAILED '```catkin_make run_tests``` failed'; false)
 
-result_text="
+if [ catkin_test_results ];
+then
+  result_text="
 \`\`\`
 `catkin_test_results --all || true`
 \`\`\`
 `find build/test_results/ -name *.xml | xargs -n 1 -- bash -c 'echo; echo \#\#\# $0; echo; echo \\\`\\\`\\\`; xmllint --format $0; echo \\\`\\\`\\\`;'`
 "
+else
+  result_text="
+\`\`\`
+`catkin_test_results --all || true`
+\`\`\`
+"
+fi
 catkin_test_results || (gh-pr-comment FAILED "Test failed$result_text"; false)
 
 gh-pr-comment PASSED "All tests passed$result_text"
