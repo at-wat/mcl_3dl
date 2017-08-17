@@ -3,16 +3,8 @@
 set -o errexit
 set -o verbose
 
-function post_error()
-{
-	if [[ ${TRAVIS_PULL_REQUEST} != "false" ]];
-	then
-    text=`echo "$2" | sed -n '1h;1!H;${x;s/\n/\\\\n/g;p;}' | sed 's/\"/\\\\"/g'`
-		curl -X POST -H 'Content-Type:application/json' -d "{\"body\":\"## Travis-CI status notifier bot [$1]\n\n$text\"}" \
-			https://api.github.com/repos/${TRAVIS_REPO_SLUG}/issues/${TRAVIS_PULL_REQUEST}/comments?access_token=${TRAVIS_BOT_GITHUB_TOKEN}
-	fi
-}
-
+wget -q -P /tmp https://raw.githubusercontent.com/at-wat/gh-pr-comment/master/gh-pr-comment.sh
+source /tmp/gh-pr-comment.sh
 
 source /opt/ros/${ROS_DISTRO}/setup.bash
 source /catkin_ws/devel/setup.bash
@@ -24,22 +16,33 @@ mv /catkin_ws/src/mcl_3dl/.cached-dataset/* /catkin_ws/build/mcl_3dl/test/
 ls -lh /catkin_ws/build/mcl_3dl/test/
 
 apt-get -qq update && \
+apt-get install libxml2-utils && \
 rosdep install --from-paths src/mcl_3dl --ignore-src --rosdistro=${ROS_DISTRO} -y && \
 apt-get clean && \
 rm -rf /var/lib/apt/lists/*
 
-catkin_make || (post_error FAILED '```catkin_make``` failed'; false)
-catkin_make tests --cmake-args -DMCL_3DL_EXTRA_TESTS:=ON || (post_error FAILED '```catkin_make tests``` failed'; false)
-catkin_make run_tests  --cmake-args -DMCL_3DL_EXTRA_TESTS:=ON || (post_error FAILED '```catkin_make run_tests``` failed'; false)
+catkin_make || (gh-pr-comment FAILED '```catkin_make``` failed'; false)
+catkin_make tests --cmake-args -DMCL_3DL_EXTRA_TESTS:=ON || (gh-pr-comment FAILED '```catkin_make tests``` failed'; false)
+catkin_make run_tests  --cmake-args -DMCL_3DL_EXTRA_TESTS:=ON || (gh-pr-comment FAILED '```catkin_make run_tests``` failed'; false)
 
-result_text="
+if [ catkin_test_results ];
+then
+  result_text="
 \`\`\`
 `catkin_test_results --all || true`
 \`\`\`
 "
-catkin_test_results || (post_error FAILED "Test failed$result_text"; false)
+else
+  result_text="
+\`\`\`
+`catkin_test_results --all || true`
+\`\`\`
+`find build/test_results/ -name *.xml | xargs -n 1 -- bash -c 'echo; echo \#\#\# $0; echo; echo \\\`\\\`\\\`; xmllint --format $0; echo \\\`\\\`\\\`;'`
+"
+fi
+catkin_test_results || (gh-pr-comment FAILED "Test failed$result_text"; false)
 
-post_error PASSED "All tests passed$result_text"
+gh-pr-comment PASSED "All tests passed$result_text"
 
 cd ..
 rm -rf /catkin_ws || true
