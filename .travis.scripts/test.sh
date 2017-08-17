@@ -16,6 +16,7 @@ mv /catkin_ws/src/mcl_3dl/.cached-dataset/* /catkin_ws/build/mcl_3dl/test/
 ls -lh /catkin_ws/build/mcl_3dl/test/
 
 apt-get -qq update && \
+apt-get install libxml2-utils && \
 rosdep install --from-paths src/mcl_3dl --ignore-src --rosdistro=${ROS_DISTRO} -y && \
 apt-get clean && \
 rm -rf /var/lib/apt/lists/*
@@ -28,6 +29,7 @@ result_text="
 \`\`\`
 `catkin_test_results --all || true`
 \`\`\`
+`find build/test_results/ -name *.xml | xargs -n 1 -- bash -c 'echo; echo \#\#\# $0; echo; echo \\\`\\\`\\\`; xmllint --format $0; echo \\\`\\\`\\\`;'`
 "
 catkin_test_results || (gh-pr-comment FAILED "Test failed$result_text"; false)
 
