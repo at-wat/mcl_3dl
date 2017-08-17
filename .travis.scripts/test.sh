@@ -31,13 +31,13 @@ then
 \`\`\`
 `catkin_test_results --all || true`
 \`\`\`
-`find build/test_results/ -name *.xml | xargs -n 1 -- bash -c 'echo; echo \#\#\# $0; echo; echo \\\`\\\`\\\`; xmllint --format $0; echo \\\`\\\`\\\`;'`
 "
 else
   result_text="
 \`\`\`
 `catkin_test_results --all || true`
 \`\`\`
+`find build/test_results/ -name *.xml | xargs -n 1 -- bash -c 'echo; echo \#\#\# $0; echo; echo \\\`\\\`\\\`; xmllint --format $0; echo \\\`\\\`\\\`;'`
 "
 fi
 catkin_test_results || (gh-pr-comment FAILED "Test failed$result_text"; false)
