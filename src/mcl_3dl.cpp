@@ -438,7 +438,6 @@ protected:
       }
       else if (dt > 0.05)
       {
-        // ROS_INFO("dt %0.3f", dt);
         Vec3 v = odom_prev_.rot.inv() * (odom_.pos - odom_prev_.pos);
         Quat r = odom_.rot * odom_prev_.rot.inv();
         r.rotateAxis(odom_prev_.rot.inv());
@@ -503,8 +502,6 @@ protected:
     if (frame_num_ >= frames_v_.size())
       frame_num_ = 0;
 
-    // ROS_INFO("cloud %s  %d/%d", msg->header.frame_id.c_str(), frame_num_, frames_v_.size());
-
     if (frame_num_ != 0)
       return;
 
@@ -548,11 +545,6 @@ protected:
         ROS_ERROR("Failed to transform laser origin.");
         origins.push_back(Vec3(0.0, 0.0, 0.0));
       }
-      /*ROS_INFO(" beam_origin[%d]  %0.3f %0.3f %0.3f",
-					(int)origins.size() - 1, 
-					origins.back().x,
-					origins.back().y,
-					origins.back().z);*/
     }
 
     const auto ts = boost::chrono::high_resolution_clock::now();
@@ -989,8 +981,8 @@ protected:
              params_.resample_var_yaw)));
 
     const auto tnow = boost::chrono::high_resolution_clock::now();
-    ROS_INFO("MCL (%0.3f sec.)",
-             boost::chrono::duration<float>(tnow - ts).count());
+    ROS_DEBUG("MCL (%0.3f sec.)",
+              boost::chrono::duration<float>(tnow - ts).count());
     pc_local_accum_.reset(new pcl::PointCloud<pcl::PointXYZI>);
     pc_accum_header_.clear();
 
