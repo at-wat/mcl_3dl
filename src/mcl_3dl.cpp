@@ -609,11 +609,9 @@ protected:
         return true;
       return false;
     };
-    pc_local->points.erase(
-        std::remove_if(pc_local->points.begin(), pc_local->points.end(), local_points_filter),
-        pc_local->points.end());
-    pc_local->width = 1;
-    pc_local->height = pc_local->points.size();
+    pc_local->erase(
+        std::remove_if(pc_local->begin(), pc_local->end(), local_points_filter),
+        pc_local->end());
     pc_local = random_sample(pc_local, static_cast<size_t>(params_.num_points));
 
     pcl::PointCloud<pcl::PointXYZI>::Ptr pc_local_beam(new pcl::PointCloud<pcl::PointXYZI>);
@@ -630,15 +628,13 @@ protected:
         return true;
       return false;
     };
-    pc_local_beam->points.erase(
-        std::remove_if(pc_local_beam->points.begin(), pc_local_beam->points.end(), local_beam_filter),
-        pc_local_beam->points.end());
-    pc_local_beam->width = 1;
-    pc_local_beam->height = pc_local_beam->points.size();
+    pc_local_beam->erase(
+        std::remove_if(pc_local_beam->begin(), pc_local_beam->end(), local_beam_filter),
+        pc_local_beam->end());
     pc_local_beam = random_sample(pc_local_beam, static_cast<size_t>(params_.num_points_beam));
 
-    assert(pc_local_beam->points.size() == params_.num_points_beam &&
-           pc_local->points.size() == params_.num_points);
+    assert(pc_local_beam->points.size() == static_cast<size_t>(params_.num_points_beam) &&
+           pc_local->points.size() == static_cast<size_t>(params_.num_points));
 
     pcl::PointCloud<pcl::PointXYZI>::Ptr pc_particle(new pcl::PointCloud<pcl::PointXYZI>);
     pcl::PointCloud<pcl::PointXYZI>::Ptr pc_particle_beam(new pcl::PointCloud<pcl::PointXYZI>);
@@ -1241,9 +1237,9 @@ public:
               return true;
             return false;
           };
-          pc_map2_.erase(
-              std::remove_if(pc_map2_->points.begin(), pc_map2_->points.end(), pc_map_filter),
-              pc_map2_->points.end());
+          pc_map2_->erase(
+              std::remove_if(pc_map2_->begin(), pc_map2_->end(), pc_map_filter),
+              pc_map2_->end());
 
           kdtree_.reset(new pcl::KdTreeFLANN<pcl::PointXYZI>);
           kdtree_->setEpsilon(params_.map_grid_min);
