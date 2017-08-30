@@ -342,6 +342,13 @@ protected:
     pcl::PointCloud<pcl::PointXYZI> pc_tmp;
     pcl::fromROSMsg(*msg, pc_tmp);
 
+    if (pc_tmp.points.size() == 0)
+    {
+      ROS_ERROR("Empty map received.");
+      has_map_ = false;
+      return;
+    }
+
     pc_map_.reset(new pcl::PointCloud<pcl::PointXYZI>);
     pc_map2_.reset(new pcl::PointCloud<pcl::PointXYZI>);
     pc_update_.reset(new pcl::PointCloud<pcl::PointXYZI>);
@@ -372,7 +379,11 @@ protected:
     kdtree_.reset(new pcl::KdTreeFLANN<pcl::PointXYZI>);
     kdtree_->setEpsilon(params_.map_grid_min / 2);
     kdtree_->setPointRepresentation(boost::make_shared<const MyPointRepresentation>(point_rep_));
-    kdtree_->setInputCloud(pc_map2_);
+
+    if (pc_map2_.points.size() == 0)
+      kdtree_->setInputCloud(pc_map_);
+    else
+      kdtree_->setInputCloud(pc_map2_);
   }
   void cbMapcloudUpdate(const sensor_msgs::PointCloud2::ConstPtr &msg)
   {
@@ -1230,15 +1241,18 @@ public:
               return true;
             return false;
           };
-          pc_map2_->points.erase(
+          pc_map2_.erase(
               std::remove_if(pc_map2_->points.begin(), pc_map2_->points.end(), pc_map_filter),
               pc_map2_->points.end());
-          pc_map2_->width = 1;
-          pc_map2_->height = pc_map2_->points.size();
+
           kdtree_.reset(new pcl::KdTreeFLANN<pcl::PointXYZI>);
           kdtree_->setEpsilon(params_.map_grid_min);
           kdtree_->setPointRepresentation(boost::make_shared<const MyPointRepresentation>(point_rep_));
-          kdtree_->setInputCloud(pc_map2_);
+
+          if (pc_map2_.points.size() == 0)
+            kdtree_->setInputCloud(pc_map_);
+          else
+            kdtree_->setInputCloud(pc_map2_);
 
           sensor_msgs::PointCloud2 out;
           pcl::toROSMsg(*pc_map2_, out);
