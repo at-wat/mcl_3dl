@@ -380,7 +380,7 @@ protected:
     kdtree_->setEpsilon(params_.map_grid_min / 2);
     kdtree_->setPointRepresentation(boost::make_shared<const MyPointRepresentation>(point_rep_));
 
-    if (pc_map2_.points.size() == 0)
+    if (pc_map2_->points.size() == 0)
       kdtree_->setInputCloud(pc_map_);
     else
       kdtree_->setInputCloud(pc_map2_);
@@ -1249,7 +1249,7 @@ public:
           kdtree_->setEpsilon(params_.map_grid_min);
           kdtree_->setPointRepresentation(boost::make_shared<const MyPointRepresentation>(point_rep_));
 
-          if (pc_map2_.points.size() == 0)
+          if (pc_map2_->points.size() == 0)
             kdtree_->setInputCloud(pc_map_);
           else
             kdtree_->setInputCloud(pc_map2_);
