@@ -10,6 +10,8 @@ catkin_add_gtest(test_nd src/test_nd.cpp)
 target_link_libraries(test_nd ${catkin_LIBRARIES})
 catkin_add_gtest(test_filter src/test_filter.cpp)
 target_link_libraries(test_filter ${catkin_LIBRARIES})
+catkin_add_gtest(test_pf src/test_pf.cpp)
+target_link_libraries(test_pf ${catkin_LIBRARIES})
 
 if(MCL_3DL_EXTRA_TESTS)
 
