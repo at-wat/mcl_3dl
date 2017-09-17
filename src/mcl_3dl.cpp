@@ -343,6 +343,13 @@ protected:
     pcl::PointCloud<pcl::PointXYZI> pc_tmp;
     pcl::fromROSMsg(*msg, pc_tmp);
 
+    if (pc_tmp.points.size() == 0)
+    {
+      ROS_ERROR("Empty map received.");
+      has_map_ = false;
+      return;
+    }
+
     pc_map_.reset(new pcl::PointCloud<pcl::PointXYZI>);
     pc_map2_.reset(new pcl::PointCloud<pcl::PointXYZI>);
     pc_update_.reset(new pcl::PointCloud<pcl::PointXYZI>);
@@ -373,7 +380,11 @@ protected:
     kdtree_.reset(new pcl::KdTreeFLANN<pcl::PointXYZI>);
     kdtree_->setEpsilon(params_.map_grid_min / 2);
     kdtree_->setPointRepresentation(boost::make_shared<const MyPointRepresentation>(point_rep_));
-    kdtree_->setInputCloud(pc_map2_);
+
+    if (pc_map2_->points.size() == 0)
+      kdtree_->setInputCloud(pc_map_);
+    else
+      kdtree_->setInputCloud(pc_map2_);
   }
   void cbMapcloudUpdate(const sensor_msgs::PointCloud2::ConstPtr &msg)
   {
@@ -439,7 +450,6 @@ protected:
       }
       else if (dt > 0.05)
       {
-        // ROS_INFO("dt %0.3f", dt);
         Vec3 v = odom_prev_.rot.inv() * (odom_.pos - odom_prev_.pos);
         Quat r = odom_.rot * odom_prev_.rot.inv();
         r.rotateAxis(odom_prev_.rot.inv());
@@ -504,8 +514,6 @@ protected:
     if (frame_num_ >= frames_v_.size())
       frame_num_ = 0;
 
-    // ROS_INFO("cloud %s  %d/%d", msg->header.frame_id.c_str(), frame_num_, frames_v_.size());
-
     if (frame_num_ != 0)
       return;
 
@@ -549,11 +557,6 @@ protected:
         ROS_ERROR("Failed to transform laser origin.");
         origins.push_back(Vec3(0.0, 0.0, 0.0));
       }
-      /*ROS_INFO(" beam_origin[%d]  %0.3f %0.3f %0.3f",
-					(int)origins.size() - 1, 
-					origins.back().x,
-					origins.back().y,
-					origins.back().z);*/
     }
 
     const auto ts = boost::chrono::high_resolution_clock::now();
@@ -607,11 +610,9 @@ protected:
         return true;
       return false;
     };
-    pc_local->points.erase(
-        std::remove_if(pc_local->points.begin(), pc_local->points.end(), local_points_filter),
-        pc_local->points.end());
-    pc_local->width = 1;
-    pc_local->height = pc_local->points.size();
+    pc_local->erase(
+        std::remove_if(pc_local->begin(), pc_local->end(), local_points_filter),
+        pc_local->end());
     pc_local = random_sample(pc_local, static_cast<size_t>(params_.num_points));
 
     pcl::PointCloud<pcl::PointXYZI>::Ptr pc_local_beam(new pcl::PointCloud<pcl::PointXYZI>);
@@ -628,15 +629,13 @@ protected:
         return true;
       return false;
     };
-    pc_local_beam->points.erase(
-        std::remove_if(pc_local_beam->points.begin(), pc_local_beam->points.end(), local_beam_filter),
-        pc_local_beam->points.end());
-    pc_local_beam->width = 1;
-    pc_local_beam->height = pc_local_beam->points.size();
+    pc_local_beam->erase(
+        std::remove_if(pc_local_beam->begin(), pc_local_beam->end(), local_beam_filter),
+        pc_local_beam->end());
     pc_local_beam = random_sample(pc_local_beam, static_cast<size_t>(params_.num_points_beam));
 
-    assert(pc_local_beam->points.size() == params_.num_points_beam &&
-           pc_local->points.size() == params_.num_points);
+    assert(pc_local_beam->points.size() == static_cast<size_t>(params_.num_points_beam) &&
+           pc_local->points.size() == static_cast<size_t>(params_.num_points));
 
     pcl::PointCloud<pcl::PointXYZI>::Ptr pc_particle(new pcl::PointCloud<pcl::PointXYZI>);
     pcl::PointCloud<pcl::PointXYZI>::Ptr pc_particle_beam(new pcl::PointCloud<pcl::PointXYZI>);
@@ -990,8 +989,8 @@ protected:
              params_.resample_var_yaw)));
 
     const auto tnow = boost::chrono::high_resolution_clock::now();
-    ROS_INFO("MCL (%0.3f sec.)",
-             boost::chrono::duration<float>(tnow - ts).count());
+    ROS_DEBUG("MCL (%0.3f sec.)",
+              boost::chrono::duration<float>(tnow - ts).count());
     pc_local_accum_.reset(new pcl::PointCloud<pcl::PointXYZI>);
     pc_accum_header_.clear();
 
@@ -1246,15 +1245,18 @@ public:
               return true;
             return false;
           };
-          pc_map2_->points.erase(
-              std::remove_if(pc_map2_->points.begin(), pc_map2_->points.end(), pc_map_filter),
-              pc_map2_->points.end());
-          pc_map2_->width = 1;
-          pc_map2_->height = pc_map2_->points.size();
+          pc_map2_->erase(
+              std::remove_if(pc_map2_->begin(), pc_map2_->end(), pc_map_filter),
+              pc_map2_->end());
+
           kdtree_.reset(new pcl::KdTreeFLANN<pcl::PointXYZI>);
           kdtree_->setEpsilon(params_.map_grid_min);
           kdtree_->setPointRepresentation(boost::make_shared<const MyPointRepresentation>(point_rep_));
-          kdtree_->setInputCloud(pc_map2_);
+
+          if (pc_map2_->points.size() == 0)
+            kdtree_->setInputCloud(pc_map_);
+          else
+            kdtree_->setInputCloud(pc_map2_);
 
           sensor_msgs::PointCloud2 out;
           pcl::toROSMsg(*pc_map2_, out);
