@@ -83,6 +83,8 @@ protected:
     double clip_beam_z_max;
     double map_clip_z_min;
     double map_clip_z_max;
+    double map_clip_far;
+    double map_clip_far_sq;
     double map_downsample_x;
     double map_downsample_y;
     double map_downsample_z;
@@ -1093,6 +1095,8 @@ public:
     nh.param("clip_beam_z_max", params_.clip_beam_z_max, 2.0);
     nh.param("map_clip_z_min", params_.map_clip_z_min, -3.0);
     nh.param("map_clip_z_max", params_.map_clip_z_max, 3.0);
+    nh.param("map_clip_far", params_.map_clip_far, 40.0);
+    params_.map_clip_far_sq = pow(params_.map_clip_far, 2.0);
     nh.param("map_downsample_x", params_.map_downsample_x, 0.1);
     nh.param("map_downsample_y", params_.map_downsample_y, 0.1);
     nh.param("map_downsample_z", params_.map_downsample_z, 0.1);
@@ -1242,6 +1246,8 @@ public:
             if (p.z - e.pos.z > params_.map_clip_z_max)
               return true;
             if (p.z - e.pos.z < params_.map_clip_z_min)
+              return true;
+            if (powf(p.x - e.pos.x, 2.0) + powf(p.y - e.pos.y, 2.0) > params_.map_clip_far_sq)
               return true;
             return false;
           };
