@@ -33,7 +33,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O1")
 
 
 include_directories(${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ${PCL_INCLUDE_DIR} include)
-link_directories(${Boost_LIBRARY_DIRS} ${PCL_LIBRARY_DIR})
+link_directories(${Boost_LIBRARY_DIRS} ${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
 add_executable(mcl_3dl src/mcl_3dl.cpp)
