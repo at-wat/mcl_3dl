@@ -7,6 +7,7 @@ cache:
 env:
   global:
     - DOCKER_CACHE_FILE=/home/travis/docker/cache.tar.lz4
+    - DOCKER_CACHE_TARGETS="mcl3dl:latest mcl3dl:indigo"
     - DATASET_CACHE_DIR=/home/travis/docker/dataset
     - DATASET_FILE=short_test.bag
     - DATASET_REF_FILE=short_test_ref.topic
@@ -22,6 +23,7 @@ before_install:
 install: true
 
 script:
-  - docker build -t docker-mcl3dl:latest --pull=true ${TRAVIS_BUILD_DIR} --build-arg TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST} --build-arg TRAVIS_REPO_SLUG=${TRAVIS_REPO_SLUG} --build-arg TRAVIS_BOT_GITHUB_TOKEN=${TRAVIS_BOT_GITHUB_TOKEN}
+  - docker build -t mcl3dl:latest --pull=true ${TRAVIS_BUILD_DIR} --build-arg TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST} --build-arg TRAVIS_REPO_SLUG=${TRAVIS_REPO_SLUG} --build-arg TRAVIS_BOT_GITHUB_TOKEN=${TRAVIS_BOT_GITHUB_TOKEN}
+  - docker build -t mcl3dl:indigo -f Dockerfile.indigo --pull=true ${TRAVIS_BUILD_DIR} --build-arg TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST} --build-arg TRAVIS_REPO_SLUG=${TRAVIS_REPO_SLUG} --build-arg TRAVIS_BOT_GITHUB_TOKEN=${TRAVIS_BOT_GITHUB_TOKEN}
   - .travis.scripts/save_cache.sh
 

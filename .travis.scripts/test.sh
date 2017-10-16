@@ -15,15 +15,9 @@ mkdir -p /catkin_ws/build/mcl_3dl/test/
 mv /catkin_ws/src/mcl_3dl/.cached-dataset/* /catkin_ws/build/mcl_3dl/test/
 ls -lh /catkin_ws/build/mcl_3dl/test/
 
-apt-get -qq update && \
-apt-get install libxml2-utils && \
-rosdep install --from-paths src/mcl_3dl --ignore-src --rosdistro=${ROS_DISTRO} -y && \
-apt-get clean && \
-rm -rf /var/lib/apt/lists/*
-
 catkin_make || (gh-pr-comment FAILED '```catkin_make``` failed'; false)
 catkin_make tests --cmake-args -DMCL_3DL_EXTRA_TESTS:=ON || (gh-pr-comment FAILED '```catkin_make tests``` failed'; false)
-catkin_make run_tests  --cmake-args -DMCL_3DL_EXTRA_TESTS:=ON || (gh-pr-comment FAILED '```catkin_make run_tests``` failed'; false)
+catkin_make run_tests --cmake-args -DMCL_3DL_EXTRA_TESTS:=ON || (gh-pr-comment FAILED '```catkin_make run_tests``` failed'; false)
 
 if [ catkin_test_results ];
 then
