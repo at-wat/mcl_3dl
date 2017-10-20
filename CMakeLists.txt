@@ -4,7 +4,6 @@ project(mcl_3dl)
 find_package(catkin REQUIRED COMPONENTS
 	roscpp std_msgs message_generation sensor_msgs pcl_ros visualization_msgs roslint rostest
 )
-
 find_package(PCL 1.7 REQUIRED)
 
 add_service_files(
@@ -17,6 +16,7 @@ generate_messages(
 catkin_package(
 	CATKIN_DEPENDS roscpp std_msgs sensor_msgs pcl_ros
 )
+find_package(Boost REQUIRED COMPONENTS chrono REQUIRED)
 
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -32,12 +32,12 @@ endif()
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O1")
 
 
-include_directories(${catkin_INCLUDE_DIRS} ${PCL_INCLUDE_DIR} include)
-link_directories(${PCL_LIBRARY_DIR})
+include_directories(${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ${PCL_INCLUDE_DIR} include)
+link_directories(${Boost_LIBRARY_DIRS} ${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
 add_executable(mcl_3dl src/mcl_3dl.cpp)
-target_link_libraries(mcl_3dl ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+target_link_libraries(mcl_3dl ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${PCL_LIBRARIES})
 add_dependencies(mcl_3dl mcl_3dl_generate_messages)
 
 
