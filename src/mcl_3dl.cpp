@@ -615,6 +615,11 @@ protected:
     pc_local->erase(
         std::remove_if(pc_local->begin(), pc_local->end(), local_points_filter),
         pc_local->end());
+    if (pc_local->size() == 0)
+    {
+      ROS_ERROR("All points are filtered out. Failed to localize.");
+      return;
+    }
     pc_local = random_sample(pc_local, static_cast<size_t>(params_.num_points));
 
     pcl::PointCloud<pcl::PointXYZI>::Ptr pc_local_beam(new pcl::PointCloud<pcl::PointXYZI>);
@@ -634,10 +639,14 @@ protected:
     pc_local_beam->erase(
         std::remove_if(pc_local_beam->begin(), pc_local_beam->end(), local_beam_filter),
         pc_local_beam->end());
-    pc_local_beam = random_sample(pc_local_beam, static_cast<size_t>(params_.num_points_beam));
-
-    assert(pc_local_beam->points.size() == static_cast<size_t>(params_.num_points_beam) &&
-           pc_local->points.size() == static_cast<size_t>(params_.num_points));
+    if (pc_local_beam->size() == 0)
+    {
+      ROS_ERROR("All beam points are filtered out. Skipping beam model.");
+    }
+    else
+    {
+      pc_local_beam = random_sample(pc_local_beam, static_cast<size_t>(params_.num_points_beam));
+    }
 
     pcl::PointCloud<pcl::PointXYZI>::Ptr pc_particle(new pcl::PointCloud<pcl::PointXYZI>);
     pcl::PointCloud<pcl::PointXYZI>::Ptr pc_particle_beam(new pcl::PointCloud<pcl::PointXYZI>);
