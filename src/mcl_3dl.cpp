@@ -461,17 +461,17 @@ protected:
         r.normalize();
 
         const float trans = v.norm();
-        std::normal_distribution<float> ll(1.0, trans * params_.odom_err_lin_lin);
-        std::normal_distribution<float> la(1.0, trans * params_.odom_err_lin_ang);
-        std::normal_distribution<float> al(1.0, fabs(ang) * params_.odom_err_ang_lin);
-        std::normal_distribution<float> aa(1.0, fabs(ang) * params_.odom_err_ang_ang);
+        std::normal_distribution<float> ll(0.0, trans * params_.odom_err_lin_lin);
+        std::normal_distribution<float> la(0.0, trans * params_.odom_err_lin_ang);
+        std::normal_distribution<float> al(0.0, fabs(ang) * params_.odom_err_ang_lin);
+        std::normal_distribution<float> aa(0.0, fabs(ang) * params_.odom_err_ang_ang);
         auto prediction_func = [this, &ll, &la, &al, &aa, &v, &r](State &s)
         {
           s.rot.normalize();
           Quat r2 = r;
           r2.rotateAxis(s.rot);
-          s.rot = (r2.weighted(aa(engine_) * la(engine_))) * s.rot;
-          s.pos += s.rot * (v * ll(engine_) * al(engine_));
+          s.rot = (r2.weighted(1.0 + aa(engine_) + la(engine_))) * s.rot;
+          s.pos += s.rot * (v * (1.0 + ll(engine_) + al(engine_)));
         };
         pf_->predict(prediction_func);
         odom_last_ = msg->header.stamp;
