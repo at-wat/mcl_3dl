@@ -36,6 +36,9 @@ include_directories(${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ${PCL_INCLUDE_D
 link_directories(${Boost_LIBRARY_DIRS} ${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
+# Workaround for the bug in PCL(<1.8.1) https://github.com/PointCloudLibrary/pcl/issues/1406
+remove_definitions(-DDISABLE_LIBUSB-1.0)
+
 add_executable(mcl_3dl src/mcl_3dl.cpp)
 target_link_libraries(mcl_3dl ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${PCL_LIBRARIES})
 add_dependencies(mcl_3dl mcl_3dl_generate_messages)

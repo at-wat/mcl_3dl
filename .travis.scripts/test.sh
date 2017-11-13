@@ -15,18 +15,23 @@ mkdir -p /catkin_ws/build/mcl_3dl/test/
 mv /catkin_ws/src/mcl_3dl/.cached-dataset/* /catkin_ws/build/mcl_3dl/test/
 ls -lh /catkin_ws/build/mcl_3dl/test/
 
-CATKIN_OPTIONS=""
+sed -i -e '5a set(CMAKE_C_FLAGS "-Wall -Werror")' \
+  /opt/ros/${ROS_DISTRO}/share/catkin/cmake/toplevel.cmake
+sed -i -e '5a set(CMAKE_CXX_FLAGS "-Wall -Werror")' \
+  /opt/ros/${ROS_DISTRO}/share/catkin/cmake/toplevel.cmake
+
+CM_OPTIONS=""
 if [ x${ROS_DISTRO} == "xindigo" ]
 then
-  CATKIN_OPTIONS="-DCMAKE_BUILD_TYPE=Release"
+  CM_OPTIONS="${CM_OPTIONS} -DCMAKE_BUILD_TYPE=Release"
   echo "On indigo-trusty, we need release build due to the bug of PCL1.7 with c++11." 1>&2
 fi
 
-catkin_make ${CATKIN_OPTIONS} || \
+catkin_make ${CM_OPTIONS} || \
   (gh-pr-comment "FAILED on ${ROS_DISTRO}" '```catkin_make``` failed'; false)
-catkin_make tests --cmake-args -DMCL_3DL_EXTRA_TESTS=ON ${CATKIN_OPTIONS} || \
+catkin_make tests -DMCL_3DL_EXTRA_TESTS=ON ${CM_OPTIONS} || \
   (gh-pr-comment "FAILED on ${ROS_DISTRO}" '```catkin_make tests``` failed'; false)
-catkin_make run_tests --cmake-args -DMCL_3DL_EXTRA_TESTS=ON ${CATKIN_OPTIONS} || \
+catkin_make run_tests -DMCL_3DL_EXTRA_TESTS=ON ${CM_OPTIONS} || \
   (gh-pr-comment "FAILED on ${ROS_DISTRO}" '```catkin_make run_tests``` failed'; false)
 
 if [ catkin_test_results ];
