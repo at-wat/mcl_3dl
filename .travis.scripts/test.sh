@@ -15,10 +15,10 @@ mkdir -p /catkin_ws/build/mcl_3dl/test/
 mv /catkin_ws/src/mcl_3dl/.cached-dataset/* /catkin_ws/build/mcl_3dl/test/
 ls -lh /catkin_ws/build/mcl_3dl/test/
 
-CATKIN_OPTIONS=""
+CATKIN_OPTIONS="-DCMAKE_CXX_FLAGS=-Wall -Werror"
 if [ x${ROS_DISTRO} == "xindigo" ]
 then
-  CATKIN_OPTIONS="-DCMAKE_BUILD_TYPE=Release"
+  CATKIN_OPTIONS="${CATKIN_OPTIONS} -DCMAKE_BUILD_TYPE=Release"
   echo "On indigo-trusty, we need release build due to the bug of PCL1.7 with c++11." 1>&2
 fi
 
