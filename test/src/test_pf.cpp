@@ -33,48 +33,116 @@
 #include <gtest/gtest.h>
 
 #include <pf.h>
+#include <nd.h>
+
+class State : public pf::ParticleBase<float>
+{
+public:
+  float x;
+  float &operator[](const size_t i)override
+  {
+    switch (i)
+    {
+      case 0:
+        return x;
+    }
+    return x;
+  }
+  const float &operator[](const size_t i) const
+  {
+    switch (i)
+    {
+      case 0:
+        return x;
+    }
+    return x;
+  }
+  size_t size() const override
+  {
+    return 1;
+  };
+  explicit State(const float x)
+  {
+    this->x = x;
+  }
+  State()
+  {
+    x = 0;
+  }
+  void normalize()
+  {
+  }
+};
+
+TEST(PfTest, testBayesianEstimation)
+{
+  pf::ParticleFilter<State, float> pf(1024);
+  const float center_list[] =
+      {
+        10.0, 11.0, 9.5
+      };
+
+  const float abs_error = 2e-1;
+  const float sigma = 1.0;
+  const float sigma2 = 2.0;
+
+  for (auto center : center_list)
+  {
+    for (auto center2 : center_list)
+    {
+      pf.init(
+          State(center),
+          State(sigma));
+
+      ASSERT_NEAR(center, pf.expectation()[0], abs_error);
+      ASSERT_NEAR(sigma, pf.covariance()[0][0], abs_error);
+
+      auto likelihood = [center2, sigma2](const State &s) -> float
+      {
+        return exp(-powf(s[0] - center2, 2.0) / (2.0 * powf(sigma2, 2.0)));
+      };
+      pf.measure(likelihood);
+
+      // Numerical representation
+      const int HISTOGRAM_SIZE = 4000;
+      const float HISTOGRAM_RESOLUTION = 0.02;
+
+      float dist[HISTOGRAM_SIZE];
+      NormalLikelihood<float> nd1(sigma);
+      NormalLikelihood<float> nd2(sigma2);
+      double avg = 0;
+      float total = 0;
+      for (int i = 0; i < HISTOGRAM_SIZE; i++)
+      {
+        const float x = (i - HISTOGRAM_SIZE / 2.0) * HISTOGRAM_RESOLUTION;
+        dist[i] = nd1(x - center) * nd2(x - center2);
+
+        avg += dist[i] * x;
+        total += dist[i];
+      }
+      avg /= total;
+      double var = 0;
+      for (int i = 0; i < HISTOGRAM_SIZE; i++)
+      {
+        const float x = (i - HISTOGRAM_SIZE / 2.0) * HISTOGRAM_RESOLUTION - avg;
+        var += powf(x, 2.0) * dist[i];
+      }
+      var /= total;
+
+      // Compare with numerical result
+      ASSERT_NEAR(avg, pf.expectation()[0], abs_error);
+      ASSERT_NEAR(var, pf.covariance()[0][0], abs_error);
+
+      // Try resampling
+      pf.resample(State(0.0));
+      ASSERT_NEAR(avg, pf.expectation()[0], abs_error);
+      ASSERT_NEAR(var, pf.covariance()[0][0], abs_error);
+    }
+  }
+}
 
 TEST(PfTest, testVariableParticleSize)
 {
-  class State : public pf::ParticleBase<float>
-  {
-  public:
-    float x;
-    float &operator[](const size_t i)override
-    {
-      switch (i)
-      {
-        case 0:
-          return x;
-      }
-      return x;
-    }
-    const float &operator[](const size_t i) const
-    {
-      switch (i)
-      {
-        case 0:
-          return x;
-      }
-      return x;
-    }
-    size_t size() const override
-    {
-      return 1;
-    };
-    explicit State(const float x)
-    {
-      this->x = x;
-    }
-    State()
-    {
-      x = 0;
-    }
-    void normalize()
-    {
-    }
-  };
-
   const size_t size_num = 3;
   const size_t size[size_num] =
       {
