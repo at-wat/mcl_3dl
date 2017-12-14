@@ -379,6 +379,14 @@ public:
       p.probability = prob;
     }
   }
+  typename std::vector<Particle<T, FLT_TYPE>>::iterator begin()
+  {
+    return particles_.begin();
+  }
+  typename std::vector<Particle<T, FLT_TYPE>>::iterator end()
+  {
+    return particles_.end();
+  }
 
 protected:
   std::vector<Particle<T, FLT_TYPE>> particles_;
