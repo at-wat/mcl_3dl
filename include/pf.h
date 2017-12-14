@@ -178,19 +178,21 @@ public:
     particles_dup_ = particles_;
     std::sort(particles_dup_.begin(), particles_dup_.end());
 
-    FLT_TYPE pstep = accum / particles_.size();
+    const FLT_TYPE pstep = accum / particles_.size();
     FLT_TYPE pscan = 0;
     auto it = particles_dup_.begin();
     auto it_prev = particles_dup_.begin();
 
-    FLT_TYPE prob = 1.0 / particles_.size();
+    const FLT_TYPE prob = 1.0 / particles_.size();
     for (auto &p : particles_)
     {
       pscan += pstep;
       it = std::lower_bound(it, particles_dup_.end(), Particle<T, FLT_TYPE>(pscan));
+      p.probability = prob;
       if (it == particles_dup_.end())
       {
         p.state = it_prev->state;
+        continue;
       }
       else if (it == it_prev)
       {
@@ -202,7 +204,6 @@ public:
         p.state = it->state;
       }
       it_prev = it;
-      p.probability = prob;
     }
   }
   void noise(T sigma)
