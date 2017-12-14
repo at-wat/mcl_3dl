@@ -115,6 +115,7 @@ protected:
     std::shared_ptr<ros::Duration> map_update_interval;
     int num_particles;
     int num_points;
+    int num_points_global;
     int num_points_beam;
     int skip_measure;
     int accum_cloud;
@@ -626,7 +627,19 @@ protected:
       ROS_ERROR("All points are filtered out. Failed to localize.");
       return;
     }
-    pc_local = random_sample(pc_local, static_cast<size_t>(params_.num_points));
+    if (static_cast<int>(pf_->getParticleSize()) > params_.num_particles)
+    {
+      size_t num = params_.num_points;
+      if (static_cast<int>(pf_->getParticleSize()) > params_.num_particles)
+        num = num * params_.num_particles / pf_->getParticleSize();
+      if (static_cast<int>(num) < params_.num_points_global)
+        num = params_.num_points_global;
+      pc_local = random_sample(pc_local, static_cast<size_t>(num));
+    }
+    else
+    {
+      pc_local = random_sample(pc_local, static_cast<size_t>(params_.num_points));
+    }
 
     pcl::PointCloud<pcl::PointXYZI>::Ptr pc_local_beam(new pcl::PointCloud<pcl::PointXYZI>);
     *pc_local_beam = *pc_local;
@@ -653,9 +666,7 @@ protected:
     {
       size_t num = params_.num_points_beam;
       if (static_cast<int>(pf_->getParticleSize()) > params_.num_particles)
-      {
         num = num * params_.num_particles / pf_->getParticleSize();
-      }
       pc_local_beam = random_sample(pc_local_beam, num);
     }
 
@@ -1219,6 +1230,7 @@ public:
     nh.param("num_particles", params_.num_particles, 64);
     pf_.reset(new pf::ParticleFilter<State, float, ParticleWeightedMeanQuat>(params_.num_particles));
     nh.param("num_points", params_.num_points, 96);
+    nh.param("num_points_global", params_.num_points_global, 8);
     nh.param("num_points_beam", params_.num_points_beam, 3);
 
     nh.param("beam_likelihood", params_.beam_likelihood_min, 0.2);
