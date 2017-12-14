@@ -753,18 +753,29 @@ protected:
     };
     pf_->measure(measure_func);
 
-    NormalLikelihood<float> nl_lin(params_.bias_var_dist);
-    NormalLikelihood<float> nl_ang(params_.bias_var_ang);
-    auto bias_func = [this, &nl_lin, &nl_ang](const State &s, float &p_bias) -> void
+    if (static_cast<int>(pf_->getParticleSize()) > params_.num_particles)
     {
-      const float lin_diff = (s.pos - state_prev_.pos).norm();
-      Vec3 axis;
-      float ang_diff;
-      (s.rot * state_prev_.rot.inv()).getAxisAng(axis, ang_diff);
-      p_bias = nl_lin(lin_diff) * nl_ang(ang_diff) + 1e-6;
-      assert(std::isfinite(p_bias));
-    };
-    pf_->bias(bias_func);
+      auto bias_func = [](const State &s, float &p_bias) -> void
+      {
+        p_bias = 1.0;
+      };
+      pf_->bias(bias_func);
+    }
+    else
+    {
+      NormalLikelihood<float> nl_lin(params_.bias_var_dist);
+      NormalLikelihood<float> nl_ang(params_.bias_var_ang);
+      auto bias_func = [this, &nl_lin, &nl_ang](const State &s, float &p_bias) -> void
+      {
+        const float lin_diff = (s.pos - state_prev_.pos).norm();
+        Vec3 axis;
+        float ang_diff;
+        (s.rot * state_prev_.rot.inv()).getAxisAng(axis, ang_diff);
+        p_bias = nl_lin(lin_diff) * nl_ang(ang_diff) + 1e-6;
+        assert(std::isfinite(p_bias));
+      };
+      pf_->bias(bias_func);
+    }
     auto e = pf_->expectationBiased();
 
     assert(std::isfinite(e.pos.x));
