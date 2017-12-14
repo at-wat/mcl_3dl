@@ -469,11 +469,6 @@ protected:
         std::normal_distribution<float> aa(0.0, fabs(ang) * params_.odom_err_ang_ang);
         auto prediction_func = [this, &ll, &la, &al, &aa, &v, &r](State &s)
         {
-          if (fabs(s.rot.norm() - 1.0) > 0.1)
-          {
-            ROS_ERROR("s.rot.norm(): %0.3f,%0.3f,%0.3f,%0.3f   %0.3f,%0.3f,%0.3f",
-                      s.rot.x, s.rot.y, s.rot.z, s.rot.w, s.pos.x, s.pos.y, s.pos.z);
-          }
           s.rot.normalize();
           Quat r2 = r;
           r2.rotateAxis(s.rot);
