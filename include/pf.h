@@ -367,6 +367,7 @@ public:
     FLT_TYPE pstep = accum / num;
     FLT_TYPE pscan = 0;
     auto it = particles_dup_.begin();
+    auto it_prev = particles_dup_.begin();
 
     particles_.resize(num);
 
@@ -376,8 +377,17 @@ public:
       pscan += pstep;
       it = std::lower_bound(it, particles_dup_.end(),
                             Particle<T, FLT_TYPE>(pscan));
-      p.state = it->state;
       p.probability = prob;
+      if (it == particles_dup_.end())
+      {
+        p.state = it_prev->state;
+        continue;
+      }
+      else
+      {
+        p.state = it->state;
+      }
+      it_prev = it;
     }
   }
   typename std::vector<Particle<T, FLT_TYPE>>::iterator begin()
