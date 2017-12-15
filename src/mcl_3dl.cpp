@@ -841,6 +841,12 @@ protected:
     map_rot = e.rot * odom_.rot.inv();
 
     bool jump = false;
+    if (static_cast<int>(pf_->getParticleSize()) > params_.num_particles)
+    {
+      jump = true;
+      state_prev_ = e;
+    }
+    else
     {
       Vec3 jump_axis;
       float jump_ang;
