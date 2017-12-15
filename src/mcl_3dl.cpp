@@ -1068,11 +1068,6 @@ protected:
     acc.y = f_acc_[1]->in(msg->linear_acceleration.y);
     acc.z = f_acc_[2]->in(msg->linear_acceleration.z);
 
-    imu_quat_.x = msg->orientation.x;
-    imu_quat_.y = msg->orientation.y;
-    imu_quat_.z = msg->orientation.z;
-    imu_quat_.w = msg->orientation.w;
-
     float dt = (msg->header.stamp - imu_last_).toSec();
     if (dt < 0.0)
     {
@@ -1095,6 +1090,23 @@ protected:
         in.setZ(acc_measure.z);
         tfl_.transformVector(frame_ids_["base_link"], in, out);
         acc_measure = Vec3(out.x(), out.y(), out.z());
+
+        tf::StampedTransform trans;
+        tfl_.lookupTransform(frame_ids_["base_link"], msg->header.frame_id, msg->header.stamp, trans);
+
+        imu_quat_.x = msg->orientation.x;
+        imu_quat_.y = msg->orientation.y;
+        imu_quat_.z = msg->orientation.z;
+        imu_quat_.w = msg->orientation.w;
+        Vec3 axis;
+        float angle;
+        imu_quat_.getAxisAng(axis, angle);
+        axis = Quat(trans.getRotation().x(),
+                    trans.getRotation().y(),
+                    trans.getRotation().z(),
+                    trans.getRotation().w()) *
+               axis;
+        imu_quat_.setAxisAng(axis, angle);
       }
       catch (tf::TransformException &e)
       {
