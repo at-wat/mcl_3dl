@@ -37,6 +37,7 @@
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <mcl_3dl/ResizeParticle.h>
+#include <std_srvs/Trigger.h>
 
 #include <tf/transform_listener.h>
 #include <tf/transform_broadcaster.h>
@@ -92,6 +93,8 @@ protected:
     double update_downsample_y;
     double update_downsample_z;
     double map_grid_min;
+    double global_localization_grid;
+    int global_localization_div_yaw;
     double downsample_x;
     double downsample_y;
     double downsample_z;
@@ -114,6 +117,7 @@ protected:
     std::shared_ptr<ros::Duration> map_update_interval;
     int num_particles;
     int num_points;
+    int num_points_global;
     int num_points_beam;
     int skip_measure;
     int accum_cloud;
@@ -620,7 +624,19 @@ protected:
       ROS_ERROR("All points are filtered out. Failed to localize.");
       return;
     }
-    pc_local = random_sample(pc_local, static_cast<size_t>(params_.num_points));
+    if (static_cast<int>(pf_->getParticleSize()) > params_.num_particles)
+    {
+      size_t num = params_.num_points;
+      if (static_cast<int>(pf_->getParticleSize()) > params_.num_particles)
+        num = num * params_.num_particles / pf_->getParticleSize();
+      if (static_cast<int>(num) < params_.num_points_global)
+        num = params_.num_points_global;
+      pc_local = random_sample(pc_local, static_cast<size_t>(num));
+    }
+    else
+    {
+      pc_local = random_sample(pc_local, static_cast<size_t>(params_.num_points));
+    }
 
     pcl::PointCloud<pcl::PointXYZI>::Ptr pc_local_beam(new pcl::PointCloud<pcl::PointXYZI>);
     *pc_local_beam = *pc_local;
@@ -645,7 +661,10 @@ protected:
     }
     else
     {
-      pc_local_beam = random_sample(pc_local_beam, static_cast<size_t>(params_.num_points_beam));
+      size_t num = params_.num_points_beam;
+      if (static_cast<int>(pf_->getParticleSize()) > params_.num_particles)
+        num = num * params_.num_particles / pf_->getParticleSize();
+      pc_local_beam = random_sample(pc_local_beam, num);
     }
 
     pcl::PointCloud<pcl::PointXYZI>::Ptr pc_particle(new pcl::PointCloud<pcl::PointXYZI>);
@@ -731,18 +750,29 @@ protected:
     };
     pf_->measure(measure_func);
 
-    NormalLikelihood<float> nl_lin(params_.bias_var_dist);
-    NormalLikelihood<float> nl_ang(params_.bias_var_ang);
-    auto bias_func = [this, &nl_lin, &nl_ang](const State &s, float &p_bias) -> void
+    if (static_cast<int>(pf_->getParticleSize()) > params_.num_particles)
     {
-      const float lin_diff = (s.pos - state_prev_.pos).norm();
-      Vec3 axis;
-      float ang_diff;
-      (s.rot * state_prev_.rot.inv()).getAxisAng(axis, ang_diff);
-      p_bias = nl_lin(lin_diff) * nl_ang(ang_diff) + 1e-6;
-      assert(std::isfinite(p_bias));
-    };
-    pf_->bias(bias_func);
+      auto bias_func = [](const State &s, float &p_bias) -> void
+      {
+        p_bias = 1.0;
+      };
+      pf_->bias(bias_func);
+    }
+    else
+    {
+      NormalLikelihood<float> nl_lin(params_.bias_var_dist);
+      NormalLikelihood<float> nl_ang(params_.bias_var_ang);
+      auto bias_func = [this, &nl_lin, &nl_ang](const State &s, float &p_bias) -> void
+      {
+        const float lin_diff = (s.pos - state_prev_.pos).norm();
+        Vec3 axis;
+        float ang_diff;
+        (s.rot * state_prev_.rot.inv()).getAxisAng(axis, ang_diff);
+        p_bias = nl_lin(lin_diff) * nl_ang(ang_diff) + 1e-6;
+        assert(std::isfinite(p_bias));
+      };
+      pf_->bias(bias_func);
+    }
     auto e = pf_->expectationBiased();
 
     assert(std::isfinite(e.pos.x));
@@ -811,6 +841,12 @@ protected:
     map_rot = e.rot * odom_.rot.inv();
 
     bool jump = false;
+    if (static_cast<int>(pf_->getParticleSize()) > params_.num_particles)
+    {
+      jump = true;
+      state_prev_ = e;
+    }
+    else
     {
       Vec3 jump_axis;
       float jump_ang;
@@ -1011,6 +1047,19 @@ protected:
       dt = 1.0;
     tf_tolerance_base_ = ros::Duration(localize_rate_->in(dt));
     localized_last_ = localized_current;
+
+    if (static_cast<int>(pf_->getParticleSize()) > params_.num_particles)
+    {
+      const int reduced = pf_->getParticleSize() * 0.75;
+      if (reduced > params_.num_particles)
+      {
+        pf_->resizeParticle(reduced);
+      }
+      else
+      {
+        pf_->resizeParticle(params_.num_particles);
+      }
+    }
   }
   void cbImu(const sensor_msgs::Imu::ConstPtr &msg)
   {
@@ -1041,6 +1090,23 @@ protected:
         in.setZ(acc_measure.z);
         tfl_.transformVector(frame_ids_["base_link"], in, out);
         acc_measure = Vec3(out.x(), out.y(), out.z());
+
+        tf::StampedTransform trans;
+        tfl_.lookupTransform(frame_ids_["base_link"], msg->header.frame_id, msg->header.stamp, trans);
+
+        imu_quat_.x = msg->orientation.x;
+        imu_quat_.y = msg->orientation.y;
+        imu_quat_.z = msg->orientation.z;
+        imu_quat_.w = msg->orientation.w;
+        Vec3 axis;
+        float angle;
+        imu_quat_.getAxisAng(axis, angle);
+        axis = Quat(trans.getRotation().x(),
+                    trans.getRotation().y(),
+                    trans.getRotation().z(),
+                    trans.getRotation().w()) *
+               axis;
+        imu_quat_.setAxisAng(axis, angle);
       }
       catch (tf::TransformException &e)
       {
@@ -1066,6 +1132,68 @@ protected:
     pf_->resizeParticle(request.size);
     return true;
   }
+  bool cbGlobalLocalization(std_srvs::TriggerRequest &request,
+                            std_srvs::TriggerResponse &response)
+  {
+    if (!has_map_)
+    {
+      response.success = false;
+      response.message = "No map received.";
+      return true;
+    }
+    pcl::PointCloud<pcl::PointXYZI>::Ptr points(new pcl::PointCloud<pcl::PointXYZI>);
+
+    pcl::VoxelGrid<pcl::PointXYZI> ds;
+    ds.setInputCloud(pc_map_);
+    ds.setLeafSize(
+        params_.global_localization_grid,
+        params_.global_localization_grid,
+        params_.global_localization_grid);
+    ds.filter(*points);
+
+    pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtree(new pcl::KdTreeFLANN<pcl::PointXYZI>);
+    kdtree->setInputCloud(points);
+
+    auto pc_filter = [this, kdtree](const pcl::PointXYZI &p)
+    {
+      std::vector<int> id(1);
+      std::vector<float> sqdist(1);
+      auto p2 = p;
+      p2.z += 0.01 + params_.global_localization_grid;
+
+      return kdtree->radiusSearch(
+          p2, params_.global_localization_grid, id, sqdist, 1);
+    };
+    points->erase(
+        std::remove_if(points->begin(), points->end(), pc_filter),
+        points->end());
+
+    const int dir = params_.global_localization_div_yaw;
+    pf_->resizeParticle(points->size() * dir);
+    auto pit = points->begin();
+
+    const float prob = 1.0 / static_cast<float>(points->size());
+    int cnt = 0;
+    for (auto &particle : *pf_)
+    {
+      assert(pit != points->end());
+      particle.probability = prob;
+      particle.probability_bias = 1.0;
+      particle.state.pos.x = pit->x;
+      particle.state.pos.y = pit->y;
+      particle.state.pos.z = pit->z;
+      particle.state.rot = Quat(Vec3(0.0, 0.0, 2.0 * M_PI * cnt / dir)) * imu_quat_;
+      particle.state.rot.normalize();
+      if (++cnt >= dir)
+      {
+        cnt = 0;
+        ++pit;
+      }
+    }
+    response.success = true;
+    response.message = std::to_string(points->size()) + " particles";
+    return true;
+  }
 
 public:
   MCL3dlNode(int argc, char *argv[])
@@ -1085,6 +1213,7 @@ public:
     pub_mapcloud_ = nh.advertise<sensor_msgs::PointCloud2>("updated_map", 1, true);
     pub_debug_marker_ = nh.advertise<visualization_msgs::MarkerArray>("debug_marker", 1, true);
     srv_particle_size_ = nh.advertiseService("resize_particle", &MCL3dlNode::cbResizeParticle, this);
+    srv_global_localization_ = nh.advertiseService("global_localization", &MCL3dlNode::cbGlobalLocalization, this);
 
     nh.param("map_frame", frame_ids_["map"], std::string("map"));
     nh.param("robot_frame", frame_ids_["base_link"], std::string("base_link"));
@@ -1134,9 +1263,15 @@ public:
     weight_f[3] = 0.0;
     point_rep_.setRescaleValues(weight_f);
 
+    nh.param("global_localization_grid_lin", params_.global_localization_grid, 0.3);
+    double grid_ang;
+    nh.param("global_localization_grid_ang", grid_ang, 0.524);
+    params_.global_localization_div_yaw = lroundf(2 * M_PI / grid_ang);
+
     nh.param("num_particles", params_.num_particles, 64);
     pf_.reset(new pf::ParticleFilter<State, float, ParticleWeightedMeanQuat>(params_.num_particles));
     nh.param("num_points", params_.num_points, 96);
+    nh.param("num_points_global", params_.num_points_global, 8);
     nh.param("num_points_beam", params_.num_points_beam, 3);
 
     nh.param("beam_likelihood", params_.beam_likelihood_min, 0.2);
@@ -1223,6 +1358,8 @@ public:
     nh.param("publish_tf", publish_tf_, true);
     nh.param("output_pcd", output_pcd_, false);
 
+    imu_quat_ = Quat(0.0, 0.0, 0.0, 1.0);
+
     has_odom_ = has_map_ = false;
     match_output_last_ = ros::Time::now();
     localize_rate_.reset(new Filter(Filter::FILTER_LPF, 5.0, 0.0));
@@ -1305,6 +1442,7 @@ protected:
   ros::Publisher pub_unmatched_;
   ros::Publisher pub_debug_marker_;
   ros::ServiceServer srv_particle_size_;
+  ros::ServiceServer srv_global_localization_;
 
   tf::TransformListener tfl_;
   tf::TransformBroadcaster tfb_;
@@ -1334,6 +1472,7 @@ protected:
   ros::Time imu_last_;
   int cnt_measure_;
   int cnt_accum_;
+  Quat imu_quat_;
 
   MyPointRepresentation point_rep_;
 
