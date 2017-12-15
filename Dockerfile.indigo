@@ -1,7 +1,7 @@
-FROM ros:kinetic
+FROM ros:indigo
 
 RUN apt-get -qq update && \
-	apt-get install -y --no-install-recommends sudo libeigen3-dev libpcl-dev libproj-dev libqtgui4 libgtest-dev wget curl && \
+	apt-get install -y --no-install-recommends sudo libeigen3-dev libproj-dev libqtgui4 libgtest-dev wget curl build-essential && \
 	apt-get clean && \
 	rm -rf /var/lib/apt/lists/*
 

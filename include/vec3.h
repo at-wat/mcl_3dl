@@ -64,6 +64,14 @@ public:
     }
     return x;
   }
+  bool operator==(const Vec3 &q) const
+  {
+    return x == q.x && y == q.y && z == q.z;
+  }
+  bool operator!=(const Vec3 &q) const
+  {
+    return !operator==(q);
+  }
   Vec3 operator+(const Vec3 &q) const
   {
     return Vec3(x + q.x, y + q.y, z + q.z);
@@ -89,13 +97,9 @@ public:
     *this = *this + q;
     return *this;
   }
-  Vec3 operator*(const Vec3 &q) const
+  Vec3 &operator-=(const Vec3 &q)
   {
-    return Vec3(x * q.x, y * q.y, z * q.z);
-  }
-  Vec3 &operator*=(const Vec3 &q)
-  {
-    *this = *this * q;
+    *this = *this - q;
     return *this;
   }
   Vec3 &operator*=(const float &s)
@@ -117,6 +121,10 @@ public:
     return Vec3(y * q.z - z * q.y,
                 z * q.x - x * q.z,
                 x * q.y - y * q.x);
+  }
+  Vec3 times(const Vec3 &q) const
+  {
+    return Vec3(x * q.x, y * q.y, z * q.z);
   }
   float norm() const
   {

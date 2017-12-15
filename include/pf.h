@@ -43,7 +43,7 @@ class ParticleBase
 {
 public:
   virtual FLT_TYPE &operator[](const size_t i) = 0;
-  virtual const size_t size() = 0;
+  virtual size_t size() const = 0;
   virtual void normalize() = 0;
   template <typename T>
   T operator+(const T &a)
@@ -97,7 +97,7 @@ public:
   FLT_TYPE probability;
   FLT_TYPE probability_bias;
   FLT_TYPE accum_probability;
-  const bool operator<(const Particle &p2) const
+  bool operator<(const Particle &p2) const
   {
     return this->accum_probability < p2.accum_probability;
   }
@@ -112,7 +112,8 @@ protected:
 
 public:
   ParticleWeightedMean()
-    : e_(), p_sum_(0.0)
+    : e_()
+    , p_sum_(0.0)
   {
   }
 
@@ -177,19 +178,21 @@ public:
     particles_dup_ = particles_;
     std::sort(particles_dup_.begin(), particles_dup_.end());
 
-    FLT_TYPE pstep = accum / particles_.size();
+    const FLT_TYPE pstep = accum / particles_.size();
     FLT_TYPE pscan = 0;
     auto it = particles_dup_.begin();
     auto it_prev = particles_dup_.begin();
 
-    FLT_TYPE prob = 1.0 / particles_.size();
+    const FLT_TYPE prob = 1.0 / particles_.size();
     for (auto &p : particles_)
     {
       pscan += pstep;
       it = std::lower_bound(it, particles_dup_.end(), Particle<T, FLT_TYPE>(pscan));
+      p.probability = prob;
       if (it == particles_dup_.end())
       {
         p.state = it_prev->state;
+        continue;
       }
       else if (it == it_prev)
       {
@@ -201,7 +204,6 @@ public:
         p.state = it->state;
       }
       it_prev = it;
-      p.probability = prob;
     }
   }
   void noise(T sigma)
@@ -342,13 +344,59 @@ public:
     }
     return *m;
   }
-  const T getParticle(const size_t i)
+  T getParticle(const size_t i) const
   {
     return particles_[i].state;
   }
-  const size_t getParticleSize()
+  size_t getParticleSize() const
   {
     return particles_.size();
+  }
+  void resizeParticle(const size_t num)
+  {
+    FLT_TYPE accum = 0;
+    for (auto &p : particles_)
+    {
+      accum += p.probability;
+      p.accum_probability = accum;
+    }
+
+    particles_dup_ = particles_;
+    std::sort(particles_dup_.begin(), particles_dup_.end());
+
+    FLT_TYPE pstep = accum / num;
+    FLT_TYPE pscan = 0;
+    auto it = particles_dup_.begin();
+    auto it_prev = particles_dup_.begin();
+
+    particles_.resize(num);
+
+    FLT_TYPE prob = 1.0 / num;
+    for (auto &p : particles_)
+    {
+      pscan += pstep;
+      it = std::lower_bound(it, particles_dup_.end(),
+                            Particle<T, FLT_TYPE>(pscan));
+      p.probability = prob;
+      if (it == particles_dup_.end())
+      {
+        p.state = it_prev->state;
+        continue;
+      }
+      else
+      {
+        p.state = it->state;
+      }
+      it_prev = it;
+    }
+  }
+  typename std::vector<Particle<T, FLT_TYPE>>::iterator begin()
+  {
+    return particles_.begin();
+  }
+  typename std::vector<Particle<T, FLT_TYPE>>::iterator end()
+  {
+    return particles_.end();
   }
 
 protected:

@@ -72,17 +72,11 @@ public:
         x_ = (1 - k_[2]) * out0 / k_[3];
         break;
     }
+    out_ = out0;
   }
   void set(const float &out0)
   {
-    if (angle_)
-    {
-      x_ = (1 - k_[2]) * remainder(out0, M_PI * 2.0) / k_[3];
-    }
-    else
-    {
-      x_ = (1 - k_[2]) * out0 / k_[3];
-    }
+    x_ = (1 - k_[2]) * out0 / k_[3];
     out_ = out0;
   }
   float in(const float &i)

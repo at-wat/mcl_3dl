@@ -3,16 +3,8 @@
 set -o errexit
 set -o verbose
 
-function post_error()
-{
-	if [[ ${TRAVIS_PULL_REQUEST} != "false" ]];
-	then
-    text=`echo "$2" | sed -n '1h;1!H;${x;s/\n/\\\\n/g;p;}' | sed 's/\"/\\\\"/g'`
-		curl -X POST -H 'Content-Type:application/json' -d "{\"body\":\"## Travis-CI status notifier bot [$1]\n\n$text\"}" \
-			https://api.github.com/repos/${TRAVIS_REPO_SLUG}/issues/${TRAVIS_PULL_REQUEST}/comments?access_token=${TRAVIS_BOT_GITHUB_TOKEN}
-	fi
-}
-
+wget -q -P /tmp https://raw.githubusercontent.com/at-wat/gh-pr-comment/master/gh-pr-comment.sh
+source /tmp/gh-pr-comment.sh
 
 source /opt/ros/${ROS_DISTRO}/setup.bash
 source /catkin_ws/devel/setup.bash
@@ -23,23 +15,43 @@ mkdir -p /catkin_ws/build/mcl_3dl/test/
 mv /catkin_ws/src/mcl_3dl/.cached-dataset/* /catkin_ws/build/mcl_3dl/test/
 ls -lh /catkin_ws/build/mcl_3dl/test/
 
-apt-get -qq update && \
-rosdep install --from-paths src/mcl_3dl --ignore-src --rosdistro=${ROS_DISTRO} -y && \
-apt-get clean && \
-rm -rf /var/lib/apt/lists/*
+sed -i -e '5a set(CMAKE_C_FLAGS "-Wall -Werror")' \
+  /opt/ros/${ROS_DISTRO}/share/catkin/cmake/toplevel.cmake
+sed -i -e '5a set(CMAKE_CXX_FLAGS "-Wall -Werror")' \
+  /opt/ros/${ROS_DISTRO}/share/catkin/cmake/toplevel.cmake
 
-catkin_make || (post_error FAILED '```catkin_make``` failed'; false)
-catkin_make tests --cmake-args -DMCL_3DL_EXTRA_TESTS:=ON || (post_error FAILED '```catkin_make tests``` failed'; false)
-catkin_make run_tests  --cmake-args -DMCL_3DL_EXTRA_TESTS:=ON || (post_error FAILED '```catkin_make run_tests``` failed'; false)
+CM_OPTIONS=""
+if [ x${ROS_DISTRO} == "xindigo" ]
+then
+  CM_OPTIONS="${CM_OPTIONS} -DCMAKE_BUILD_TYPE=Release"
+  echo "On indigo-trusty, we need release build due to the bug of PCL1.7 with c++11." 1>&2
+fi
 
-result_text="
+catkin_make ${CM_OPTIONS} || \
+  (gh-pr-comment "FAILED on ${ROS_DISTRO}" '```catkin_make``` failed'; false)
+catkin_make tests -DMCL_3DL_EXTRA_TESTS=ON ${CM_OPTIONS} || \
+  (gh-pr-comment "FAILED on ${ROS_DISTRO}" '```catkin_make tests``` failed'; false)
+catkin_make run_tests -DMCL_3DL_EXTRA_TESTS=ON ${CM_OPTIONS} || \
+  (gh-pr-comment "FAILED on ${ROS_DISTRO}" '```catkin_make run_tests``` failed'; false)
+
+if [ catkin_test_results ];
+then
+  result_text="
 \`\`\`
 `catkin_test_results --all || true`
 \`\`\`
 "
-catkin_test_results || (post_error FAILED "Test failed$result_text"; false)
+else
+  result_text="
+\`\`\`
+`catkin_test_results --all || true`
+\`\`\`
+`find build/test_results/ -name *.xml | xargs -n 1 -- bash -c 'echo; echo \#\#\# $0; echo; echo \\\`\\\`\\\`; xmllint --format $0; echo \\\`\\\`\\\`;'`
+"
+fi
+catkin_test_results || (gh-pr-comment "FAILED on ${ROS_DISTRO}" "Test failed$result_text"; false)
 
-post_error PASSED "All tests passed$result_text"
+gh-pr-comment "PASSED on ${ROS_DISTRO}" "All tests passed$result_text"
 
 cd ..
 rm -rf /catkin_ws || true
