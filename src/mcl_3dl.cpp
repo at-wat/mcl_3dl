@@ -93,6 +93,8 @@ protected:
     double update_downsample_y;
     double update_downsample_z;
     double map_grid_min;
+    double global_localization_grid;
+    int global_localization_div_yaw;
     double downsample_x;
     double downsample_y;
     double downsample_z;
@@ -1121,32 +1123,42 @@ protected:
       response.message = "No map received.";
       return true;
     }
-    const int dir = 12;
-    std::vector<int> id(1);
-    std::vector<float> sqdist(1);
-    pcl::PointCloud<pcl::PointXYZI> points;
-    for (const auto &p : *pc_map_)
-    {
-      auto p2 = p;
-      p2.z += 0.21;
-      if (!kdtree_->radiusSearch(
-              p2, 0.2, id, sqdist, 1))
-      {
-        points.push_back(p);
-      }
-    }
+    pcl::PointCloud<pcl::PointXYZI>::Ptr points(new pcl::PointCloud<pcl::PointXYZI>);
+
     pcl::VoxelGrid<pcl::PointXYZI> ds;
-    ds.setInputCloud(points.makeShared());
-    ds.setLeafSize(0.3, 0.3, 0.3);
-    ds.filter(points);
+    ds.setInputCloud(pc_map_);
+    ds.setLeafSize(
+        params_.global_localization_grid,
+        params_.global_localization_grid,
+        params_.global_localization_grid);
+    ds.filter(*points);
 
-    pf_->resizeParticle(points.size() * dir);
-    auto pit = points.begin();
+    pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtree(new pcl::KdTreeFLANN<pcl::PointXYZI>);
+    kdtree->setInputCloud(points);
 
-    const float prob = 1.0 / static_cast<float>(points.size());
+    auto pc_filter = [this, kdtree](const pcl::PointXYZI &p)
+    {
+      std::vector<int> id(1);
+      std::vector<float> sqdist(1);
+      auto p2 = p;
+      p2.z += 0.01 + params_.global_localization_grid;
+
+      return kdtree->radiusSearch(
+          p2, params_.global_localization_grid, id, sqdist, 1);
+    };
+    points->erase(
+        std::remove_if(points->begin(), points->end(), pc_filter),
+        points->end());
+
+    const int dir = params_.global_localization_div_yaw;
+    pf_->resizeParticle(points->size() * dir);
+    auto pit = points->begin();
+
+    const float prob = 1.0 / static_cast<float>(points->size());
     int cnt = 0;
     for (auto &particle : *pf_)
     {
+      assert(pit != points->end());
       particle.probability = prob;
       particle.probability_bias = 1.0;
       particle.state.pos.x = pit->x;
@@ -1161,7 +1173,7 @@ protected:
       }
     }
     response.success = true;
-    response.message = std::to_string(points.size()) + " particles";
+    response.message = std::to_string(points->size()) + " particles";
     return true;
   }
 
@@ -1232,6 +1244,11 @@ public:
       weight_f[i] = weight[i];
     weight_f[3] = 0.0;
     point_rep_.setRescaleValues(weight_f);
+
+    nh.param("global_localization_grid_lin", params_.global_localization_grid, 0.3);
+    double grid_ang;
+    nh.param("global_localization_grid_ang", grid_ang, 0.524);
+    params_.global_localization_div_yaw = lroundf(2 * M_PI / grid_ang);
 
     nh.param("num_particles", params_.num_particles, 64);
     pf_.reset(new pf::ParticleFilter<State, float, ParticleWeightedMeanQuat>(params_.num_particles));
