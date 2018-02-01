@@ -139,6 +139,10 @@ protected:
     Vec3 pos;
     Quat rot;
     bool diff;
+    float noise_ll_;
+    float noise_la_;
+    float noise_al_;
+    float noise_aa_;
     class Twist
     {
     public:
@@ -456,26 +460,18 @@ protected:
       }
       else if (dt > 0.05)
       {
-        Vec3 v = odom_prev_.rot.inv() * (odom_.pos - odom_prev_.pos);
-        Quat r = odom_.rot * odom_prev_.rot.inv();
-        r.rotateAxis(odom_prev_.rot.inv());
+        const Vec3 v = odom_prev_.rot.inv() * (odom_.pos - odom_prev_.pos);
+        const Quat r = odom_prev_.rot.inv() * odom_.rot;
         Vec3 axis;
         float ang;
         r.getAxisAng(axis, ang);
-        r.normalize();
 
         const float trans = v.norm();
-        std::normal_distribution<float> ll(0.0, trans * params_.odom_err_lin_lin);
-        std::normal_distribution<float> la(0.0, trans * params_.odom_err_lin_ang);
-        std::normal_distribution<float> al(0.0, fabs(ang) * params_.odom_err_ang_lin);
-        std::normal_distribution<float> aa(0.0, fabs(ang) * params_.odom_err_ang_ang);
-        auto prediction_func = [this, &ll, &la, &al, &aa, &v, &r](State &s)
+        auto prediction_func = [this, &v, &r, ang, trans](State &s)
         {
+          s.pos += s.rot * (v + Vec3(s.noise_ll_ * trans + s.noise_al_ * ang, 0.0, 0.0));
+          s.rot = Quat(Vec3(0.0, 0.0, 1.0), s.noise_la_ * trans + s.noise_aa_ * ang) * s.rot * r;
           s.rot.normalize();
-          Quat r2 = r;
-          r2.rotateAxis(s.rot);
-          s.rot = (r2.weighted(1.0 + aa(engine_) + la(engine_))) * s.rot;
-          s.pos += s.rot * (v * (1.0 + ll(engine_) + al(engine_)));
         };
         pf_->predict(prediction_func);
         odom_last_ = msg->header.stamp;
@@ -1034,6 +1030,16 @@ protected:
         Vec3(params_.resample_var_roll,
              params_.resample_var_pitch,
              params_.resample_var_yaw)));
+
+    std::normal_distribution<float> noise(0.0, 1.0);
+    auto update_noise_func = [this, &noise](State &s)
+    {
+      s.noise_ll_ = noise(engine_);
+      s.noise_la_ = noise(engine_);
+      s.noise_aa_ = noise(engine_);
+      s.noise_al_ = noise(engine_);
+    };
+    pf_->predict(update_noise_func);
 
     const auto tnow = boost::chrono::high_resolution_clock::now();
     ROS_DEBUG("MCL (%0.3f sec.)",
