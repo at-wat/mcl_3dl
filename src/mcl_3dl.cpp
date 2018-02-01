@@ -213,6 +213,7 @@ protected:
     State()
     {
       diff = false;
+      noise_ll_ = noise_la_ = noise_aa_ = noise_al_ = 0.0;
     };
     State(const Vec3 pos, const Quat rot)
     {
