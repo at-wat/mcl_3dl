@@ -468,10 +468,11 @@ protected:
         r.getAxisAng(axis, ang);
 
         const float trans = v.norm();
-        auto prediction_func = [this, &v, &r, ang, trans](State &s)
+        auto prediction_func = [this, &v, &r, axis, ang, trans](State &s)
         {
-          s.pos += s.rot * (v + Vec3(s.noise_ll_ * trans + s.noise_al_ * ang, 0.0, 0.0));
-          s.rot = Quat(Vec3(0.0, 0.0, 1.0), s.noise_la_ * trans + s.noise_aa_ * ang) * s.rot * r;
+          s.pos += s.rot * (v * (1.0 + s.noise_ll_) + Vec3(s.noise_al_ * ang, 0.0, 0.0));
+          s.rot = Quat(Vec3(0.0, 0.0, 1.0), s.noise_la_ * trans + s.noise_aa_ * ang) *
+            s.rot * r;
           s.rot.normalize();
         };
         pf_->predict(prediction_func);
@@ -1035,10 +1036,10 @@ protected:
     std::normal_distribution<float> noise(0.0, 1.0);
     auto update_noise_func = [this, &noise](State &s)
     {
-      s.noise_ll_ = noise(engine_);
-      s.noise_la_ = noise(engine_);
-      s.noise_aa_ = noise(engine_);
-      s.noise_al_ = noise(engine_);
+      s.noise_ll_ = noise(engine_) * params_.odom_err_lin_lin;
+      s.noise_la_ = noise(engine_) * params_.odom_err_lin_ang;
+      s.noise_aa_ = noise(engine_) * params_.odom_err_ang_ang;
+      s.noise_al_ = noise(engine_) * params_.odom_err_ang_lin;
     };
     pf_->predict(update_noise_func);
 
@@ -1294,10 +1295,10 @@ public:
     nh.param("resample_var_pitch", params_.resample_var_pitch, 0.05);
     nh.param("resample_var_yaw", params_.resample_var_yaw, 0.05);
 
-    nh.param("odom_err_lin_lin", params_.odom_err_lin_lin, 0.1);
-    nh.param("odom_err_lin_ang", params_.odom_err_lin_ang, 0.25);
-    nh.param("odom_err_ang_lin", params_.odom_err_ang_lin, 0.1);
-    nh.param("odom_err_ang_ang", params_.odom_err_ang_ang, 0.2);
+    nh.param("odom_err_lin_lin", params_.odom_err_lin_lin, 0.10);
+    nh.param("odom_err_lin_ang", params_.odom_err_lin_ang, 0.05);
+    nh.param("odom_err_ang_lin", params_.odom_err_ang_lin, 0.05);
+    nh.param("odom_err_ang_ang", params_.odom_err_ang_ang, 0.05);
 
     double x, y, z;
     double roll, pitch, yaw;
