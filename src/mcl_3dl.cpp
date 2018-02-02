@@ -808,7 +808,7 @@ protected:
         marker.pose.orientation.y = 0.0;
         marker.pose.orientation.z = 0.0;
         marker.pose.orientation.w = 1.0;
-        marker.scale.x = marker.scale.y = marker.scale.z = 0.025;
+        marker.scale.x = marker.scale.y = marker.scale.z = 0.04;
         marker.lifetime = ros::Duration(0.2);
         marker.frame_locked = true;
         marker.points.resize(2);
@@ -830,6 +830,98 @@ protected:
 
         markers.markers.push_back(marker);
       }
+      for (auto &p : pc_particle_beam->points)
+      {
+        int beam_header_id = lroundf(p.intensity);
+        Vec3 pos = e.pos + e.rot * origins[beam_header_id];
+        Vec3 end(p.x, p.y, p.z);
+        int num = (end - pos).norm() / params_.map_grid_min;
+        Vec3 inc = (end - pos) / num;
+        end -= inc;
+        for (int i = 0; i < num - 1; i++)
+        {
+          pos += inc;
+          pcl::PointXYZI center;
+          center.x = pos.x;
+          center.y = pos.y;
+          center.z = pos.z;
+          center.intensity = 0.0;
+          if (kdtree_->radiusSearch(center,
+                                    params_.map_grid_min / 2.0, id, sqdist, 1))
+          {
+            float d0 = sqrtf(sqdist[0]);
+            Vec3 pos_prev = pos - (inc * 2.0);
+            pcl::PointXYZI center_prev;
+            center_prev.x = pos_prev.x;
+            center_prev.y = pos_prev.y;
+            center_prev.z = pos_prev.z;
+            center_prev.intensity = 0.0;
+            kdtree_->nearestKSearch(center_prev, 1, id, sqdist);
+            float d1 = sqrtf(sqdist[0]);
+
+            visualization_msgs::Marker marker;
+            marker.header.frame_id = frame_ids_["map"];
+            marker.header.stamp = msg->header.stamp;
+            marker.ns = "Ray corruptions";
+            marker.id = markers.markers.size();
+            marker.type = visualization_msgs::Marker::CUBE;
+            marker.action = 0;
+            marker.pose.position.x = pos.x;
+            marker.pose.position.y = pos.y;
+            marker.pose.position.z = pos.z;
+            marker.pose.orientation.x = 0.0;
+            marker.pose.orientation.y = 0.0;
+            marker.pose.orientation.z = 0.0;
+            marker.pose.orientation.w = 1.0;
+            marker.scale.x = marker.scale.y = marker.scale.z = 0.4;
+            marker.lifetime = ros::Duration(0.2);
+            marker.frame_locked = true;
+            marker.color.a = 1.0;
+            marker.color.r = 1.0;
+            marker.color.g = 0.0;
+            marker.color.b = 0.0;
+
+            float sin_ang = (d1 - d0) / (inc.norm() * 2.0);
+            // reject total reflection
+            if (sin_ang > params_.sin_total_ref || fabs(d1 - d0) < 1e-6)
+            {
+              marker.color.a = 0.2;
+            }
+            markers.markers.push_back(marker);
+            break;
+          }
+        }
+      }
+
+      *pc_particle = *pc_local;
+      e.transform(*pc_particle);
+      for (auto &p : pc_particle->points)
+      {
+        visualization_msgs::Marker marker;
+        marker.header.frame_id = frame_ids_["map"];
+        marker.header.stamp = msg->header.stamp;
+        marker.ns = "Sample points";
+        marker.id = markers.markers.size();
+        marker.type = visualization_msgs::Marker::SPHERE;
+        marker.action = 0;
+        marker.pose.position.x = p.x;
+        marker.pose.position.y = p.y;
+        marker.pose.position.z = p.z;
+        marker.pose.orientation.x = 0.0;
+        marker.pose.orientation.y = 0.0;
+        marker.pose.orientation.z = 0.0;
+        marker.pose.orientation.w = 1.0;
+        marker.scale.x = marker.scale.y = marker.scale.z = 0.2;
+        marker.lifetime = ros::Duration(0.2);
+        marker.frame_locked = true;
+        marker.color.a = 1.0;
+        marker.color.r = 1.0;
+        marker.color.g = 0.0;
+        marker.color.b = 1.0;
+
+        markers.markers.push_back(marker);
+      }
+
       pub_debug_marker_.publish(markers);
     }
 
