@@ -63,6 +63,7 @@
 #include <quat.h>
 #include <filter.h>
 #include <nd.h>
+#include <raycast.h>
 
 class MCL3dlNode
 {
@@ -472,7 +473,7 @@ protected:
         {
           s.pos += s.rot * (v * (1.0 + s.noise_ll_) + Vec3(s.noise_al_ * ang, 0.0, 0.0));
           s.rot = Quat(Vec3(0.0, 0.0, 1.0), s.noise_la_ * trans + s.noise_aa_ * ang) *
-            s.rot * r;
+                  s.rot * r;
           s.rot.normalize();
         };
         pf_->predict(prediction_func);
@@ -705,36 +706,18 @@ protected:
       s.transform(*pc_particle_beam);
       for (auto &p : pc_particle_beam->points)
       {
-        int beam_header_id = lroundf(p.intensity);
-        Vec3 pos = s.pos + s.rot * origins[beam_header_id];
-        Vec3 end(p.x, p.y, p.z);
-        int num = (end - pos).norm() / params_.map_grid_min;
-        Vec3 inc = (end - pos) / num;
-        end -= inc;
-        for (int i = 0; i < num - 1; i++)
+        const int beam_header_id = lroundf(p.intensity);
+        Raycast ray(
+            kdtree_,
+            s.pos + s.rot * origins[beam_header_id],
+            Vec3(p.x, p.y, p.z),
+            params_.map_grid_min);
+        for (auto point : ray)
         {
-          pos += inc;
-          pcl::PointXYZI center;
-          center.x = pos.x;
-          center.y = pos.y;
-          center.z = pos.z;
-          center.intensity = 0.0;
-          if (kdtree_->radiusSearch(center,
-                                    params_.map_grid_min / 2.0, id, sqdist, 1))
+          if (point.collision_)
           {
-            float d0 = sqrtf(sqdist[0]);
-            Vec3 pos_prev = pos - (inc * 2.0);
-            pcl::PointXYZI center_prev;
-            center_prev.x = pos_prev.x;
-            center_prev.y = pos_prev.y;
-            center_prev.z = pos_prev.z;
-            center_prev.intensity = 0.0;
-            kdtree_->nearestKSearch(center_prev, 1, id, sqdist);
-            float d1 = sqrtf(sqdist[0]);
-
-            float sin_ang = (d1 - d0) / (inc.norm() * 2.0);
             // reject total reflection
-            if (sin_ang > params_.sin_total_ref || fabs(d1 - d0) < 1e-6)
+            if (point.sin_angle_ > params_.sin_total_ref)
             {
               score_beam *= params_.beam_likelihood;
             }
@@ -833,43 +816,26 @@ protected:
       }
       for (auto &p : pc_particle_beam->points)
       {
-        int beam_header_id = lroundf(p.intensity);
-        Vec3 pos = e.pos + e.rot * origins[beam_header_id];
-        Vec3 end(p.x, p.y, p.z);
-        int num = (end - pos).norm() / params_.map_grid_min;
-        Vec3 inc = (end - pos) / num;
-        end -= inc;
-        for (int i = 0; i < num - 1; i++)
+        const int beam_header_id = lroundf(p.intensity);
+        Raycast ray(
+            kdtree_,
+            e.pos + e.rot * origins[beam_header_id],
+            Vec3(p.x, p.y, p.z),
+            params_.map_grid_min);
+        for (auto point : ray)
         {
-          pos += inc;
-          pcl::PointXYZI center;
-          center.x = pos.x;
-          center.y = pos.y;
-          center.z = pos.z;
-          center.intensity = 0.0;
-          if (kdtree_->radiusSearch(center,
-                                    params_.map_grid_min / 2.0, id, sqdist, 1))
+          if (point.collision_)
           {
-            float d0 = sqrtf(sqdist[0]);
-            Vec3 pos_prev = pos - (inc * 2.0);
-            pcl::PointXYZI center_prev;
-            center_prev.x = pos_prev.x;
-            center_prev.y = pos_prev.y;
-            center_prev.z = pos_prev.z;
-            center_prev.intensity = 0.0;
-            kdtree_->nearestKSearch(center_prev, 1, id, sqdist);
-            float d1 = sqrtf(sqdist[0]);
-
             visualization_msgs::Marker marker;
             marker.header.frame_id = frame_ids_["map"];
             marker.header.stamp = msg->header.stamp;
-            marker.ns = "Ray corruptions";
+            marker.ns = "Ray collisions";
             marker.id = markers.markers.size();
             marker.type = visualization_msgs::Marker::CUBE;
             marker.action = 0;
-            marker.pose.position.x = pos.x;
-            marker.pose.position.y = pos.y;
-            marker.pose.position.z = pos.z;
+            marker.pose.position.x = point.pos_.x;
+            marker.pose.position.y = point.pos_.y;
+            marker.pose.position.z = point.pos_.z;
             marker.pose.orientation.x = 0.0;
             marker.pose.orientation.y = 0.0;
             marker.pose.orientation.z = 0.0;
@@ -877,14 +843,11 @@ protected:
             marker.scale.x = marker.scale.y = marker.scale.z = 0.4;
             marker.lifetime = ros::Duration(0.2);
             marker.frame_locked = true;
-            marker.color.a = 1.0;
+            marker.color.a = 0.8;
             marker.color.r = 1.0;
             marker.color.g = 0.0;
             marker.color.b = 0.0;
-
-            float sin_ang = (d1 - d0) / (inc.norm() * 2.0);
-            // reject total reflection
-            if (sin_ang > params_.sin_total_ref || fabs(d1 - d0) < 1e-6)
+            if (point.sin_angle_ > params_.sin_total_ref)
             {
               marker.color.a = 0.2;
             }
