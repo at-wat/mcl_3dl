@@ -389,7 +389,7 @@ protected:
 
     *pc_map2_ = *pc_map_;
     kdtree_.reset(new pcl::KdTreeFLANN<pcl::PointXYZI>);
-    kdtree_->setEpsilon(params_.map_grid_min / 2);
+    kdtree_->setEpsilon(params_.map_grid_min / 4);
     kdtree_->setPointRepresentation(boost::make_shared<const MyPointRepresentation>(point_rep_));
 
     if (pc_map2_->points.size() == 0)
@@ -710,6 +710,7 @@ protected:
         Vec3 end(p.x, p.y, p.z);
         int num = (end - pos).norm() / params_.map_grid_min;
         Vec3 inc = (end - pos) / num;
+        end -= inc;
         for (int i = 0; i < num - 1; i++)
         {
           pos += inc;
