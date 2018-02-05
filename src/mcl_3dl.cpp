@@ -144,13 +144,7 @@ protected:
     float noise_la_;
     float noise_al_;
     float noise_aa_;
-    class Twist
-    {
-    public:
-      Vec3 lin;
-      Vec3 ang;
-    };
-    Twist vel;
+    Vec3 odom_error_integ;
     class RPYVec
     {
     public:
@@ -189,53 +183,41 @@ protected:
         case 6:
           return rot.w;
         case 7:
-          return vel.lin.x;
+          return odom_error_integ.x;
         case 8:
-          return vel.lin.y;
+          return odom_error_integ.y;
         case 9:
-          return vel.lin.z;
-        case 10:
-          return vel.ang.x;
-        case 11:
-          return vel.ang.y;
-        case 12:
-          return vel.ang.z;
+          return odom_error_integ.z;
       }
       return pos.x;
-    };
+    }
     size_t size() const override
     {
-      return 13;
-    };
+      return 10;
+    }
     void normalize() override
     {
       rot.normalize();
-    };
+    }
     State()
     {
       diff = false;
       noise_ll_ = noise_la_ = noise_aa_ = noise_al_ = 0.0;
-    };
+    }
     State(const Vec3 pos, const Quat rot)
     {
       this->pos = pos;
       this->rot = rot;
+      odom_error_integ = Vec3(0.0, 0.0, 0.0);
       diff = false;
-    };
+    }
     State(const Vec3 pos, const Vec3 rpy)
     {
       this->pos = pos;
       this->rpy = RPYVec(rpy);
+      odom_error_integ = Vec3(0.0, 0.0, 0.0);
       diff = true;
-    };
-    State(const Vec3 pos, const Quat rot, const Vec3 lin, const Vec3 ang)
-    {
-      this->pos = pos;
-      this->rot = rot;
-      this->vel.lin = lin;
-      this->vel.ang = ang;
-      diff = false;
-    };
+    }
     bool isDiff()
     {
       return diff;
@@ -471,7 +453,9 @@ protected:
         const float trans = v.norm();
         auto prediction_func = [this, &v, &r, axis, ang, trans](State &s)
         {
-          s.pos += s.rot * (v * (1.0 + s.noise_ll_) + Vec3(s.noise_al_ * ang, 0.0, 0.0));
+          const Vec3 diff = v * (1.0 + s.noise_ll_) + Vec3(s.noise_al_ * ang, 0.0, 0.0);
+          s.odom_error_integ += diff - v;
+          s.pos += s.rot * diff;
           s.rot = Quat(Vec3(0.0, 0.0, 1.0), s.noise_la_ * trans + s.noise_aa_ * ang) *
                   s.rot * r;
           s.rot.normalize();
@@ -675,9 +659,11 @@ protected:
 
     const float match_dist_min = params_.match_dist_min;
     const float match_weight = params_.match_weight;
+    NormalLikelihood<float> odom_error_nd(0.5);
     auto measure_func = [this, &match_dist_min, &match_weight,
                          &id, &sqdist, &pc_particle, &pc_local,
-                         &pc_particle_beam, &pc_local_beam, &origins](const State &s) -> float
+                         &pc_particle_beam, &pc_local_beam, &origins,
+                         &odom_error_nd](const State &s) -> float
     {
       // likelihood model
       float score_like = 0;
@@ -728,7 +714,10 @@ protected:
       if (score_beam < params_.beam_likelihood_min)
         score_beam = params_.beam_likelihood_min;
 
-      return score_like * score_beam;
+      // odometry error integration
+      const float odom_error =
+          0.5 + odom_error_nd(s.odom_error_integ.norm()) * 0.5;
+      return score_like * score_beam * odom_error;
     };
     pf_->measure(measure_func);
 
@@ -1102,6 +1091,8 @@ protected:
     const auto tnow = boost::chrono::high_resolution_clock::now();
     ROS_DEBUG("MCL (%0.3f sec.)",
               boost::chrono::duration<float>(tnow - ts).count());
+    auto e_max = pf_->max();
+    std::cerr << "odom error: " << e_max.odom_error_integ.norm() << "    " << std::endl;
     pc_local_accum_.reset(new pcl::PointCloud<pcl::PointXYZI>);
     pc_accum_header_.clear();
 
