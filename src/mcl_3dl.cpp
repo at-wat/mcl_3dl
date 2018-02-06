@@ -242,12 +242,10 @@ protected:
       {
         ROS_ERROR("Failed to generate noise. mean must be Quat and sigma must be rpy vec.");
       }
-      for (size_t i = 0; i < size(); i++)
+      for (size_t i = 0; i < 3; i++)
       {
-        if (3 <= i && i <= 6)
-          continue;
         std::normal_distribution<float> nd(mean[i], sigma[i]);
-        noise[i] = nd(engine_);
+        noise[i] = noise[i + 7] = nd(engine_);
       }
       Vec3 rpy_noise;
       for (size_t i = 0; i < 3; i++)
@@ -437,28 +435,29 @@ protected:
                  msg->pose.pose.orientation.w));
     if (has_odom_)
     {
-      float dt = (msg->header.stamp - odom_last_).toSec();
+      const float dt = (msg->header.stamp - odom_last_).toSec();
       if (dt < 0.0)
       {
         has_odom_ = false;
       }
       else if (dt > 0.05)
       {
-        const Vec3 v = odom_prev_.rot.inv() * (odom_.pos - odom_prev_.pos);
+        const Vec3 v = odom_prev_.rot.inv() * (odom_.pos - odom_prev_.pos) * 0.9;
         const Quat r = odom_prev_.rot.inv() * odom_.rot;
         Vec3 axis;
         float ang;
         r.getAxisAng(axis, ang);
 
         const float trans = v.norm();
-        auto prediction_func = [this, &v, &r, axis, ang, trans](State &s)
+        auto prediction_func = [this, &v, &r, axis, ang, trans, &dt](State &s)
         {
           const Vec3 diff = v * (1.0 + s.noise_ll_) + Vec3(s.noise_al_ * ang, 0.0, 0.0);
-          s.odom_error_integ += diff - v;
+          s.odom_error_integ += (diff - v);
           s.pos += s.rot * diff;
           s.rot = Quat(Vec3(0.0, 0.0, 1.0), s.noise_la_ * trans + s.noise_aa_ * ang) *
                   s.rot * r;
           s.rot.normalize();
+          s.odom_error_integ *= (1.0 - dt / 30.0);
         };
         pf_->predict(prediction_func);
         odom_last_ = msg->header.stamp;
@@ -659,7 +658,7 @@ protected:
 
     const float match_dist_min = params_.match_dist_min;
     const float match_weight = params_.match_weight;
-    NormalLikelihood<float> odom_error_nd(0.5);
+    NormalLikelihood<float> odom_error_nd(2.0);
     auto measure_func = [this, &match_dist_min, &match_weight,
                          &id, &sqdist, &pc_particle, &pc_local,
                          &pc_particle_beam, &pc_local_beam, &origins,
@@ -716,7 +715,7 @@ protected:
 
       // odometry error integration
       const float odom_error =
-          0.5 + odom_error_nd(s.odom_error_integ.norm()) * 0.5;
+          odom_error_nd(s.odom_error_integ.norm());
       return score_like * score_beam * odom_error;
     };
     pf_->measure(measure_func);
@@ -1092,7 +1091,11 @@ protected:
     ROS_DEBUG("MCL (%0.3f sec.)",
               boost::chrono::duration<float>(tnow - ts).count());
     auto e_max = pf_->max();
-    std::cerr << "odom error: " << e_max.odom_error_integ.norm() << "    " << std::endl;
+    std::cerr << "odom error: "
+              << e_max.odom_error_integ.x << ", "
+              << e_max.odom_error_integ.y << ", "
+              << e_max.odom_error_integ.z << " "
+              << "    " << std::endl;
     pc_local_accum_.reset(new pcl::PointCloud<pcl::PointXYZI>);
     pc_accum_header_.clear();
 
