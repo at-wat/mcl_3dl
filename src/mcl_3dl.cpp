@@ -1352,7 +1352,7 @@ public:
     nh.param("odom_err_ang_ang", params_.odom_err_ang_ang, 0.05);
 
     nh.param("odom_err_integ_tc", params_.odom_err_integ_tc, 10.0);
-    nh.param("odom_err_integ_sigma", params_.odom_err_integ_sigma, 3.0);
+    nh.param("odom_err_integ_sigma", params_.odom_err_integ_sigma, 100.0);
 
     double x, y, z;
     double roll, pitch, yaw;
