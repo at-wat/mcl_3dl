@@ -130,6 +130,8 @@ protected:
     double beam_likelihood_min;
     float sin_total_ref;
     double acc_var;
+    double odom_err_integ_tc;
+    double odom_err_integ_sigma;
     std::shared_ptr<ros::Duration> match_output_interval;
     std::shared_ptr<ros::Duration> tf_tolerance;
   };
@@ -144,7 +146,7 @@ protected:
     float noise_la_;
     float noise_al_;
     float noise_aa_;
-    Vec3 odom_error_integ;
+    Vec3 odom_err_integ;
     class RPYVec
     {
     public:
@@ -183,11 +185,11 @@ protected:
         case 6:
           return rot.w;
         case 7:
-          return odom_error_integ.x;
+          return odom_err_integ.x;
         case 8:
-          return odom_error_integ.y;
+          return odom_err_integ.y;
         case 9:
-          return odom_error_integ.z;
+          return odom_err_integ.z;
       }
       return pos.x;
     }
@@ -208,14 +210,14 @@ protected:
     {
       this->pos = pos;
       this->rot = rot;
-      odom_error_integ = Vec3(0.0, 0.0, 0.0);
+      odom_err_integ = Vec3(0.0, 0.0, 0.0);
       diff = false;
     }
     State(const Vec3 pos, const Vec3 rpy)
     {
       this->pos = pos;
       this->rpy = RPYVec(rpy);
-      odom_error_integ = Vec3(0.0, 0.0, 0.0);
+      odom_err_integ = Vec3(0.0, 0.0, 0.0);
       diff = true;
     }
     bool isDiff()
@@ -442,7 +444,7 @@ protected:
       }
       else if (dt > 0.05)
       {
-        const Vec3 v = odom_prev_.rot.inv() * (odom_.pos - odom_prev_.pos) * 0.9;
+        const Vec3 v = odom_prev_.rot.inv() * (odom_.pos - odom_prev_.pos);
         const Quat r = odom_prev_.rot.inv() * odom_.rot;
         Vec3 axis;
         float ang;
@@ -452,12 +454,12 @@ protected:
         auto prediction_func = [this, &v, &r, axis, ang, trans, &dt](State &s)
         {
           const Vec3 diff = v * (1.0 + s.noise_ll_) + Vec3(s.noise_al_ * ang, 0.0, 0.0);
-          s.odom_error_integ += (diff - v);
+          s.odom_err_integ += (diff - v);
           s.pos += s.rot * diff;
           s.rot = Quat(Vec3(0.0, 0.0, 1.0), s.noise_la_ * trans + s.noise_aa_ * ang) *
                   s.rot * r;
           s.rot.normalize();
-          s.odom_error_integ *= (1.0 - dt / 30.0);
+          s.odom_err_integ *= (1.0 - dt / params_.odom_err_integ_tc);
         };
         pf_->predict(prediction_func);
         odom_last_ = msg->header.stamp;
@@ -658,7 +660,7 @@ protected:
 
     const float match_dist_min = params_.match_dist_min;
     const float match_weight = params_.match_weight;
-    NormalLikelihood<float> odom_error_nd(2.0);
+    NormalLikelihood<float> odom_error_nd(params_.odom_err_integ_sigma);
     auto measure_func = [this, &match_dist_min, &match_weight,
                          &id, &sqdist, &pc_particle, &pc_local,
                          &pc_particle_beam, &pc_local_beam, &origins,
@@ -715,7 +717,7 @@ protected:
 
       // odometry error integration
       const float odom_error =
-          odom_error_nd(s.odom_error_integ.norm());
+          odom_error_nd(s.odom_err_integ.norm());
       return score_like * score_beam * odom_error;
     };
     pf_->measure(measure_func);
@@ -1092,9 +1094,9 @@ protected:
               boost::chrono::duration<float>(tnow - ts).count());
     auto e_max = pf_->max();
     std::cerr << "odom error: "
-              << e_max.odom_error_integ.x << ", "
-              << e_max.odom_error_integ.y << ", "
-              << e_max.odom_error_integ.z << " "
+              << e_max.odom_err_integ.x << ", "
+              << e_max.odom_err_integ.y << ", "
+              << e_max.odom_err_integ.z << " "
               << "    " << std::endl;
     pc_local_accum_.reset(new pcl::PointCloud<pcl::PointXYZI>);
     pc_accum_header_.clear();
@@ -1349,6 +1351,9 @@ public:
     nh.param("odom_err_lin_ang", params_.odom_err_lin_ang, 0.05);
     nh.param("odom_err_ang_lin", params_.odom_err_ang_lin, 0.05);
     nh.param("odom_err_ang_ang", params_.odom_err_ang_ang, 0.05);
+
+    nh.param("odom_err_integ_tc", params_.odom_err_integ_tc, 10.0);
+    nh.param("odom_err_integ_sigma", params_.odom_err_integ_sigma, 3.0);
 
     double x, y, z;
     double roll, pitch, yaw;
