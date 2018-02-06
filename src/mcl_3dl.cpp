@@ -1092,12 +1092,11 @@ protected:
     const auto tnow = boost::chrono::high_resolution_clock::now();
     ROS_DEBUG("MCL (%0.3f sec.)",
               boost::chrono::duration<float>(tnow - ts).count());
-    auto e_max = pf_->max();
-    std::cerr << "odom error: "
-              << e_max.odom_err_integ.x << ", "
-              << e_max.odom_err_integ.y << ", "
-              << e_max.odom_err_integ.z << " "
-              << "    " << std::endl;
+    const auto e_max = pf_->max();
+    ROS_DEBUG("odom error integral: %0.3f, %0.3f, %0.3f",
+              e_max.odom_err_integ.x,
+              e_max.odom_err_integ.y,
+              e_max.odom_err_integ.z);
     pc_local_accum_.reset(new pcl::PointCloud<pcl::PointXYZI>);
     pc_accum_header_.clear();
 
