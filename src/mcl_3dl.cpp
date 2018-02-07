@@ -130,6 +130,8 @@ protected:
     double beam_likelihood_min;
     float sin_total_ref;
     double acc_var;
+    double odom_err_integ_tc;
+    double odom_err_integ_sigma;
     std::shared_ptr<ros::Duration> match_output_interval;
     std::shared_ptr<ros::Duration> tf_tolerance;
   };
@@ -144,13 +146,7 @@ protected:
     float noise_la_;
     float noise_al_;
     float noise_aa_;
-    class Twist
-    {
-    public:
-      Vec3 lin;
-      Vec3 ang;
-    };
-    Twist vel;
+    Vec3 odom_err_integ;
     class RPYVec
     {
     public:
@@ -189,53 +185,41 @@ protected:
         case 6:
           return rot.w;
         case 7:
-          return vel.lin.x;
+          return odom_err_integ.x;
         case 8:
-          return vel.lin.y;
+          return odom_err_integ.y;
         case 9:
-          return vel.lin.z;
-        case 10:
-          return vel.ang.x;
-        case 11:
-          return vel.ang.y;
-        case 12:
-          return vel.ang.z;
+          return odom_err_integ.z;
       }
       return pos.x;
-    };
+    }
     size_t size() const override
     {
-      return 13;
-    };
+      return 10;
+    }
     void normalize() override
     {
       rot.normalize();
-    };
+    }
     State()
     {
       diff = false;
       noise_ll_ = noise_la_ = noise_aa_ = noise_al_ = 0.0;
-    };
+    }
     State(const Vec3 pos, const Quat rot)
     {
       this->pos = pos;
       this->rot = rot;
+      odom_err_integ = Vec3(0.0, 0.0, 0.0);
       diff = false;
-    };
+    }
     State(const Vec3 pos, const Vec3 rpy)
     {
       this->pos = pos;
       this->rpy = RPYVec(rpy);
+      odom_err_integ = Vec3(0.0, 0.0, 0.0);
       diff = true;
-    };
-    State(const Vec3 pos, const Quat rot, const Vec3 lin, const Vec3 ang)
-    {
-      this->pos = pos;
-      this->rot = rot;
-      this->vel.lin = lin;
-      this->vel.ang = ang;
-      diff = false;
-    };
+    }
     bool isDiff()
     {
       return diff;
@@ -260,12 +244,10 @@ protected:
       {
         ROS_ERROR("Failed to generate noise. mean must be Quat and sigma must be rpy vec.");
       }
-      for (size_t i = 0; i < size(); i++)
+      for (size_t i = 0; i < 3; i++)
       {
-        if (3 <= i && i <= 6)
-          continue;
         std::normal_distribution<float> nd(mean[i], sigma[i]);
-        noise[i] = nd(engine_);
+        noise[i] = noise[i + 7] = nd(engine_);
       }
       Vec3 rpy_noise;
       for (size_t i = 0; i < 3; i++)
@@ -455,7 +437,7 @@ protected:
                  msg->pose.pose.orientation.w));
     if (has_odom_)
     {
-      float dt = (msg->header.stamp - odom_last_).toSec();
+      const float dt = (msg->header.stamp - odom_last_).toSec();
       if (dt < 0.0)
       {
         has_odom_ = false;
@@ -469,12 +451,15 @@ protected:
         r.getAxisAng(axis, ang);
 
         const float trans = v.norm();
-        auto prediction_func = [this, &v, &r, axis, ang, trans](State &s)
+        auto prediction_func = [this, &v, &r, axis, ang, trans, &dt](State &s)
         {
-          s.pos += s.rot * (v * (1.0 + s.noise_ll_) + Vec3(s.noise_al_ * ang, 0.0, 0.0));
+          const Vec3 diff = v * (1.0 + s.noise_ll_) + Vec3(s.noise_al_ * ang, 0.0, 0.0);
+          s.odom_err_integ += (diff - v);
+          s.pos += s.rot * diff;
           s.rot = Quat(Vec3(0.0, 0.0, 1.0), s.noise_la_ * trans + s.noise_aa_ * ang) *
                   s.rot * r;
           s.rot.normalize();
+          s.odom_err_integ *= (1.0 - dt / params_.odom_err_integ_tc);
         };
         pf_->predict(prediction_func);
         odom_last_ = msg->header.stamp;
@@ -675,9 +660,11 @@ protected:
 
     const float match_dist_min = params_.match_dist_min;
     const float match_weight = params_.match_weight;
+    NormalLikelihood<float> odom_error_nd(params_.odom_err_integ_sigma);
     auto measure_func = [this, &match_dist_min, &match_weight,
                          &id, &sqdist, &pc_particle, &pc_local,
-                         &pc_particle_beam, &pc_local_beam, &origins](const State &s) -> float
+                         &pc_particle_beam, &pc_local_beam, &origins,
+                         &odom_error_nd](const State &s) -> float
     {
       // likelihood model
       float score_like = 0;
@@ -728,7 +715,10 @@ protected:
       if (score_beam < params_.beam_likelihood_min)
         score_beam = params_.beam_likelihood_min;
 
-      return score_like * score_beam;
+      // odometry error integration
+      const float odom_error =
+          odom_error_nd(s.odom_err_integ.norm());
+      return score_like * score_beam * odom_error;
     };
     pf_->measure(measure_func);
 
@@ -1102,6 +1092,11 @@ protected:
     const auto tnow = boost::chrono::high_resolution_clock::now();
     ROS_DEBUG("MCL (%0.3f sec.)",
               boost::chrono::duration<float>(tnow - ts).count());
+    const auto e_max = pf_->max();
+    ROS_DEBUG("odom error integral: %0.3f, %0.3f, %0.3f",
+              e_max.odom_err_integ.x,
+              e_max.odom_err_integ.y,
+              e_max.odom_err_integ.z);
     pc_local_accum_.reset(new pcl::PointCloud<pcl::PointXYZI>);
     pc_accum_header_.clear();
 
@@ -1355,6 +1350,9 @@ public:
     nh.param("odom_err_lin_ang", params_.odom_err_lin_ang, 0.05);
     nh.param("odom_err_ang_lin", params_.odom_err_ang_lin, 0.05);
     nh.param("odom_err_ang_ang", params_.odom_err_ang_ang, 0.05);
+
+    nh.param("odom_err_integ_tc", params_.odom_err_integ_tc, 10.0);
+    nh.param("odom_err_integ_sigma", params_.odom_err_integ_sigma, 100.0);
 
     double x, y, z;
     double roll, pitch, yaw;
