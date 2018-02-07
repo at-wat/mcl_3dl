@@ -901,6 +901,12 @@ protected:
       {
         ROS_INFO("Pose jumped pos:%0.3f, ang:%0.3f", jump_dist, jump_ang);
         jump = true;
+
+        auto integ_reset_func = [](State &s)
+        {
+          s.odom_err_integ = Vec3();
+        };
+        pf_->predict(integ_reset_func);
       }
       state_prev_ = e;
     }
