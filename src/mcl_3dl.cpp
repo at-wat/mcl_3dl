@@ -541,9 +541,6 @@ protected:
       try
       {
         tf::StampedTransform trans;
-        tfl_.waitForTransform(frame_ids_["base_link"], msg->header.stamp,
-                              h.frame_id, h.stamp,
-                              frame_ids_["odom"], ros::Duration(0.05));
         tfl_.lookupTransform(frame_ids_["base_link"], msg->header.stamp,
                              h.frame_id, h.stamp,
                              frame_ids_["odom"], trans);
@@ -1153,8 +1150,6 @@ protected:
       Vec3 acc_measure = acc / acc.norm();
       try
       {
-        tfl_.waitForTransform(msg->header.frame_id, frame_ids_["base_link"],
-                              msg->header.stamp, ros::Duration(0.1));
         tf::Stamped<tf::Vector3> in, out;
         in.frame_id_ = msg->header.frame_id;
         in.stamp_ = msg->header.stamp;
@@ -1165,6 +1160,7 @@ protected:
         acc_measure = Vec3(out.x(), out.y(), out.z());
 
         tf::StampedTransform trans;
+        // Static transform
         tfl_.lookupTransform(frame_ids_["base_link"], msg->header.frame_id, msg->header.stamp, trans);
 
         imu_quat_.x = msg->orientation.x;
@@ -1183,6 +1179,7 @@ protected:
       }
       catch (tf::TransformException &e)
       {
+        ROS_ERROR("IMU data transform failed.");
         return;
       }
       const float acc_measure_norm = acc_measure.norm();
@@ -1274,7 +1271,7 @@ public:
   {
     ros::NodeHandle nh("~");
 
-    sub_cloud_ = nh.subscribe("cloud", 20, &MCL3dlNode::cbCloud, this);
+    sub_cloud_ = nh.subscribe("cloud", 100, &MCL3dlNode::cbCloud, this);
     sub_odom_ = nh.subscribe("odom", 200, &MCL3dlNode::cbOdom, this);
     sub_imu_ = nh.subscribe("imu", 200, &MCL3dlNode::cbImu, this);
     sub_mapcloud_ = nh.subscribe("mapcloud", 1, &MCL3dlNode::cbMapcloud, this);
@@ -1440,66 +1437,54 @@ public:
     match_output_last_ = ros::Time::now();
     localize_rate_.reset(new Filter(Filter::FILTER_LPF, 5.0, 0.0));
     localized_last_ = ros::Time::now();
+
+    ros::Timer map_update_timer_ = nh.createTimer(
+        *params_.map_update_interval,
+        &MCL3dlNode::cbMapUpdateTimer, this);
   }
   ~MCL3dlNode()
   {
-  }
-  void spin()
-  {
-    ros::Rate rate(10);
-    ros::Time map_update_interval_start = ros::Time::now();
-
-    while (ros::ok())
+    if (output_pcd_ && pc_all_accum_)
     {
-      rate.sleep();
-      ros::spinOnce();
-
-      ros::Time now = ros::Time::now();
-      if (map_update_interval_start + *params_.map_update_interval < now)
-      {
-        map_update_interval_start = now;
-        if (has_map_)
-        {
-          const auto e = state_prev_;
-          *pc_map2_ = *pc_map_ + *pc_update_;
-
-          auto pc_map_filter = [this, &e](const pcl::PointXYZI &p)
-          {
-            if (p.z - e.pos.z > params_.map_clip_z_max)
-              return true;
-            if (p.z - e.pos.z < params_.map_clip_z_min)
-              return true;
-            if (powf(p.x - e.pos.x, 2.0) + powf(p.y - e.pos.y, 2.0) > params_.map_clip_far_sq)
-              return true;
-            return false;
-          };
-          pc_map2_->erase(
-              std::remove_if(pc_map2_->begin(), pc_map2_->end(), pc_map_filter),
-              pc_map2_->end());
-
-          kdtree_.reset(new pcl::KdTreeFLANN<pcl::PointXYZI>);
-          kdtree_->setEpsilon(params_.map_grid_min);
-          kdtree_->setPointRepresentation(boost::make_shared<const MyPointRepresentation>(point_rep_));
-
-          if (pc_map2_->points.size() == 0)
-            kdtree_->setInputCloud(pc_map_);
-          else
-            kdtree_->setInputCloud(pc_map2_);
-
-          sensor_msgs::PointCloud2 out;
-          pcl::toROSMsg(*pc_map2_, out);
-          pub_mapcloud_.publish(out);
-        }
-      }
+      std::cerr << "mcl_3dl: saving pcd file.";
+      std::cerr << " (" << pc_all_accum_->points.size() << " points)" << std::endl;
+      pcl::io::savePCDFileBinary("mcl_3dl.pcd", *pc_all_accum_);
     }
-    if (output_pcd_)
+  }
+
+  void cbMapUpdateTimer(const ros::TimerEvent &event)
+  {
+    if (has_map_)
     {
-      if (pc_all_accum_)
+      const auto e = state_prev_;
+      *pc_map2_ = *pc_map_ + *pc_update_;
+
+      auto pc_map_filter = [this, &e](const pcl::PointXYZI &p)
       {
-        std::cerr << "mcl_3dl: saving pcd file.";
-        std::cerr << " (" << pc_all_accum_->points.size() << " points)" << std::endl;
-        pcl::io::savePCDFileBinary("mcl_3dl.pcd", *pc_all_accum_);
-      }
+        if (p.z - e.pos.z > params_.map_clip_z_max)
+          return true;
+        if (p.z - e.pos.z < params_.map_clip_z_min)
+          return true;
+        if (powf(p.x - e.pos.x, 2.0) + powf(p.y - e.pos.y, 2.0) > params_.map_clip_far_sq)
+          return true;
+        return false;
+      };
+      pc_map2_->erase(
+          std::remove_if(pc_map2_->begin(), pc_map2_->end(), pc_map_filter),
+          pc_map2_->end());
+
+      kdtree_.reset(new pcl::KdTreeFLANN<pcl::PointXYZI>);
+      kdtree_->setEpsilon(params_.map_grid_min);
+      kdtree_->setPointRepresentation(boost::make_shared<const MyPointRepresentation>(point_rep_));
+
+      if (pc_map2_->points.size() == 0)
+        kdtree_->setInputCloud(pc_map_);
+      else
+        kdtree_->setInputCloud(pc_map2_);
+
+      sensor_msgs::PointCloud2 out;
+      pcl::toROSMsg(*pc_map2_, out);
+      pub_mapcloud_.publish(out);
     }
   }
 
@@ -1570,7 +1555,7 @@ int main(int argc, char *argv[])
   ros::init(argc, argv, "mcl_3dl");
 
   MCL3dlNode mcl(argc, argv);
-  mcl.spin();
+  ros::spin();
 
   return 0;
 }
