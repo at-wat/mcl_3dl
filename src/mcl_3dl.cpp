@@ -1161,7 +1161,7 @@ protected:
 
         tf::StampedTransform trans;
         // Static transform
-        tfl_.lookupTransform(frame_ids_["base_link"], msg->header.frame_id, msg->header.stamp, trans);
+        tfl_.lookupTransform(frame_ids_["base_link"], msg->header.frame_id, ros::Time(0), trans);
 
         imu_quat_.x = msg->orientation.x;
         imu_quat_.y = msg->orientation.y;
@@ -1179,7 +1179,6 @@ protected:
       }
       catch (tf::TransformException &e)
       {
-        ROS_ERROR("IMU data transform failed.");
         return;
       }
       const float acc_measure_norm = acc_measure.norm();
