@@ -69,7 +69,7 @@ public:
       T mean, T sigma)
   {
     T noise;
-    for (size_t i = 0; i < size(); i++)
+    for (size_t i = 0; i < noise.size(); i++)
     {
       std::normal_distribution<FLT_TYPE> nd(mean[i], sigma[i]);
       noise[i] = nd(engine_);
