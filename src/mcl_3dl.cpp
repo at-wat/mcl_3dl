@@ -205,11 +205,13 @@ protected:
     {
       diff = false;
       noise_ll_ = noise_la_ = noise_aa_ = noise_al_ = 0.0;
+      odom_err_integ = Vec3(0.0, 0.0, 0.0);
     }
     State(const Vec3 pos, const Quat rot)
     {
       this->pos = pos;
       this->rot = rot;
+      noise_ll_ = noise_la_ = noise_aa_ = noise_al_ = 0.0;
       odom_err_integ = Vec3(0.0, 0.0, 0.0);
       diff = false;
     }
@@ -217,6 +219,7 @@ protected:
     {
       this->pos = pos;
       this->rpy = RPYVec(rpy);
+      noise_ll_ = noise_la_ = noise_aa_ = noise_al_ = 0.0;
       odom_err_integ = Vec3(0.0, 0.0, 0.0);
       diff = true;
     }
@@ -235,7 +238,7 @@ protected:
         p.z = t.z;
       }
     }
-    State generateNoise(
+    static State generateNoise(
         std::default_random_engine &engine_,
         State mean, State sigma)
     {
@@ -422,6 +425,11 @@ protected:
                  msg->pose.covariance[6 * 4 + 4],
                  msg->pose.covariance[6 * 5 + 5])));
     pc_update_.reset(new pcl::PointCloud<pcl::PointXYZI>);
+    auto integ_reset_func = [](State &s)
+    {
+      s.odom_err_integ = Vec3();
+    };
+    pf_->predict(integ_reset_func);
   }
 
   void cbOdom(const nav_msgs::Odometry::ConstPtr &msg)
