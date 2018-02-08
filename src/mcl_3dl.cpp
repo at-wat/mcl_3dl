@@ -193,7 +193,7 @@ protected:
       }
       return pos.x;
     }
-    constexpr size_t size() const override
+    size_t size() const override
     {
       return 10;
     }
