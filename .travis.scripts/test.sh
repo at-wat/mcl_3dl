@@ -51,6 +51,7 @@ else
 fi
 catkin_test_results || (gh-pr-comment "FAILED on ${ROS_DISTRO}" "Test failed$result_text"; false)
 
+
 gh-pr-comment "PASSED on ${ROS_DISTRO}" "All tests passed$result_text"
 
 cd ..
