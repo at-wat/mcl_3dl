@@ -14,12 +14,7 @@ COPY ./package.xml /catkin_ws/src/mcl_3dl/package.xml
 RUN /catkin_ws/src/mcl_3dl/.travis.scripts/install_deps.sh
 
 ARG TRAVIS_PULL_REQUEST=false
-ARG TRAVIS_REPO_SLUG=""
+ARG TRAVIS_PULL_REQUEST_SLUG=""
 ARG TRAVIS_BOT_GITHUB_TOKEN=""
 
-ENV TRAVIS_PULL_REQUEST=$TRAVIS_PULL_REQUEST
-ENV TRAVIS_REPO_SLUG=$TRAVIS_REPO_SLUG
-ENV TRAVIS_BOT_GITHUB_TOKEN=$TRAVIS_BOT_GITHUB_TOKEN
-
 COPY . /catkin_ws/src/mcl_3dl
-RUN /catkin_ws/src/mcl_3dl/.travis.scripts/test.sh
