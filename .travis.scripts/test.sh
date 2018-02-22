@@ -3,8 +3,7 @@
 set -o errexit
 set -o verbose
 
-wget -q -P /tmp https://raw.githubusercontent.com/at-wat/gh-pr-comment/master/gh-pr-comment.sh
-source /tmp/gh-pr-comment.sh
+pip install gh-pr-comment
 
 source /opt/ros/${ROS_DISTRO}/setup.bash
 source /catkin_ws/devel/setup.bash
