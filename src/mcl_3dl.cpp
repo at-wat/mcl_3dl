@@ -751,6 +751,7 @@ protected:
       pf_->bias(bias_func);
     }
     auto e = pf_->expectationBiased();
+    const auto e_max = pf_->max();
 
     assert(std::isfinite(e.pos.x));
     assert(std::isfinite(e.pos.y));
@@ -1103,7 +1104,6 @@ protected:
     const auto tnow = boost::chrono::high_resolution_clock::now();
     ROS_DEBUG("MCL (%0.3f sec.)",
               boost::chrono::duration<float>(tnow - ts).count());
-    const auto e_max = pf_->max();
     ROS_DEBUG("odom error integral: %0.3f, %0.3f, %0.3f",
               e_max.odom_err_integ.x,
               e_max.odom_err_integ.y,
