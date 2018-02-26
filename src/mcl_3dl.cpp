@@ -1437,7 +1437,7 @@ public:
     localize_rate_.reset(new Filter(Filter::FILTER_LPF, 5.0, 0.0));
     localized_last_ = ros::Time::now();
 
-    ros::Timer map_update_timer_ = nh.createTimer(
+    map_update_timer_ = nh.createTimer(
         *params_.map_update_interval,
         &MCL3dlNode::cbMapUpdateTimer, this);
   }
@@ -1501,6 +1501,7 @@ protected:
   ros::Publisher pub_matched_;
   ros::Publisher pub_unmatched_;
   ros::Publisher pub_debug_marker_;
+  ros::Timer map_update_timer_;
   ros::ServiceServer srv_particle_size_;
   ros::ServiceServer srv_global_localization_;
 
