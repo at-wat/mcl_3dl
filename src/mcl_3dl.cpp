@@ -52,6 +52,8 @@
 #include <pcl/kdtree/kdtree.h>
 #include <pcl/kdtree/kdtree_flann.h>
 
+#include <Eigen/Core>
+
 #include <boost/chrono.hpp>
 #include <algorithm>
 #include <string>
@@ -193,6 +195,10 @@ protected:
       }
       return pos.x;
     }
+    float &operator[](const size_t i) const
+    {
+      return (*this)[i];
+    }
     size_t size() const override
     {
       return 10;
@@ -261,7 +267,7 @@ protected:
       noise.rot = Quat(rpy_noise) * mean.rot;
       return noise;
     }
-    State operator+(const State &a)
+    State operator+(const State &a) const
     {
       State in = a;
       State ret;
@@ -272,6 +278,19 @@ protected:
         ret[i] = (*this)[i] + in[i];
       }
       ret.rot = a.rot * rot;
+      return ret;
+    }
+    State operator-(const State &a) const
+    {
+      State in = a;
+      State ret;
+      for (size_t i = 0; i < size(); i++)
+      {
+        if (3 <= i && i <= 6)
+          continue;
+        ret[i] = (*this)[i] - in[i];
+      }
+      ret.rot = a.rot * rot.inv();
       return ret;
     }
   };
@@ -1131,6 +1150,36 @@ protected:
       }
     }
   }
+  void cbLandmark(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg)
+  {
+    NormalLikelihoodNd<float, 6> nd(Eigen::Matrix<double, 6, 6>(
+                                        msg->pose.covariance.data())
+                                        .cast<float>());
+    const State measured(
+        Vec3(msg->pose.pose.position.x,
+             msg->pose.pose.position.y,
+             msg->pose.pose.position.z),
+        Quat(msg->pose.pose.orientation.x,
+             msg->pose.pose.orientation.y,
+             msg->pose.pose.orientation.z,
+             msg->pose.pose.orientation.w));
+    auto measure_func = [this, &measured, &nd](const State &s) -> float
+    {
+      State diff = s - measured;
+      const Vec3 rot_rpy = diff.rot.getRPY();
+      const Eigen::Matrix<float, 6, 1> diff_vec =
+          (Eigen::MatrixXf(6, 1) << diff.pos.x,
+           diff.pos.y,
+           diff.pos.z,
+           rot_rpy.x,
+           rot_rpy.y,
+           rot_rpy.z)
+              .finished();
+
+      return nd(diff_vec);
+    };
+    pf_->measure(measure_func);
+  }
   void cbImu(const sensor_msgs::Imu::ConstPtr &msg)
   {
     Vec3 acc;
@@ -1276,6 +1325,7 @@ public:
     sub_mapcloud_ = nh.subscribe("mapcloud", 1, &MCL3dlNode::cbMapcloud, this);
     sub_mapcloud_update_ = nh.subscribe("mapcloud_update", 1, &MCL3dlNode::cbMapcloudUpdate, this);
     sub_position_ = nh.subscribe("initialpose", 1, &MCL3dlNode::cbPosition, this);
+    sub_landmark_ = nh.subscribe("landmark", 1, &MCL3dlNode::cbLandmark, this);
     pub_pose_ = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("/amcl_pose", 5, false);
     pub_particle_ = nh.advertise<geometry_msgs::PoseArray>("particles", 1, true);
     pub_debug_ = nh.advertise<sensor_msgs::PointCloud>("debug", 5, true);
@@ -1494,6 +1544,7 @@ protected:
   ros::Subscriber sub_odom_;
   ros::Subscriber sub_imu_;
   ros::Subscriber sub_position_;
+  ros::Subscriber sub_landmark_;
   ros::Publisher pub_particle_;
   ros::Publisher pub_debug_;
   ros::Publisher pub_mapcloud_;

@@ -32,6 +32,8 @@
 
 #define _USE_MATH_DEFINES
 #include <cmath>
+#include <Eigen/Core>
+#include <Eigen/LU>
 
 template <typename FLT_TYPE = float>
 class NormalLikelihood
@@ -50,6 +52,28 @@ public:
 protected:
   FLT_TYPE a_;
   FLT_TYPE sq2_;
+};
+
+template <typename FLT_TYPE = float, size_t DIMENSION = 6>
+class NormalLikelihoodNd
+{
+public:
+  using Matrix = Eigen::Matrix<FLT_TYPE, DIMENSION, DIMENSION>;
+  using Vector = Eigen::Matrix<FLT_TYPE, DIMENSION, 1>;
+
+  explicit NormalLikelihoodNd(const Matrix sigma)
+  {
+    a_ = 1.0 / (pow(2.0 * M_PI, 0.5 * DIMENSION) * sqrt(sigma.determinant()));
+    sigma_inv_ = sigma.inverse();
+  }
+  FLT_TYPE operator()(const Vector x)
+  {
+    return a_ * expf(-0.5 * x.transpose() * sigma_inv_ * x);
+  }
+
+protected:
+  FLT_TYPE a_;
+  Matrix sigma_inv_;
 };
 
 #endif  // ND_H
