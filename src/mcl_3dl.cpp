@@ -195,9 +195,9 @@ protected:
       }
       return pos.x;
     }
-    float &operator[](const size_t i) const
+    const float &operator[](const size_t i) const
     {
-      return (*this)[i];
+      return operator[](i);
     }
     size_t size() const override
     {
