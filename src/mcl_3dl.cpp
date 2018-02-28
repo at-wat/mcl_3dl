@@ -197,7 +197,30 @@ protected:
     }
     const float &operator[](const size_t i) const
     {
-      return operator[](i);
+      switch (i)
+      {
+        case 0:
+          return pos.x;
+        case 1:
+          return pos.y;
+        case 2:
+          return pos.z;
+        case 3:
+          return rot.x;
+        case 4:
+          return rot.y;
+        case 5:
+          return rot.z;
+        case 6:
+          return rot.w;
+        case 7:
+          return odom_err_integ.x;
+        case 8:
+          return odom_err_integ.y;
+        case 9:
+          return odom_err_integ.z;
+      }
+      return pos.x;
     }
     size_t size() const override
     {
