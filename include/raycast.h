@@ -71,7 +71,7 @@ public:
         const float grid, const float grid_search)
     {
       kdtree_ = kdtree;
-      length_ = (end - begin).norm() / grid - 1;
+      length_ = (end - begin).norm() / grid_search - sqrtf(2.0);
       inc_ = (end - begin) / length_;
       pos_ = begin + inc_;
       count_ = 1;
