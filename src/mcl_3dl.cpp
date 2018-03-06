@@ -96,6 +96,7 @@ protected:
     double update_downsample_y;
     double update_downsample_z;
     double map_grid_min;
+    double map_grid_max;
     double global_localization_grid;
     int global_localization_div_yaw;
     double downsample_x;
@@ -760,7 +761,7 @@ protected:
             kdtree_,
             s.pos + s.rot * origins[beam_header_id],
             Vec3(p.x, p.y, p.z),
-            params_.map_grid_min);
+            params_.map_grid_min, params_.map_grid_max);
         for (auto point : ray)
         {
           if (point.collision_)
@@ -874,7 +875,7 @@ protected:
             kdtree_,
             e.pos + e.rot * origins[beam_header_id],
             Vec3(p.x, p.y, p.z),
-            params_.map_grid_min);
+            params_.map_grid_min, params_.map_grid_max);
         for (auto point : ray)
         {
           if (point.collision_)
@@ -1436,6 +1437,8 @@ public:
     nh.param("downsample_y", params_.downsample_y, 0.1);
     nh.param("downsample_z", params_.downsample_z, 0.05);
     params_.map_grid_min = std::min(std::min(params_.map_downsample_x, params_.map_downsample_y),
+                                    params_.map_downsample_z);
+    params_.map_grid_max = std::max(std::max(params_.map_downsample_x, params_.map_downsample_y),
                                     params_.map_downsample_z);
     nh.param("update_downsample_x", params_.update_downsample_x, 0.3);
     nh.param("update_downsample_y", params_.update_downsample_y, 0.3);
