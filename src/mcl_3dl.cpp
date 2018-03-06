@@ -1322,6 +1322,7 @@ protected:
         Vec3(params_.expansion_var_roll,
              params_.expansion_var_pitch,
              params_.expansion_var_yaw)));
+    return true;
   }
   bool cbGlobalLocalization(std_srvs::TriggerRequest &request,
                             std_srvs::TriggerResponse &response)
