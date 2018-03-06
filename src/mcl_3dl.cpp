@@ -107,6 +107,13 @@ protected:
     double resample_var_roll;
     double resample_var_pitch;
     double resample_var_yaw;
+    double expansion_var_x;
+    double expansion_var_y;
+    double expansion_var_z;
+    double expansion_var_roll;
+    double expansion_var_pitch;
+    double expansion_var_yaw;
+    double match_ratio_thresh;
     double match_dist_min;
     double match_weight;
     double jump_dist;
@@ -705,13 +712,16 @@ protected:
     std::vector<int> id(1);
     std::vector<float> sqdist(1);
 
+    float match_ratio_min = FLT_MAX;
+    float match_ratio_max = FLT_MIN;
     const float match_dist_min = params_.match_dist_min;
     const float match_weight = params_.match_weight;
     NormalLikelihood<float> odom_error_nd(params_.odom_err_integ_sigma);
     auto measure_func = [this, &match_dist_min, &match_weight,
                          &id, &sqdist, &pc_particle, &pc_local,
                          &pc_particle_beam, &pc_local_beam, &origins,
-                         &odom_error_nd](const State &s) -> float
+                         &odom_error_nd,
+                         &match_ratio_min, &match_ratio_max](const State &s) -> float
     {
       // likelihood model
       float score_like = 0;
@@ -733,6 +743,11 @@ protected:
           num++;
         }
       }
+      const float match_ratio = static_cast<float>(num) / pc_particle->points.size();
+      if (match_ratio_min > match_ratio)
+        match_ratio_min = match_ratio;
+      if (match_ratio_max < match_ratio)
+        match_ratio_max = match_ratio;
 
       // approximative beam model
       float score_beam = 1.0;
@@ -1157,6 +1172,23 @@ protected:
               err_integ_map.x,
               err_integ_map.y,
               err_integ_map.z);
+    ROS_DEBUG("match ratio min: %0.3f, max: %0.3f, pos: %0.3f, %0.3f, %0.3f",
+              match_ratio_min,
+              match_ratio_max,
+              e.pos.x,
+              e.pos.y,
+              e.pos.z);
+    if (match_ratio_max < params_.match_ratio_thresh)
+    {
+      ROS_WARN_THROTTLE(3.0, "Low match_ratio. Expansion resetting.");
+      pf_->noise(State(
+          Vec3(params_.expansion_var_x,
+               params_.expansion_var_y,
+               params_.expansion_var_z),
+          Vec3(params_.expansion_var_roll,
+               params_.expansion_var_pitch,
+               params_.expansion_var_yaw)));
+    }
     pc_local_accum_.reset(new pcl::PointCloud<pcl::PointXYZI>);
     pc_accum_header_.clear();
 
@@ -1280,6 +1312,18 @@ protected:
     pf_->resizeParticle(request.size);
     return true;
   }
+  bool cbExpansionReset(std_srvs::TriggerRequest &request,
+                        std_srvs::TriggerResponse &response)
+  {
+    pf_->noise(State(
+        Vec3(params_.expansion_var_x,
+             params_.expansion_var_y,
+             params_.expansion_var_z),
+        Vec3(params_.expansion_var_roll,
+             params_.expansion_var_pitch,
+             params_.expansion_var_yaw)));
+    return true;
+  }
   bool cbGlobalLocalization(std_srvs::TriggerRequest &request,
                             std_srvs::TriggerResponse &response)
   {
@@ -1363,6 +1407,7 @@ public:
     pub_debug_marker_ = nh.advertise<visualization_msgs::MarkerArray>("debug_marker", 1, true);
     srv_particle_size_ = nh.advertiseService("resize_particle", &MCL3dlNode::cbResizeParticle, this);
     srv_global_localization_ = nh.advertiseService("global_localization", &MCL3dlNode::cbGlobalLocalization, this);
+    srv_expansion_reset_ = nh.advertiseService("expansion_resetting", &MCL3dlNode::cbExpansionReset, this);
 
     nh.param("map_frame", frame_ids_["map"], std::string("map"));
     nh.param("robot_frame", frame_ids_["base_link"], std::string("base_link"));
@@ -1435,6 +1480,13 @@ public:
     nh.param("resample_var_roll", params_.resample_var_roll, 0.05);
     nh.param("resample_var_pitch", params_.resample_var_pitch, 0.05);
     nh.param("resample_var_yaw", params_.resample_var_yaw, 0.05);
+    nh.param("expansion_var_x", params_.expansion_var_x, 0.2);
+    nh.param("expansion_var_y", params_.expansion_var_y, 0.2);
+    nh.param("expansion_var_z", params_.expansion_var_z, 0.2);
+    nh.param("expansion_var_roll", params_.expansion_var_roll, 0.05);
+    nh.param("expansion_var_pitch", params_.expansion_var_pitch, 0.05);
+    nh.param("expansion_var_yaw", params_.expansion_var_yaw, 0.05);
+    nh.param("match_ratio_thresh", params_.match_ratio_thresh, 0.0);
 
     nh.param("odom_err_lin_lin", params_.odom_err_lin_lin, 0.10);
     nh.param("odom_err_lin_ang", params_.odom_err_lin_ang, 0.05);
@@ -1585,6 +1637,7 @@ protected:
   ros::Timer map_update_timer_;
   ros::ServiceServer srv_particle_size_;
   ros::ServiceServer srv_global_localization_;
+  ros::ServiceServer srv_expansion_reset_;
 
   tf::TransformListener tfl_;
   tf::TransformBroadcaster tfb_;
