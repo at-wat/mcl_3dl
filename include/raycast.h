@@ -60,13 +60,15 @@ public:
     size_t count_;
     size_t length_;
     float grid_;
+    float grid_search_;
 
   public:
     friend Raycast;
 
     Iterator(
         pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtree,
-        const Vec3 begin, const Vec3 end, const float grid)
+        const Vec3 begin, const Vec3 end,
+        const float grid, const float grid_search)
     {
       kdtree_ = kdtree;
       length_ = (end - begin).norm() / grid - 1;
@@ -74,6 +76,7 @@ public:
       pos_ = begin + inc_;
       count_ = 1;
       grid_ = grid;
+      grid_search_ = grid_search;
     }
     Iterator &operator++()
     {
@@ -95,7 +98,7 @@ public:
       std::vector<float> sqdist(1);
       if (kdtree_->radiusSearch(
               center,
-              grid_ / 2.0, id, sqdist, 1))
+              sqrtf(2.0) * grid_search_ / 2.0, id, sqdist, 1))
       {
         collision = true;
 
@@ -131,9 +134,9 @@ protected:
 public:
   Raycast(
       pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtree,
-      const Vec3 begin, const Vec3 end, const float grid)
-    : begin_(kdtree, begin, end, grid)
-    , end_(kdtree, begin, end, grid)
+      const Vec3 begin, const Vec3 end, const float grid, const float grid_max)
+    : begin_(kdtree, begin, end, grid, grid_max)
+    , end_(kdtree, begin, end, grid, grid_max)
   {
     kdtree_ = kdtree;
     end_.count_ = end_.length_;
