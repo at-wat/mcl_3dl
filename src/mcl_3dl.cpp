@@ -140,8 +140,10 @@ protected:
     double beam_likelihood_min;
     float sin_total_ref;
     double acc_var;
-    double odom_err_integ_tc;
-    double odom_err_integ_sigma;
+    double odom_err_integ_lin_tc;
+    double odom_err_integ_lin_sigma;
+    double odom_err_integ_ang_tc;
+    double odom_err_integ_ang_sigma;
     std::shared_ptr<ros::Duration> match_output_interval;
     std::shared_ptr<ros::Duration> tf_tolerance;
   };
@@ -156,7 +158,8 @@ protected:
     float noise_la_;
     float noise_al_;
     float noise_aa_;
-    Vec3 odom_err_integ;
+    Vec3 odom_err_integ_lin;
+    Vec3 odom_err_integ_ang;
     class RPYVec
     {
     public:
@@ -195,11 +198,17 @@ protected:
         case 6:
           return rot.w;
         case 7:
-          return odom_err_integ.x;
+          return odom_err_integ_lin.x;
         case 8:
-          return odom_err_integ.y;
+          return odom_err_integ_lin.y;
         case 9:
-          return odom_err_integ.z;
+          return odom_err_integ_lin.z;
+        case 10:
+          return odom_err_integ_ang.x;
+        case 11:
+          return odom_err_integ_ang.y;
+        case 12:
+          return odom_err_integ_ang.z;
       }
       return pos.x;
     }
@@ -222,11 +231,17 @@ protected:
         case 6:
           return rot.w;
         case 7:
-          return odom_err_integ.x;
+          return odom_err_integ_lin.x;
         case 8:
-          return odom_err_integ.y;
+          return odom_err_integ_lin.y;
         case 9:
-          return odom_err_integ.z;
+          return odom_err_integ_lin.z;
+        case 10:
+          return odom_err_integ_ang.x;
+        case 11:
+          return odom_err_integ_ang.y;
+        case 12:
+          return odom_err_integ_ang.z;
       }
       return pos.x;
     }
@@ -242,14 +257,16 @@ protected:
     {
       diff = false;
       noise_ll_ = noise_la_ = noise_aa_ = noise_al_ = 0.0;
-      odom_err_integ = Vec3(0.0, 0.0, 0.0);
+      odom_err_integ_lin = Vec3(0.0, 0.0, 0.0);
+      odom_err_integ_ang = Vec3(0.0, 0.0, 0.0);
     }
     State(const Vec3 pos, const Quat rot)
     {
       this->pos = pos;
       this->rot = rot;
       noise_ll_ = noise_la_ = noise_aa_ = noise_al_ = 0.0;
-      odom_err_integ = Vec3(0.0, 0.0, 0.0);
+      odom_err_integ_lin = Vec3(0.0, 0.0, 0.0);
+      odom_err_integ_ang = Vec3(0.0, 0.0, 0.0);
       diff = false;
     }
     State(const Vec3 pos, const Vec3 rpy)
@@ -257,7 +274,8 @@ protected:
       this->pos = pos;
       this->rpy = RPYVec(rpy);
       noise_ll_ = noise_la_ = noise_aa_ = noise_al_ = 0.0;
-      odom_err_integ = Vec3(0.0, 0.0, 0.0);
+      odom_err_integ_lin = Vec3(0.0, 0.0, 0.0);
+      odom_err_integ_ang = Vec3(0.0, 0.0, 0.0);
       diff = true;
     }
     bool isDiff()
@@ -293,7 +311,7 @@ protected:
       for (size_t i = 0; i < 3; i++)
       {
         std::normal_distribution<float> nd(0.0, sigma.rpy.v[i]);
-        rpy_noise[i] = nd(engine_);
+        rpy_noise[i] = noise[i + 10] = nd(engine_);
       }
       noise.rot = Quat(rpy_noise) * mean.rot;
       return noise;
@@ -477,7 +495,8 @@ protected:
     pc_update_.reset(new pcl::PointCloud<pcl::PointXYZI>);
     auto integ_reset_func = [](State &s)
     {
-      s.odom_err_integ = Vec3();
+      s.odom_err_integ_lin = Vec3();
+      s.odom_err_integ_ang = Vec3();
     };
     pf_->predict(integ_reset_func);
   }
@@ -512,12 +531,14 @@ protected:
         auto prediction_func = [this, &v, &r, axis, ang, trans, &dt](State &s)
         {
           const Vec3 diff = v * (1.0 + s.noise_ll_) + Vec3(s.noise_al_ * ang, 0.0, 0.0);
-          s.odom_err_integ += (diff - v);
+          s.odom_err_integ_lin += (diff - v);
           s.pos += s.rot * diff;
-          s.rot = Quat(Vec3(0.0, 0.0, 1.0), s.noise_la_ * trans + s.noise_aa_ * ang) *
-                  s.rot * r;
+          const float yaw_diff = s.noise_la_ * trans + s.noise_aa_ * ang;
+          s.rot = Quat(Vec3(0.0, 0.0, 1.0), yaw_diff) * s.rot * r;
           s.rot.normalize();
-          s.odom_err_integ *= (1.0 - dt / params_.odom_err_integ_tc);
+          s.odom_err_integ_ang += Vec3(0.0, 0.0, yaw_diff);
+          s.odom_err_integ_lin *= (1.0 - dt / params_.odom_err_integ_lin_tc);
+          s.odom_err_integ_ang *= (1.0 - dt / params_.odom_err_integ_ang_tc);
         };
         pf_->predict(prediction_func);
         odom_last_ = msg->header.stamp;
@@ -717,11 +738,12 @@ protected:
     float match_ratio_max = FLT_MIN;
     const float match_dist_min = params_.match_dist_min;
     const float match_weight = params_.match_weight;
-    NormalLikelihood<float> odom_error_nd(params_.odom_err_integ_sigma);
+    NormalLikelihood<float> odom_error_lin_nd(params_.odom_err_integ_lin_sigma);
+    NormalLikelihood<float> odom_error_ang_nd(params_.odom_err_integ_ang_sigma);
     auto measure_func = [this, &match_dist_min, &match_weight,
                          &id, &sqdist, &pc_particle, &pc_local,
                          &pc_particle_beam, &pc_local_beam, &origins,
-                         &odom_error_nd,
+                         &odom_error_lin_nd,
                          &match_ratio_min, &match_ratio_max](const State &s) -> float
     {
       // likelihood model
@@ -780,7 +802,7 @@ protected:
 
       // odometry error integration
       const float odom_error =
-          odom_error_nd(s.odom_err_integ.norm());
+          odom_error_lin_nd(s.odom_err_integ_lin.norm());
       return score_like * score_beam * odom_error;
     };
     pf_->measure(measure_func);
@@ -968,7 +990,8 @@ protected:
 
         auto integ_reset_func = [](State &s)
         {
-          s.odom_err_integ = Vec3();
+          s.odom_err_integ_lin = Vec3();
+          s.odom_err_integ_ang = Vec3();
         };
         pf_->predict(integ_reset_func);
       }
@@ -1162,11 +1185,17 @@ protected:
     const auto tnow = boost::chrono::high_resolution_clock::now();
     ROS_DEBUG("MCL (%0.3f sec.)",
               boost::chrono::duration<float>(tnow - ts).count());
-    const auto err_integ_map = e_max.rot * e_max.odom_err_integ;
-    ROS_DEBUG("odom error integral: %0.3f, %0.3f, %0.3f, pos: %0.3f, %0.3f, %0.3f, err on map: %0.3f, %0.3f, %0.3f",
-              e_max.odom_err_integ.x,
-              e_max.odom_err_integ.y,
-              e_max.odom_err_integ.z,
+    const auto err_integ_map = e_max.rot * e_max.odom_err_integ_lin;
+    ROS_DEBUG("odom error integral lin: %0.3f, %0.3f, %0.3f, "
+              "ang: %0.3f, %0.3f, %0.3f, "
+              "pos: %0.3f, %0.3f, %0.3f, "
+              "err on map: %0.3f, %0.3f, %0.3f",
+              e_max.odom_err_integ_lin.x,
+              e_max.odom_err_integ_lin.y,
+              e_max.odom_err_integ_lin.z,
+              e_max.odom_err_integ_ang.x,
+              e_max.odom_err_integ_ang.y,
+              e_max.odom_err_integ_ang.z,
               e_max.pos.x,
               e_max.pos.y,
               e_max.pos.z,
@@ -1496,8 +1525,10 @@ public:
     nh.param("odom_err_ang_lin", params_.odom_err_ang_lin, 0.05);
     nh.param("odom_err_ang_ang", params_.odom_err_ang_ang, 0.05);
 
-    nh.param("odom_err_integ_tc", params_.odom_err_integ_tc, 10.0);
-    nh.param("odom_err_integ_sigma", params_.odom_err_integ_sigma, 100.0);
+    nh.param("odom_err_integ_lin_tc", params_.odom_err_integ_lin_tc, 10.0);
+    nh.param("odom_err_integ_lin_sigma", params_.odom_err_integ_lin_sigma, 100.0);
+    nh.param("odom_err_integ_ang_tc", params_.odom_err_integ_ang_tc, 10.0);
+    nh.param("odom_err_integ_ang_sigma", params_.odom_err_integ_ang_sigma, 100.0);
 
     double x, y, z;
     double roll, pitch, yaw;
