@@ -95,7 +95,7 @@ public:
       std::vector<float> sqdist(1);
       if (kdtree_->radiusSearch(
               center,
-              grid_ / 2.0, id, sqdist, 1))
+              sqrtf(2.0) * grid_ / 2.0, id, sqdist, 1))
       {
         collision = true;
 
