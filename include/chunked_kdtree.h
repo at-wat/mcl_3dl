@@ -33,6 +33,7 @@
 #include <pcl/point_types.h>
 
 #include <unordered_map>
+#include <vector>
 
 template <typename POINT_TYPE>
 class ChunkedKdtree
