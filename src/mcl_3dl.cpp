@@ -55,6 +55,7 @@
 #include <Eigen/Core>
 
 #include <boost/chrono.hpp>
+#include <boost/shared_ptr.hpp>
 #include <algorithm>
 #include <string>
 #include <map>
@@ -66,6 +67,7 @@
 #include <filter.h>
 #include <nd.h>
 #include <raycast.h>
+#include <chunked_kdtree.h>
 
 class MCL3dlNode
 {
@@ -416,8 +418,8 @@ protected:
     }
 
     pc_map_.reset(new pcl::PointCloud<pcl::PointXYZI>);
-    pc_map2_.reset(new pcl::PointCloud<pcl::PointXYZI>);
-    pc_update_.reset(new pcl::PointCloud<pcl::PointXYZI>);
+    pc_map2_.reset();
+    pc_update_.reset();
     pcl::VoxelGrid<pcl::PointXYZI> ds;
     ds.setInputCloud(pc_tmp.makeShared());
     ds.setLeafSize(params_.map_downsample_x, params_.map_downsample_y, params_.map_downsample_z);
@@ -429,27 +431,12 @@ protected:
 
     kdtree_orig_.reset(new pcl::KdTreeFLANN<pcl::PointXYZI>);
     kdtree_orig_->setInputCloud(pc_map_);
-    std::vector<int> id(7);
-    std::vector<float> sqdist(7);
-    ROS_INFO("map original: %d points", (int)pc_map_->points.size());
-
-    // map pointcloud filters here
-
-    pc_map_->width = 1;
-    pc_map_->height = pc_map_->points.size();
+    ROS_INFO("map original: %d points", (int)pc_tmp.points.size());
     ROS_INFO("map reduced: %d points", (int)pc_map_->points.size());
     kdtree_orig_.reset(new pcl::KdTreeFLANN<pcl::PointXYZI>);
     kdtree_orig_->setInputCloud(pc_map_);
 
-    *pc_map2_ = *pc_map_;
-    kdtree_.reset(new pcl::KdTreeFLANN<pcl::PointXYZI>);
-    kdtree_->setEpsilon(params_.map_grid_min / 4);
-    kdtree_->setPointRepresentation(boost::make_shared<const MyPointRepresentation>(point_rep_));
-
-    if (pc_map2_->points.size() == 0)
-      kdtree_->setInputCloud(pc_map_);
-    else
-      kdtree_->setInputCloud(pc_map2_);
+    cbMapUpdateTimer(ros::TimerEvent());
   }
   void cbMapcloudUpdate(const sensor_msgs::PointCloud2::ConstPtr &msg)
   {
@@ -492,7 +479,7 @@ protected:
             Vec3(msg->pose.covariance[6 * 3 + 3],
                  msg->pose.covariance[6 * 4 + 4],
                  msg->pose.covariance[6 * 5 + 5])));
-    pc_update_.reset(new pcl::PointCloud<pcl::PointXYZI>);
+    pc_update_.reset();
     auto integ_reset_func = [](State &s)
     {
       s.odom_err_integ_lin = Vec3();
@@ -1488,6 +1475,12 @@ public:
       weight_f[i] = weight[i];
     weight_f[3] = 0.0;
     point_rep_.setRescaleValues(weight_f);
+    kdtree_.reset(new ChunkedKdtree<pcl::PointXYZI>);
+    kdtree_->setEpsilon(params_.map_grid_min / 4);
+    kdtree_->setPointRepresentation(
+        boost::dynamic_pointer_cast<
+            pcl::PointRepresentation<pcl::PointXYZI>,
+            MyPointRepresentation>(boost::make_shared<MyPointRepresentation>(point_rep_)));
 
     nh.param("global_localization_grid_lin", params_.global_localization_grid, 0.3);
     double grid_ang;
@@ -1621,35 +1614,28 @@ public:
   {
     if (has_map_)
     {
-      const auto e = state_prev_;
-      *pc_map2_ = *pc_map_ + *pc_update_;
-
-      auto pc_map_filter = [this, &e](const pcl::PointXYZI &p)
+      const auto ts = boost::chrono::high_resolution_clock::now();
+      if (pc_update_)
       {
-        if (p.z - e.pos.z > params_.map_clip_z_max)
-          return true;
-        if (p.z - e.pos.z < params_.map_clip_z_min)
-          return true;
-        if (powf(p.x - e.pos.x, 2.0) + powf(p.y - e.pos.y, 2.0) > params_.map_clip_far_sq)
-          return true;
-        return false;
-      };
-      pc_map2_->erase(
-          std::remove_if(pc_map2_->begin(), pc_map2_->end(), pc_map_filter),
-          pc_map2_->end());
-
-      kdtree_.reset(new pcl::KdTreeFLANN<pcl::PointXYZI>);
-      kdtree_->setEpsilon(params_.map_grid_min);
-      kdtree_->setPointRepresentation(boost::make_shared<const MyPointRepresentation>(point_rep_));
-
-      if (pc_map2_->points.size() == 0)
-        kdtree_->setInputCloud(pc_map_);
+        if (!pc_map2_)
+          pc_map2_.reset(new pcl::PointCloud<pcl::PointXYZI>);
+        *pc_map2_ = *pc_map_ + *pc_update_;
+        pc_update_.reset();
+      }
       else
-        kdtree_->setInputCloud(pc_map2_);
+      {
+        if (pc_map2_)
+          return;
+        pc_map2_ = pc_map_;
+      }
+      kdtree_->setInputCloud(pc_map2_);
 
       sensor_msgs::PointCloud2 out;
       pcl::toROSMsg(*pc_map2_, out);
       pub_mapcloud_.publish(out);
+      const auto tnow = boost::chrono::high_resolution_clock::now();
+      ROS_DEBUG("Map update (%0.3f sec.)",
+                boost::chrono::duration<float>(tnow - ts).count());
     }
   }
 
@@ -1710,8 +1696,8 @@ protected:
   pcl::PointCloud<pcl::PointXYZI>::Ptr pc_update_;
   pcl::PointCloud<pcl::PointXYZI>::Ptr pc_all_accum_;
   pcl::PointCloud<pcl::PointXYZI>::Ptr pc_local_accum_;
-  pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtree_;
   pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtree_orig_;
+  ChunkedKdtree<pcl::PointXYZI>::Ptr kdtree_;
   std::vector<std_msgs::Header> pc_accum_header_;
 
   std::random_device seed_gen_;

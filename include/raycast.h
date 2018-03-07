@@ -31,6 +31,7 @@
 #define RAYCAST_H
 
 #include <vec3.h>
+#include <chunked_kdtree.h>
 
 #include <vector>
 
@@ -54,7 +55,7 @@ public:
   class Iterator
   {
   protected:
-    pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtree_;
+    ChunkedKdtree<pcl::PointXYZI>::Ptr kdtree_;
     Vec3 pos_;
     Vec3 inc_;
     size_t count_;
@@ -66,7 +67,7 @@ public:
     friend Raycast;
 
     Iterator(
-        pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtree,
+        ChunkedKdtree<pcl::PointXYZI>::Ptr kdtree,
         const Vec3 begin, const Vec3 end,
         const float grid, const float grid_search)
     {
@@ -127,13 +128,13 @@ public:
   };
 
 protected:
-  pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtree_;
+  ChunkedKdtree<pcl::PointXYZI>::Ptr kdtree_;
   Iterator begin_;
   Iterator end_;
 
 public:
   Raycast(
-      pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtree,
+      ChunkedKdtree<pcl::PointXYZI>::Ptr kdtree,
       const Vec3 begin, const Vec3 end, const float grid, const float grid_max)
     : begin_(kdtree, begin, end, grid, grid_max)
     , end_(kdtree, begin, end, grid, grid_max)
