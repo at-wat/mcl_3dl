@@ -1063,22 +1063,6 @@ protected:
     }
     *pc_particle = *pc_local;
     e.transform(*pc_particle);
-    sensor_msgs::PointCloud pc;
-    pc.header.stamp = msg->header.stamp;
-    pc.header.frame_id = frame_ids_["map"];
-    for (auto &p : pc_particle->points)
-    {
-      geometry_msgs::Point32 pp;
-      pp.x = p.x;
-      pp.y = p.y;
-      pp.z = p.z;
-
-      if (kdtree_orig_->nearestKSearch(p, 1, id, sqdist))
-      {
-        pc.points.push_back(pp);
-      }
-    }
-    pub_debug_.publish(pc);
 
     if (output_pcd_)
       *pc_all_accum_ += *pc_particle;
@@ -1415,7 +1399,6 @@ public:
     sub_landmark_ = nh.subscribe("landmark", 1, &MCL3dlNode::cbLandmark, this);
     pub_pose_ = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("/amcl_pose", 5, false);
     pub_particle_ = nh.advertise<geometry_msgs::PoseArray>("particles", 1, true);
-    pub_debug_ = nh.advertise<sensor_msgs::PointCloud>("debug", 5, true);
     pub_mapcloud_ = nh.advertise<sensor_msgs::PointCloud2>("updated_map", 1, true);
     pub_debug_marker_ = nh.advertise<visualization_msgs::MarkerArray>("debug_marker", 1, true);
     srv_particle_size_ = nh.advertiseService("resize_particle", &MCL3dlNode::cbResizeParticle, this);
@@ -1640,7 +1623,6 @@ protected:
   ros::Subscriber sub_position_;
   ros::Subscriber sub_landmark_;
   ros::Publisher pub_particle_;
-  ros::Publisher pub_debug_;
   ros::Publisher pub_mapcloud_;
   ros::Publisher pub_pose_;
   ros::Publisher pub_matched_;
