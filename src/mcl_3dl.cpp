@@ -87,10 +87,6 @@ protected:
     double clip_beam_far_sq;
     double clip_beam_z_min;
     double clip_beam_z_max;
-    double map_clip_z_min;
-    double map_clip_z_max;
-    double map_clip_far;
-    double map_clip_far_sq;
     double map_downsample_x;
     double map_downsample_y;
     double map_downsample_z;
@@ -1442,10 +1438,6 @@ public:
     params_.clip_beam_far_sq = pow(params_.clip_beam_far, 2.0);
     nh.param("clip_beam_z_min", params_.clip_beam_z_min, -2.0);
     nh.param("clip_beam_z_max", params_.clip_beam_z_max, 2.0);
-    nh.param("map_clip_z_min", params_.map_clip_z_min, -3.0);
-    nh.param("map_clip_z_max", params_.map_clip_z_max, 3.0);
-    nh.param("map_clip_far", params_.map_clip_far, 40.0);
-    params_.map_clip_far_sq = pow(params_.map_clip_far, 2.0);
     nh.param("map_downsample_x", params_.map_downsample_x, 0.1);
     nh.param("map_downsample_y", params_.map_downsample_y, 0.1);
     nh.param("map_downsample_z", params_.map_downsample_z, 0.1);
