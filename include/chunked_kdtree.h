@@ -47,7 +47,7 @@ protected:
     int z_;
     constexpr bool operator==(const ChunkId &a) const
     {
-      return x_ == a.x_ && x_ == a.x_ && x_ == a.x_;
+      return x_ == a.x_ && y_ == a.y_ && z_ == a.z_;
     }
     constexpr bool operator!=(const ChunkId &a) const
     {
