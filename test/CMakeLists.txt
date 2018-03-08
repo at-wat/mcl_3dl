@@ -24,7 +24,7 @@ if(MCL_3DL_EXTRA_TESTS)
   catkin_download_test_data(
       ${PROJECT_NAME}_short_test_ref.topic
       https://openspur.org/~atsushi.w/dataset/mcl_3dl/short_test_ref.topic
-      MD5 1087915e65da06b55e0cc5e4377b485d
+      MD5 6ad3b72f6c50952ad1120316d4702e71
       FILENAME test/short_test_ref.topic)
 
   configure_file(tests/localization_rostest.test.in
