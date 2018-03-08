@@ -1446,7 +1446,16 @@ public:
       weight_f[i] = weight[i];
     weight_f[3] = 0.0;
     point_rep_.setRescaleValues(weight_f);
-    kdtree_.reset(new ChunkedKdtree<pcl::PointXYZI>);
+
+    double map_chunk;
+    nh.param("map_chunk", map_chunk, 20.0);
+    const double max_search_radius = std::max(
+        params_.unmatch_output_dist,
+        std::max(
+            params_.match_output_dist,
+            std::max(params_.match_dist_min, params_.map_grid_max * 4.0)));
+    ROS_DEBUG("max_search_radius: %0.3f", max_search_radius);
+    kdtree_.reset(new ChunkedKdtree<pcl::PointXYZI>(map_chunk, max_search_radius));
     kdtree_->setEpsilon(params_.map_grid_min / 4);
     kdtree_->setPointRepresentation(
         boost::dynamic_pointer_cast<

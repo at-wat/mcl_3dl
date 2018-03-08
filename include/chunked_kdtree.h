@@ -54,6 +54,10 @@ protected:
     {
       return !operator==(a);
     }
+    constexpr ChunkId operator+(const ChunkId &a) const
+    {
+      return ChunkId(x_ + a.x_, y_ + a.y_, z_ + a.z_);
+    }
     size_t operator()(const ChunkId &id) const
     {
       return (id.x_) ^ (id.y_ << 11) ^ (id.z_ << 22);
@@ -79,6 +83,7 @@ protected:
 
   const float pos_to_chunk_;
   const float chunk_length_;
+  const float max_search_radius_;
   float epsilon_;
   boost::shared_ptr<pcl::PointRepresentation<POINT_TYPE>> point_rep_;
 
@@ -88,9 +93,10 @@ protected:
 
 public:
   using Ptr = std::shared_ptr<ChunkedKdtree>;
-  explicit ChunkedKdtree(const float chunk_length = 20.0)
+  explicit ChunkedKdtree(const float chunk_length = 20.0, const float max_search_radius = 1.0)
     : pos_to_chunk_(1.0 / chunk_length)
     , chunk_length_(chunk_length)
+    , max_search_radius_(max_search_radius)
   {
     chunks_.clear();
   }
@@ -121,80 +127,85 @@ public:
     {
       const auto chunk_id = getChunkId(p);
       if (!clouds[chunk_id])
-      {
         clouds[chunk_id].reset(new pcl::PointCloud<POINT_TYPE>);
-      }
       clouds[chunk_id]->push_back(p);
+
+      const float in_chunk_x = p.x - chunk_id.x_ * chunk_length_;
+      int x_bound = 0;
+      if (in_chunk_x < max_search_radius_)
+        x_bound = -1;
+      else if (in_chunk_x > chunk_length_ - max_search_radius_)
+        x_bound = 1;
+
+      const float in_chunk_y = p.y - chunk_id.y_ * chunk_length_;
+      int y_bound = 0;
+      if (in_chunk_y < max_search_radius_)
+        y_bound = -1;
+      else if (in_chunk_y > chunk_length_ - max_search_radius_)
+        y_bound = 1;
+
+      const float in_chunk_z = p.z - chunk_id.z_ * chunk_length_;
+      int z_bound = 0;
+      if (in_chunk_z < max_search_radius_)
+        z_bound = -1;
+      else if (in_chunk_z > chunk_length_ - max_search_radius_)
+        z_bound = 1;
+
+      if (x_bound && y_bound && z_bound)
+      {
+        const ChunkId id(chunk_id + ChunkId(x_bound, y_bound, z_bound));
+        if (!clouds[id])
+          clouds[id].reset(new pcl::PointCloud<POINT_TYPE>);
+        clouds[id]->push_back(p);
+      }
+      if (x_bound && y_bound)
+      {
+        const ChunkId id(chunk_id + ChunkId(x_bound, y_bound, 0));
+        if (!clouds[id])
+          clouds[id].reset(new pcl::PointCloud<POINT_TYPE>);
+        clouds[id]->push_back(p);
+      }
+      if (y_bound && z_bound)
+      {
+        const ChunkId id(chunk_id + ChunkId(0, y_bound, z_bound));
+        if (!clouds[id])
+          clouds[id].reset(new pcl::PointCloud<POINT_TYPE>);
+        clouds[id]->push_back(p);
+      }
+      if (z_bound && x_bound)
+      {
+        const ChunkId id(chunk_id + ChunkId(x_bound, 0, z_bound));
+        if (!clouds[id])
+          clouds[id].reset(new pcl::PointCloud<POINT_TYPE>);
+        clouds[id]->push_back(p);
+      }
+      if (x_bound)
+      {
+        const ChunkId id(chunk_id + ChunkId(x_bound, 0, 0));
+        if (!clouds[id])
+          clouds[id].reset(new pcl::PointCloud<POINT_TYPE>);
+        clouds[id]->push_back(p);
+      }
+      if (y_bound)
+      {
+        const ChunkId id(chunk_id + ChunkId(0, y_bound, 0));
+        if (!clouds[id])
+          clouds[id].reset(new pcl::PointCloud<POINT_TYPE>);
+        clouds[id]->push_back(p);
+      }
+      if (z_bound)
+      {
+        const ChunkId id(chunk_id + ChunkId(0, 0, z_bound));
+        if (!clouds[id])
+          clouds[id].reset(new pcl::PointCloud<POINT_TYPE>);
+        clouds[id]->push_back(p);
+      }
     }
     for (auto &cloud : clouds)
     {
       chunks_[cloud.first].kdtree_.setPointRepresentation(point_rep_);
       chunks_[cloud.first].kdtree_.setEpsilon(epsilon_);
       chunks_[cloud.first].kdtree_.setInputCloud(cloud.second);
-    }
-  }
-  static void mergeIdDist(
-      std::vector<int> &id, std::vector<float> &dist_sq,
-      const std::vector<int> &id2, const std::vector<float> &dist_sq2,
-      const size_t &num)
-  {
-    auto it_id2 = id2.begin();
-    auto it_dist2 = dist_sq2.begin();
-
-    auto it_dist = dist_sq.begin();
-    auto it_id = id.begin();
-    for (; it_id != id.end(); ++it_id, ++it_dist)
-    {
-      if (*it_dist > *it_dist2)
-      {
-        it_dist = dist_sq.insert(it_dist, *it_dist2);
-        it_id = id.insert(it_id, *it_id2);
-        ++it_dist2;
-        ++it_id2;
-        if (it_id2 == id2.end())
-          break;
-      }
-      if (it_id - id.begin() >= num)
-        break;
-    }
-    if (id.size() >= num)
-    {
-      id.erase(id.begin() + num, id.end());
-      dist_sq.erase(dist_sq.begin() + num, dist_sq.end());
-    }
-  }
-  void mergeRadiusSearch(
-      const POINT_TYPE &p,
-      const float &radius,
-      std::vector<int> &id,
-      std::vector<float> &dist_sq,
-      const size_t &num,
-      const ChunkId &chunk_id,
-      const ChunkId &rel_pos,
-      const float remain_dist_sq)
-  {
-    const ChunkId chunk_id2(
-        chunk_id.x_ + rel_pos.x_,
-        chunk_id.y_ + rel_pos.y_,
-        chunk_id.z_ + rel_pos.z_);
-    if (chunks_.find(chunk_id2) != chunks_.end())
-    {
-      std::vector<int> id2;
-      std::vector<float> dist_sq2;
-
-      size_t num_remain = num;
-      for (auto &d_sq : dist_sq)
-      {
-        if (d_sq < remain_dist_sq)
-          --num_remain;
-        else
-          break;
-      }
-      if (num_remain == 0 || num_remain > num)
-        return;
-      const int result = chunks_[chunk_id2].kdtree_.radiusSearch(p, radius, id2, dist_sq2, num_remain);
-      if (result > 0)
-        mergeIdDist(id, dist_sq, id2, dist_sq2, num);
     }
   }
   int radiusSearch(
@@ -205,78 +216,13 @@ public:
       const size_t &num)
   {
     if (radius > chunk_length_)
-    {
       throw std::runtime_error("ChunkedKdtree: radius must be <chunk_length");
-    }
 
     const auto chunk_id = getChunkId(p);
     if (chunks_.find(chunk_id) == chunks_.end())
       return false;
 
-    const int result = chunks_[chunk_id].kdtree_.radiusSearch(p, radius, id, dist_sq, num);
-
-    const float in_chunk_x = p.x - chunk_id.x_ * chunk_length_;
-    int x_bound = 0;
-    float dist_sq_x = 0;
-    if (in_chunk_x < radius)
-    {
-      x_bound = -1;
-      dist_sq_x = powf(in_chunk_x, 2.0);
-    }
-    else if (in_chunk_x > chunk_length_ - radius)
-    {
-      x_bound = 1;
-      dist_sq_x = powf(chunk_length_ - in_chunk_x, 2.0);
-    }
-
-    const float in_chunk_y = p.y - chunk_id.y_ * chunk_length_;
-    int y_bound = 0;
-    float dist_sq_y = 0;
-    if (in_chunk_y < radius)
-    {
-      y_bound = -1;
-      dist_sq_y = powf(in_chunk_y, 2.0);
-    }
-    else if (in_chunk_y > chunk_length_ - radius)
-    {
-      y_bound = 1;
-      dist_sq_y = powf(chunk_length_ - in_chunk_y, 2.0);
-    }
-
-    const float in_chunk_z = p.z - chunk_id.z_ * chunk_length_;
-    int z_bound = 0;
-    float dist_sq_z = 0;
-    if (in_chunk_z < radius)
-    {
-      z_bound = -1;
-      dist_sq_z = powf(in_chunk_z, 2.0);
-    }
-    else if (in_chunk_z > chunk_length_ - radius)
-    {
-      z_bound = 1;
-      dist_sq_z = powf(chunk_length_ - in_chunk_z, 2.0);
-    }
-
-    if (x_bound)
-      mergeRadiusSearch(p, radius, id, dist_sq, num, chunk_id, ChunkId(x_bound, 0, 0), dist_sq_x);
-    if (y_bound)
-      mergeRadiusSearch(p, radius, id, dist_sq, num, chunk_id, ChunkId(0, y_bound, 0), dist_sq_y);
-    if (z_bound)
-      mergeRadiusSearch(p, radius, id, dist_sq, num, chunk_id, ChunkId(0, 0, z_bound), dist_sq_z);
-    if (x_bound && y_bound)
-      mergeRadiusSearch(p, radius, id, dist_sq, num, chunk_id, ChunkId(x_bound, y_bound, 0),
-                        dist_sq_x + dist_sq_y);
-    if (y_bound && z_bound)
-      mergeRadiusSearch(p, radius, id, dist_sq, num, chunk_id, ChunkId(0, y_bound, z_bound),
-                        dist_sq_y + dist_sq_z);
-    if (z_bound && x_bound)
-      mergeRadiusSearch(p, radius, id, dist_sq, num, chunk_id, ChunkId(x_bound, 0, z_bound),
-                        dist_sq_z + dist_sq_x);
-    if (x_bound && y_bound && z_bound)
-      mergeRadiusSearch(p, radius, id, dist_sq, num, chunk_id, ChunkId(x_bound, y_bound, z_bound),
-                        dist_sq_x + dist_sq_y + dist_sq_z);
-
-    return result;
+    return chunks_[chunk_id].kdtree_.radiusSearch(p, radius, id, dist_sq, num);
   }
 
 protected:
