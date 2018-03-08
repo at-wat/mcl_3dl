@@ -46,7 +46,7 @@ TEST(RaycastTest, testCollision)
       pc.push_back(pcl::PointXYZ(0.5, y, z));
     }
   }
-  ChunkedKdtree<pcl::PointXYZ>::Ptr kdtree(new ChunkedKdtree<pcl::PointXYZ>(10.0, 0.1));
+  ChunkedKdtree<pcl::PointXYZ>::Ptr kdtree(new ChunkedKdtree<pcl::PointXYZ>(10.0, 1.0));
   kdtree->setInputCloud(pc.makeShared());
 
   for (float y = -0.8; y < 0.8; y += 0.11)
@@ -99,6 +99,65 @@ TEST(RaycastTest, testCollision)
   }
 }
 
+TEST(RaycastTest, testCollisionTolerance)
+{
+  pcl::PointCloud<pcl::PointXYZ> pc;
+  for (float y = -1.0; y < 1.0; y += 0.05)
+  {
+    for (float z = -1.0; z < 1.0; z += 0.1)
+    {
+      pc.push_back(pcl::PointXYZ(0.5, y, z));
+    }
+  }
+  ChunkedKdtree<pcl::PointXYZ>::Ptr kdtree(new ChunkedKdtree<pcl::PointXYZ>(10.0, 1.0));
+  kdtree->setInputCloud(pc.makeShared());
+
+  {
+    bool collision = false;
+    Raycast<pcl::PointXYZ> ray(
+        kdtree,
+        Vec3(0.0, 0.0, 0.0), Vec3(0.7, 0.0, 0.0), 0.05, 0.1);
+    for (auto point : ray)
+    {
+      if (point.collision_)
+      {
+        collision = true;
+        break;
+      }
+    }
+    ASSERT_TRUE(collision);
+  }
+  {
+    bool collision = false;
+    Raycast<pcl::PointXYZ> ray(
+        kdtree,
+        Vec3(0.0, 0.0, 0.0), Vec3(0.5, 0.0, 0.0), 0.1, 0.15);
+    for (auto point : ray)
+    {
+      if (point.collision_)
+      {
+        collision = true;
+        break;
+      }
+    }
+    ASSERT_FALSE(collision);
+  }
+  {
+    bool collision = false;
+    Raycast<pcl::PointXYZ> ray(
+        kdtree,
+        Vec3(0.0, 0.0, 0.0), Vec3(0.3, 0.0, 0.0), 0.1, 0.15);
+    for (auto point : ray)
+    {
+      if (point.collision_)
+      {
+        collision = true;
+        break;
+      }
+    }
+    ASSERT_FALSE(collision);
+  }
+}
 TEST(RaycastTest, testSinAng)
 {
   pcl::PointCloud<pcl::PointXYZ> pc;
@@ -109,7 +168,7 @@ TEST(RaycastTest, testSinAng)
       pc.push_back(pcl::PointXYZ(0.5, y, z));
     }
   }
-  ChunkedKdtree<pcl::PointXYZ>::Ptr kdtree(new ChunkedKdtree<pcl::PointXYZ>(10.0, 0.1));
+  ChunkedKdtree<pcl::PointXYZ>::Ptr kdtree(new ChunkedKdtree<pcl::PointXYZ>(10.0, 1.0));
   kdtree->setInputCloud(pc.makeShared());
 
   {

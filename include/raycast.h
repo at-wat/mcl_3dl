@@ -73,7 +73,7 @@ public:
         const float grid_min, const float grid_max)
     {
       kdtree_ = kdtree;
-      length_ = floorf((end - begin).norm() / grid_max - sqrtf(2.0));
+      length_ = floorf((end - begin).norm() / grid_min - sqrtf(2.0));
       inc_ = (end - begin).normalized() * grid_min;
       pos_ = begin + inc_;
       count_ = 1;
@@ -111,7 +111,7 @@ public:
         center_prev.z = pos_prev.z;
         if (kdtree_->radiusSearch(
                 center_prev,
-                grid_max_ * 3, id, sqdist, 1))
+                grid_min_ * 2 + sqrtf(2.0) * grid_max_ / 2.0, id, sqdist, 1))
         {
           const float d1 = sqrtf(sqdist[0]);
           sin_ang = fabs(d1 - d0) / (grid_min_ * 2.0);
