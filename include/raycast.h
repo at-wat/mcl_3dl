@@ -61,8 +61,8 @@ public:
     Vec3 inc_;
     size_t count_;
     size_t length_;
-    float grid_;
-    float grid_search_;
+    float grid_min_;
+    float grid_max_;
 
   public:
     friend Raycast;
@@ -70,15 +70,15 @@ public:
     Iterator(
         typename ChunkedKdtree<POINT_TYPE>::Ptr kdtree,
         const Vec3 begin, const Vec3 end,
-        const float grid, const float grid_search)
+        const float grid_min, const float grid_max)
     {
       kdtree_ = kdtree;
-      length_ = (end - begin).norm() / grid_search - sqrtf(2.0);
-      inc_ = (end - begin) / length_;
+      length_ = floorf((end - begin).norm() / grid_max - sqrtf(2.0));
+      inc_ = (end - begin).normalized() * grid_min;
       pos_ = begin + inc_;
       count_ = 1;
-      grid_ = grid;
-      grid_search_ = grid_search;
+      grid_min_ = grid_min;
+      grid_max_ = grid_max;
     }
     Iterator &operator++()
     {
@@ -99,7 +99,7 @@ public:
       std::vector<float> sqdist(1);
       if (kdtree_->radiusSearch(
               center,
-              sqrtf(2.0) * grid_search_ / 2.0, id, sqdist, 1))
+              sqrtf(2.0) * grid_max_ / 2.0, id, sqdist, 1))
       {
         collision = true;
 
@@ -111,10 +111,10 @@ public:
         center_prev.z = pos_prev.z;
         if (kdtree_->radiusSearch(
                 center_prev,
-                grid_search_ * 3, id, sqdist, 1))
+                grid_max_ * 3, id, sqdist, 1))
         {
           const float d1 = sqrtf(sqdist[0]);
-          sin_ang = fabs(d1 - d0) / (inc_.norm() * 2.0);
+          sin_ang = fabs(d1 - d0) / (grid_min_ * 2.0);
         }
         else
         {

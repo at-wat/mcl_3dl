@@ -49,49 +49,41 @@ TEST(RaycastTest, testCollision)
   ChunkedKdtree<pcl::PointXYZ>::Ptr kdtree(new ChunkedKdtree<pcl::PointXYZ>(10.0, 0.1));
   kdtree->setInputCloud(pc.makeShared());
 
+  for (float y = -0.8; y < 0.8; y += 0.11)
   {
-    bool collision = false;
-    Raycast<pcl::PointXYZ> ray(
-        kdtree,
-        Vec3(0.0, 0.0, 0.0), Vec3(1.0, 0.0, 0.0), 0.1, 0.1);
-    for (auto point : ray)
+    for (float z = -0.8; z < 0.8; z += 0.13)
     {
-      if (point.collision_)
+      bool collision = false;
+      Raycast<pcl::PointXYZ> ray(
+          kdtree,
+          Vec3(0.0, 0.0, 0.0), Vec3(1.0, y * 2.0, z * 2.0), 0.1, 0.1);
+      for (auto point : ray)
       {
-        collision = true;
-        EXPECT_NEAR((point.pos_ - Vec3(0.5, 0.0, 0.0)).norm(), 0.0, 0.1);
-        break;
+        if (point.collision_)
+        {
+          collision = true;
+          EXPECT_NEAR((point.pos_ - Vec3(0.5, y, z)).norm(), 0.0, 0.2);
+          break;
+        }
       }
+      ASSERT_TRUE(collision);
     }
-    ASSERT_TRUE(collision);
   }
+  for (float y = -1.0; y < 1.0; y += 0.11)
   {
-    bool collision = false;
-    Raycast<pcl::PointXYZ> ray(
-        kdtree,
-        Vec3(0.0, 0.0, 0.0), Vec3(1.0, 0.4, 0.0), 0.1, 0.1);
-    for (auto point : ray)
+    for (float z = -1.0; z < 1.0; z += 0.13)
     {
-      if (point.collision_)
+      bool collision = false;
+      Raycast<pcl::PointXYZ> ray(
+          kdtree,
+          Vec3(0.0, 0.0, 0.0), Vec3(0.5, y, z), 0.1, 0.1);
+      for (auto point : ray)
       {
-        collision = true;
-        EXPECT_NEAR((point.pos_ - Vec3(0.5, 0.2, 0.0)).norm(), 0.0, 0.1);
-        break;
+        if (point.collision_)
+          collision = true;
       }
+      ASSERT_FALSE(collision);
     }
-    ASSERT_TRUE(collision);
-  }
-  {
-    bool collision = false;
-    Raycast<pcl::PointXYZ> ray(
-        kdtree,
-        Vec3(0.0, 0.0, 0.0), Vec3(0.5, 0.0, 0.0), 0.1, 0.1);
-    for (auto point : ray)
-    {
-      if (point.collision_)
-        collision = true;
-    }
-    ASSERT_FALSE(collision);
   }
   {
     bool collision = false;
