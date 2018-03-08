@@ -31,6 +31,7 @@
 #define RAYCAST_H
 
 #include <vec3.h>
+#include <chunked_kdtree.h>
 
 #include <vector>
 
@@ -54,7 +55,7 @@ public:
   class Iterator
   {
   protected:
-    pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtree_;
+    ChunkedKdtree<pcl::PointXYZI>::Ptr kdtree_;
     Vec3 pos_;
     Vec3 inc_;
     size_t count_;
@@ -66,7 +67,7 @@ public:
     friend Raycast;
 
     Iterator(
-        pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtree,
+        ChunkedKdtree<pcl::PointXYZI>::Ptr kdtree,
         const Vec3 begin, const Vec3 end,
         const float grid, const float grid_search)
     {
@@ -109,11 +110,17 @@ public:
         center_prev.y = pos_prev.y;
         center_prev.z = pos_prev.z;
         center_prev.intensity = 0.0;
-        kdtree_->nearestKSearch(center_prev, 1, id, sqdist);
-        float d1 = sqrtf(sqdist[0]);
+        if (kdtree_->radiusSearch(
+                center_prev,
+                grid_search_ * 3, id, sqdist, 1))
+        {
+          const float d1 = sqrtf(sqdist[0]);
 
-        sin_ang = (d1 - d0) / (inc_.norm() * 2.0);
-        if (fabs(d1 - d0) < 1e-6)
+          sin_ang = (d1 - d0) / (inc_.norm() * 2.0);
+          if (fabs(d1 - d0) < 1e-6)
+            sin_ang = M_PI;
+        }
+        else
         {
           sin_ang = M_PI;
         }
@@ -127,13 +134,13 @@ public:
   };
 
 protected:
-  pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtree_;
+  ChunkedKdtree<pcl::PointXYZI>::Ptr kdtree_;
   Iterator begin_;
   Iterator end_;
 
 public:
   Raycast(
-      pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtree,
+      ChunkedKdtree<pcl::PointXYZI>::Ptr kdtree,
       const Vec3 begin, const Vec3 end, const float grid, const float grid_max)
     : begin_(kdtree, begin, end, grid, grid_max)
     , end_(kdtree, begin, end, grid, grid_max)
