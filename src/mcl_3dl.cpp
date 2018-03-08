@@ -758,7 +758,7 @@ protected:
       for (auto &p : pc_particle_beam->points)
       {
         const int beam_header_id = lroundf(p.intensity);
-        Raycast ray(
+        Raycast<pcl::PointXYZI> ray(
             kdtree_,
             s.pos + s.rot * origins[beam_header_id],
             Vec3(p.x, p.y, p.z),
@@ -872,7 +872,7 @@ protected:
       for (auto &p : pc_particle_beam->points)
       {
         const int beam_header_id = lroundf(p.intensity);
-        Raycast ray(
+        Raycast<pcl::PointXYZI> ray(
             kdtree_,
             e.pos + e.rot * origins[beam_header_id],
             Vec3(p.x, p.y, p.z),
@@ -902,7 +902,7 @@ protected:
             marker.color.r = 1.0;
             marker.color.g = 0.0;
             marker.color.b = 0.0;
-            if (point.sin_angle_ > params_.sin_total_ref)
+            if (point.sin_angle_ < params_.sin_total_ref)
             {
               marker.color.a = 0.2;
             }

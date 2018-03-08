@@ -35,6 +35,7 @@
 
 #include <vector>
 
+template <typename POINT_TYPE>
 class Raycast
 {
 public:
@@ -55,7 +56,7 @@ public:
   class Iterator
   {
   protected:
-    ChunkedKdtree<pcl::PointXYZI>::Ptr kdtree_;
+    typename ChunkedKdtree<POINT_TYPE>::Ptr kdtree_;
     Vec3 pos_;
     Vec3 inc_;
     size_t count_;
@@ -67,7 +68,7 @@ public:
     friend Raycast;
 
     Iterator(
-        ChunkedKdtree<pcl::PointXYZI>::Ptr kdtree,
+        typename ChunkedKdtree<POINT_TYPE>::Ptr kdtree,
         const Vec3 begin, const Vec3 end,
         const float grid, const float grid_search)
     {
@@ -90,11 +91,10 @@ public:
       bool collision(false);
       float sin_ang(0.0);
 
-      pcl::PointXYZI center;
+      POINT_TYPE center;
       center.x = pos_.x;
       center.y = pos_.y;
       center.z = pos_.z;
-      center.intensity = 0.0;
       std::vector<int> id(1);
       std::vector<float> sqdist(1);
       if (kdtree_->radiusSearch(
@@ -105,24 +105,20 @@ public:
 
         const float d0 = sqrtf(sqdist[0]);
         const Vec3 pos_prev = pos_ - (inc_ * 2.0);
-        pcl::PointXYZI center_prev;
+        POINT_TYPE center_prev;
         center_prev.x = pos_prev.x;
         center_prev.y = pos_prev.y;
         center_prev.z = pos_prev.z;
-        center_prev.intensity = 0.0;
         if (kdtree_->radiusSearch(
                 center_prev,
                 grid_search_ * 3, id, sqdist, 1))
         {
           const float d1 = sqrtf(sqdist[0]);
-
-          sin_ang = (d1 - d0) / (inc_.norm() * 2.0);
-          if (fabs(d1 - d0) < 1e-6)
-            sin_ang = M_PI;
+          sin_ang = fabs(d1 - d0) / (inc_.norm() * 2.0);
         }
         else
         {
-          sin_ang = M_PI;
+          sin_ang = 1.0;
         }
       }
       return CastResult(pos_, collision, sin_ang);
@@ -134,13 +130,13 @@ public:
   };
 
 protected:
-  ChunkedKdtree<pcl::PointXYZI>::Ptr kdtree_;
+  typename ChunkedKdtree<POINT_TYPE>::Ptr kdtree_;
   Iterator begin_;
   Iterator end_;
 
 public:
   Raycast(
-      ChunkedKdtree<pcl::PointXYZI>::Ptr kdtree,
+      typename ChunkedKdtree<POINT_TYPE>::Ptr kdtree,
       const Vec3 begin, const Vec3 end, const float grid, const float grid_max)
     : begin_(kdtree, begin, end, grid, grid_max)
     , end_(kdtree, begin, end, grid, grid_max)
