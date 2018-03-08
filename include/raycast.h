@@ -110,11 +110,17 @@ public:
         center_prev.y = pos_prev.y;
         center_prev.z = pos_prev.z;
         center_prev.intensity = 0.0;
-        kdtree_->nearestKSearch(center_prev, 1, id, sqdist);
-        float d1 = sqrtf(sqdist[0]);
+        if (kdtree_->radiusSearch(
+                center_prev,
+                grid_search_ * 3, id, sqdist, 1))
+        {
+          const float d1 = sqrtf(sqdist[0]);
 
-        sin_ang = (d1 - d0) / (inc_.norm() * 2.0);
-        if (fabs(d1 - d0) < 1e-6)
+          sin_ang = (d1 - d0) / (inc_.norm() * 2.0);
+          if (fabs(d1 - d0) < 1e-6)
+            sin_ang = M_PI;
+        }
+        else
         {
           sin_ang = M_PI;
         }
