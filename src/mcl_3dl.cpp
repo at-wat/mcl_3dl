@@ -425,12 +425,8 @@ protected:
     frame_num_ = 0;
     has_map_ = true;
 
-    kdtree_orig_.reset(new pcl::KdTreeFLANN<pcl::PointXYZI>);
-    kdtree_orig_->setInputCloud(pc_map_);
     ROS_INFO("map original: %d points", (int)pc_tmp.points.size());
     ROS_INFO("map reduced: %d points", (int)pc_map_->points.size());
-    kdtree_orig_.reset(new pcl::KdTreeFLANN<pcl::PointXYZI>);
-    kdtree_orig_->setInputCloud(pc_map_);
 
     cbMapUpdateTimer(ros::TimerEvent());
   }
@@ -1670,7 +1666,6 @@ protected:
   pcl::PointCloud<pcl::PointXYZI>::Ptr pc_update_;
   pcl::PointCloud<pcl::PointXYZI>::Ptr pc_all_accum_;
   pcl::PointCloud<pcl::PointXYZI>::Ptr pc_local_accum_;
-  pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtree_orig_;
   ChunkedKdtree<pcl::PointXYZI>::Ptr kdtree_;
   std::vector<std_msgs::Header> pc_accum_header_;
 
