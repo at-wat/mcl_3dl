@@ -497,6 +497,7 @@ protected:
       if (dt < 0.0 || dt > 5.0)
       {
         has_odom_ = false;
+        ROS_WARN("Detected time jump in odometry. Resetting.");
       }
       else if (dt > 0.05)
       {
@@ -1254,6 +1255,7 @@ protected:
     float dt = (msg->header.stamp - imu_last_).toSec();
     if (dt < 0.0 || dt > 5.0)
     {
+      ROS_WARN("Detected time jump in imu. Resetting.");
       f_acc_[0]->set(0.0);
       f_acc_[1]->set(0.0);
       f_acc_[2]->set(0.0);
