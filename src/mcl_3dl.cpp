@@ -491,45 +491,44 @@ protected:
                  msg->pose.pose.orientation.y,
                  msg->pose.pose.orientation.z,
                  msg->pose.pose.orientation.w));
-    if (has_odom_)
-    {
-      const float dt = (msg->header.stamp - odom_last_).toSec();
-      if (dt < 0.0 || dt > 5.0)
-      {
-        has_odom_ = false;
-        ROS_WARN("Detected time jump in odometry. Resetting.");
-      }
-      else if (dt > 0.05)
-      {
-        const Vec3 v = odom_prev_.rot.inv() * (odom_.pos - odom_prev_.pos);
-        const Quat r = odom_prev_.rot.inv() * odom_.rot;
-        Vec3 axis;
-        float ang;
-        r.getAxisAng(axis, ang);
-
-        const float trans = v.norm();
-        auto prediction_func = [this, &v, &r, axis, ang, trans, &dt](State &s)
-        {
-          const Vec3 diff = v * (1.0 + s.noise_ll_) + Vec3(s.noise_al_ * ang, 0.0, 0.0);
-          s.odom_err_integ_lin += (diff - v);
-          s.pos += s.rot * diff;
-          const float yaw_diff = s.noise_la_ * trans + s.noise_aa_ * ang;
-          s.rot = Quat(Vec3(0.0, 0.0, 1.0), yaw_diff) * s.rot * r;
-          s.rot.normalize();
-          s.odom_err_integ_ang += Vec3(0.0, 0.0, yaw_diff);
-          s.odom_err_integ_lin *= (1.0 - dt / params_.odom_err_integ_lin_tc);
-          s.odom_err_integ_ang *= (1.0 - dt / params_.odom_err_integ_ang_tc);
-        };
-        pf_->predict(prediction_func);
-        odom_last_ = msg->header.stamp;
-        odom_prev_ = odom_;
-      }
-    }
-    else
+    if (!has_odom_)
     {
       odom_prev_ = odom_;
       odom_last_ = msg->header.stamp;
       has_odom_ = true;
+      return;
+    }
+    const float dt = (msg->header.stamp - odom_last_).toSec();
+    if (dt < 0.0 || dt > 5.0)
+    {
+      ROS_WARN("Detected time jump in odometry. Resetting.");
+      has_odom_ = false;
+      return;
+    }
+    else if (dt > 0.05)
+    {
+      const Vec3 v = odom_prev_.rot.inv() * (odom_.pos - odom_prev_.pos);
+      const Quat r = odom_prev_.rot.inv() * odom_.rot;
+      Vec3 axis;
+      float ang;
+      r.getAxisAng(axis, ang);
+
+      const float trans = v.norm();
+      auto prediction_func = [this, &v, &r, axis, ang, trans, &dt](State &s)
+      {
+        const Vec3 diff = v * (1.0 + s.noise_ll_) + Vec3(s.noise_al_ * ang, 0.0, 0.0);
+        s.odom_err_integ_lin += (diff - v);
+        s.pos += s.rot * diff;
+        const float yaw_diff = s.noise_la_ * trans + s.noise_aa_ * ang;
+        s.rot = Quat(Vec3(0.0, 0.0, 1.0), yaw_diff) * s.rot * r;
+        s.rot.normalize();
+        s.odom_err_integ_ang += Vec3(0.0, 0.0, yaw_diff);
+        s.odom_err_integ_lin *= (1.0 - dt / params_.odom_err_integ_lin_tc);
+        s.odom_err_integ_ang *= (1.0 - dt / params_.odom_err_integ_ang_tc);
+      };
+      pf_->predict(prediction_func);
+      odom_last_ = msg->header.stamp;
+      odom_prev_ = odom_;
     }
   }
   void cbCloud(const sensor_msgs::PointCloud2::ConstPtr &msg)
@@ -601,7 +600,9 @@ protected:
       catch (tf::TransformException &e)
       {
         ROS_ERROR("Failed to transform laser origin.");
-        origins.push_back(Vec3(0.0, 0.0, 0.0));
+        pc_local_accum_.reset(new pcl::PointCloud<pcl::PointXYZI>);
+        pc_accum_header_.clear();
+        return;
       }
     }
 
@@ -1252,14 +1253,22 @@ protected:
     acc.y = f_acc_[1]->in(msg->linear_acceleration.y);
     acc.z = f_acc_[2]->in(msg->linear_acceleration.z);
 
-    float dt = (msg->header.stamp - imu_last_).toSec();
-    if (dt < 0.0 || dt > 5.0)
+    if (!has_imu_)
     {
-      ROS_WARN("Detected time jump in imu. Resetting.");
       f_acc_[0]->set(0.0);
       f_acc_[1]->set(0.0);
       f_acc_[2]->set(0.0);
       imu_last_ = msg->header.stamp;
+      has_imu_ = true;
+      return;
+    }
+
+    float dt = (msg->header.stamp - imu_last_).toSec();
+    if (dt < 0.0 || dt > 5.0)
+    {
+      ROS_WARN("Detected time jump in imu. Resetting.");
+      has_imu_ = false;
+      return;
     }
     else if (dt > 0.05)
     {
@@ -1583,7 +1592,7 @@ public:
 
     imu_quat_ = Quat(0.0, 0.0, 0.0, 1.0);
 
-    has_odom_ = has_map_ = false;
+    has_odom_ = has_map_ = has_imu_ = false;
     localize_rate_.reset(new Filter(Filter::FILTER_LPF, 5.0, 0.0));
 
     map_update_timer_ = nh.createTimer(
@@ -1667,6 +1676,7 @@ protected:
   ros::Time odom_last_;
   bool has_map_;
   bool has_odom_;
+  bool has_imu_;
   State odom_;
   State odom_prev_;
   std::map<std::string, bool> frames_;
