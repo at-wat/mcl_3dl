@@ -494,7 +494,7 @@ protected:
     if (has_odom_)
     {
       const float dt = (msg->header.stamp - odom_last_).toSec();
-      if (dt < 0.0)
+      if (dt < 0.0 || dt > 5.0)
       {
         has_odom_ = false;
       }
@@ -977,7 +977,10 @@ protected:
       state_prev_ = e;
     }
     tf::StampedTransform trans;
-    trans.stamp_ = odom_last_ + tf_tolerance_base_ + *params_.tf_tolerance;
+    if (has_odom_)
+      trans.stamp_ = odom_last_ + tf_tolerance_base_ + *params_.tf_tolerance;
+    else
+      trans.stamp_ = ros::Time::now() + tf_tolerance_base_ + *params_.tf_tolerance;
     trans.frame_id_ = frame_ids_["map"];
     trans.child_frame_id_ = frame_ids_["odom"];
     auto rpy = map_rot.getRPY();
@@ -1063,7 +1066,8 @@ protected:
     if (output_pcd_)
       *pc_all_accum_ += *pc_particle;
 
-    if (msg->header.stamp - match_output_last_ > *params_.match_output_interval &&
+    if ((msg->header.stamp - match_output_last_ > *params_.match_output_interval ||
+         msg->header.stamp < match_output_last_ - ros::Duration(1.0)) &&
         (pub_matched_.getNumSubscribers() > 0 || pub_unmatched_.getNumSubscribers() > 0))
     {
       match_output_last_ = msg->header.stamp;
@@ -1109,7 +1113,10 @@ protected:
     }
 
     geometry_msgs::PoseArray pa;
-    pa.header.stamp = odom_last_ + tf_tolerance_base_ + *params_.tf_tolerance;
+    if (has_odom_)
+      pa.header.stamp = odom_last_ + tf_tolerance_base_ + *params_.tf_tolerance;
+    else
+      pa.header.stamp = ros::Time::now() + tf_tolerance_base_ + *params_.tf_tolerance;
     pa.header.frame_id = frame_ids_["map"];
     for (size_t i = 0; i < pf_->getParticleSize(); i++)
     {
@@ -1189,6 +1196,8 @@ protected:
     float dt = (localized_current - localized_last_).toSec();
     if (dt > 1.0)
       dt = 1.0;
+    else if (dt < 0.0)
+      dt = 0.0;
     tf_tolerance_base_ = ros::Duration(localize_rate_->in(dt));
     localized_last_ = localized_current;
 
@@ -1243,11 +1252,12 @@ protected:
     acc.z = f_acc_[2]->in(msg->linear_acceleration.z);
 
     float dt = (msg->header.stamp - imu_last_).toSec();
-    if (dt < 0.0)
+    if (dt < 0.0 || dt > 5.0)
     {
       f_acc_[0]->set(0.0);
       f_acc_[1]->set(0.0);
       f_acc_[2]->set(0.0);
+      imu_last_ = msg->header.stamp;
     }
     else if (dt > 0.05)
     {
@@ -1572,9 +1582,7 @@ public:
     imu_quat_ = Quat(0.0, 0.0, 0.0, 1.0);
 
     has_odom_ = has_map_ = false;
-    match_output_last_ = ros::Time::now();
     localize_rate_.reset(new Filter(Filter::FILTER_LPF, 5.0, 0.0));
-    localized_last_ = ros::Time::now();
 
     map_update_timer_ = nh.createTimer(
         *params_.map_update_interval,
