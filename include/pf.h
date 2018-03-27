@@ -64,12 +64,12 @@ public:
     return ((*this)[k] - exp[k]) * ((*this)[j] - exp[j]);
   }
   template <typename T>
-  T generateNoise(
+  static T generateNoise(
       std::default_random_engine &engine_,
       T mean, T sigma)
   {
     T noise;
-    for (size_t i = 0; i < size(); i++)
+    for (size_t i = 0; i < noise.size(); i++)
     {
       std::normal_distribution<FLT_TYPE> nd(mean[i], sigma[i]);
       noise[i] = nd(engine_);
@@ -162,7 +162,7 @@ public:
   {
     for (auto &p : particles_)
     {
-      p.state = p.state.generateNoise(engine_, mean, sigma);
+      p.state = T::generateNoise(engine_, mean, sigma);
       p.probability = 1.0 / particles_.size();
     }
   }
@@ -196,7 +196,7 @@ public:
       }
       else if (it == it_prev)
       {
-        p.state = it->state + it->state.generateNoise(engine_, T(), sigma);
+        p.state = it->state + T::generateNoise(engine_, T(), sigma);
         p.state.normalize();
       }
       else
@@ -210,7 +210,7 @@ public:
   {
     for (auto &p : particles_)
     {
-      p.state = p.state + p.state.generateNoise(engine_, T(), sigma);
+      p.state = p.state + T::generateNoise(engine_, T(), sigma);
     }
   }
   void predict(std::function<void(T &)> model)

@@ -23,7 +23,9 @@ before_install:
 install: true
 
 script:
-  - docker build -t mcl3dl:latest --pull=true ${TRAVIS_BUILD_DIR} --build-arg TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST} --build-arg TRAVIS_REPO_SLUG=${TRAVIS_REPO_SLUG} --build-arg TRAVIS_BOT_GITHUB_TOKEN=${TRAVIS_BOT_GITHUB_TOKEN}
-  - docker build -t mcl3dl:indigo -f Dockerfile.indigo --pull=true ${TRAVIS_BUILD_DIR} --build-arg TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST} --build-arg TRAVIS_REPO_SLUG=${TRAVIS_REPO_SLUG} --build-arg TRAVIS_BOT_GITHUB_TOKEN=${TRAVIS_BOT_GITHUB_TOKEN}
+  - docker build -t mcl3dl:latest --pull=true ${TRAVIS_BUILD_DIR}
+  - docker run --rm -it  -e TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST} -e TRAVIS_PULL_REQUEST_SLUG=${TRAVIS_PULL_REQUEST_SLUG} -e TRAVIS_BOT_GITHUB_TOKEN=${TRAVIS_BOT_GITHUB_TOKEN} mcl3dl:latest /catkin_ws/src/mcl_3dl/.travis.scripts/test.sh
+  - docker build -t mcl3dl:indigo -f Dockerfile.indigo --pull=true ${TRAVIS_BUILD_DIR}
+  - docker run --rm -it  -e TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST} -e TRAVIS_PULL_REQUEST_SLUG=${TRAVIS_PULL_REQUEST_SLUG} -e TRAVIS_BOT_GITHUB_TOKEN=${TRAVIS_BOT_GITHUB_TOKEN} mcl3dl:indigo /catkin_ws/src/mcl_3dl/.travis.scripts/test.sh
   - .travis.scripts/save_cache.sh
 

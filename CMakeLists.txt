@@ -17,6 +17,7 @@ catkin_package(
 	CATKIN_DEPENDS roscpp std_msgs sensor_msgs pcl_ros
 )
 find_package(Boost REQUIRED COMPONENTS chrono REQUIRED)
+find_package(Eigen3 REQUIRED)
 
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -32,7 +33,7 @@ endif()
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O1")
 
 
-include_directories(${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ${PCL_INCLUDE_DIR} include)
+include_directories(${catkin_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${PCL_INCLUDE_DIR} include)
 link_directories(${Boost_LIBRARY_DIRS} ${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 

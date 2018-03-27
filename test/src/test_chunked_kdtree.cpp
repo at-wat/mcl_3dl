@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017, the mcl_3dl authors
+ * Copyright (c) 2018, the mcl_3dl authors
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,53 +27,69 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ND_H
-#define ND_H
-
-#define _USE_MATH_DEFINES
+#include <cstddef>
 #include <cmath>
-#include <Eigen/Core>
-#include <Eigen/LU>
+#include <vector>
 
-template <typename FLT_TYPE = float>
-class NormalLikelihood
+#include <gtest/gtest.h>
+
+#include <chunked_kdtree.h>
+
+TEST(ChunkedKdtreeTest, testRadiusSearch)
 {
-public:
-  explicit NormalLikelihood(const FLT_TYPE sigma)
-  {
-    a_ = 1.0 / sqrtf(2.0 * M_PI * sigma * sigma);
-    sq2_ = sigma * sigma * 2.0;
-  }
-  FLT_TYPE operator()(const FLT_TYPE x)
-  {
-    return a_ * expf(-x * x / sq2_);
-  }
+  pcl::PointCloud<pcl::PointXYZ> pc;
+  pc.push_back(pcl::PointXYZ(0.5, 0.5, 0.5));   // 0
+  pc.push_back(pcl::PointXYZ(0.8, 0.0, 0.0));   // 1
+  pc.push_back(pcl::PointXYZ(1.3, 0.0, 0.0));   // 2
+  pc.push_back(pcl::PointXYZ(0.0, 0.2, 0.0));   // 3
+  pc.push_back(pcl::PointXYZ(0.0, -0.3, 0.0));  // 4
 
-protected:
-  FLT_TYPE a_;
-  FLT_TYPE sq2_;
-};
+  ChunkedKdtree<pcl::PointXYZ> kdtree(1.0, 0.3);
+  kdtree.setInputCloud(pc.makeShared());
 
-template <typename FLT_TYPE = float, size_t DIMENSION = 6>
-class NormalLikelihoodNd
+  std::vector<int> id;
+  std::vector<float> dist;
+
+  kdtree.radiusSearch(
+      pcl::PointXYZ(0.5, 0.5, 0.5),
+      0.3, id, dist, 1);
+  ASSERT_EQ(id.size(), 1);
+  ASSERT_EQ(id[0], 0);
+
+  kdtree.radiusSearch(
+      pcl::PointXYZ(0.5, 0.4, 0.5),
+      0.3, id, dist, 1);
+  ASSERT_EQ(id.size(), 1);
+  ASSERT_EQ(id[0], 0);
+
+  kdtree.radiusSearch(
+      pcl::PointXYZ(1.05, 0.0, 0.0),
+      0.3, id, dist, 1);
+  ASSERT_EQ(id.size(), 1);
+  ASSERT_EQ(id[0], 1);
+
+  kdtree.radiusSearch(
+      pcl::PointXYZ(1.1, 0.0, 0.0),
+      0.3, id, dist, 1);
+  ASSERT_EQ(id.size(), 1);
+  ASSERT_EQ(id[0], 2);
+
+  kdtree.radiusSearch(
+      pcl::PointXYZ(0.0, -0.05, 0.0),
+      0.3, id, dist, 1);
+  ASSERT_EQ(id.size(), 1);
+  ASSERT_EQ(id[0], 3);
+
+  kdtree.radiusSearch(
+      pcl::PointXYZ(0.0, -0.15, 0.0),
+      0.3, id, dist, 1);
+  ASSERT_EQ(id.size(), 1);
+  ASSERT_EQ(id[0], 4);
+}
+
+int main(int argc, char **argv)
 {
-public:
-  using Matrix = Eigen::Matrix<FLT_TYPE, DIMENSION, DIMENSION>;
-  using Vector = Eigen::Matrix<FLT_TYPE, DIMENSION, 1>;
+  testing::InitGoogleTest(&argc, argv);
 
-  explicit NormalLikelihoodNd(const Matrix sigma)
-  {
-    a_ = 1.0 / (pow(2.0 * M_PI, 0.5 * DIMENSION) * sqrt(sigma.determinant()));
-    sigma_inv_ = sigma.inverse();
-  }
-  FLT_TYPE operator()(const Vector x)
-  {
-    return a_ * expf(-0.5 * x.transpose() * sigma_inv_ * x);
-  }
-
-protected:
-  FLT_TYPE a_;
-  Matrix sigma_inv_;
-};
-
-#endif  // ND_H
+  return RUN_ALL_TESTS();
+}
