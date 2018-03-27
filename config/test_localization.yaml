@@ -1,0 +1,16 @@
+mcl_3dl:
+  map_frame: "map"
+  accum_cloud: 2
+  lpf_step: 1.0
+obj_to_pointcloud:
+  frame_id: "map"
+  points_per_meter_sq: 1200.0
+  downsample_grid: 0.1
+pcd_to_pointcloud:
+  frame_id: "map"
+  latch: true
+track_odometry:
+  z_filter: 1.0
+  tf_tolerance: 0.1
+  without_odom: true
+

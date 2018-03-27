@@ -1,7 +1,7 @@
 <launch>
+	<arg name="config_file" default="$(find mcl_3dl)/config/test_localization.yaml" />
 	<arg name="use_neonavigation" default="false" />
 	<arg name="use_pointcloud_map" default="true" />
-	<arg name="without_odom" default="false" />
 	<arg name="use_cad_map" default="false" if="$(arg use_pointcloud_map)" />
 	<arg name="use_cad_map" default="true" unless="$(arg use_pointcloud_map)" />
 	<arg name="map_objs" unless="$(arg use_pointcloud_map)" />
@@ -17,6 +17,8 @@
 	<node pkg="rosbag" type="play" name="playback" args="--clock $(arg bag_file)"
 			if="$(arg use_bag_file)" />
 
+	<rosparam command="load" file="$(arg config_file)"/>
+
 	<!--
 	Required topics with use_neonavigation:=false
 		/imu/data (IMU data with estimated pose)
@@ -30,15 +32,6 @@
 		/odom_raw (Raw wheel odometry)
 	-->
 
-	<group if="$(arg without_odom)">
-		<param name="/mcl_3dl/num_particles" value="256" />
-		<param name="/mcl_3dl/resample_var_x" value="0.2" />
-		<param name="/mcl_3dl/resample_var_y" value="0.2" />
-		<param name="/mcl_3dl/resample_var_z" value="0.1" />
-		<param name="/mcl_3dl/match_dist_min" value="0.8" />
-		<param name="/mcl_3dl/lpf_step" value="8.0" />
-	</group>
-
 	<node pkg="rviz" type="rviz" name="rviz" args="-d $(find mcl_3dl)/launch/mcl_3dl.rviz" />
 	<node pkg="mcl_3dl" type="mcl_3dl" name="mcl_3dl" output="screen" unless="$(arg generate_test_bag)">
 		<remap from="~/cloud" to="/cloud" />
@@ -46,32 +39,25 @@
 		<remap from="~/odom" to="/odom" />
 		<remap from="~/imu" to="/imu/data" />
 		<remap from="~/initialpose" to="/initialpose" />
-		<param name="accum_cloud" value="2" />
 	</node>
 	<node pkg="obj_to_pointcloud" type="obj_to_pointcloud" name="obj_to_pointcloud"
 			if="$(arg use_cad_map)">
 		<param name="objs" value="$(arg map_objs)" />
-		<param name="points_per_meter_sq" value="1200.0" />
 		<param name="offset_x" value="$(arg map_offset_x)" />
 		<param name="offset_y" value="$(arg map_offset_y)" />
-		<param name="downsample_grid" value="0.1" />
 		<param name="scale" value="$(arg map_scale)" />
 		<remap from="~/cloud" to="/mapcloud" />
 	</node>
 	<node pkg="pcl_ros" type="pcd_to_pointcloud" name="pcd_to_pointcloud"
 			args="$(arg map_pcd)" if="$(arg use_pointcloud_map)">
-		<param name="frame_id" value="map" />
-		<param name="latch" value="true" />
 		<remap from="/cloud_pcd" to="/mapcloud" />
 	</node>
 	<node pkg="track_odometry" type="track_odometry" name="track_odometry"
 			 if="$(arg use_neonavigation)">
 		<remap from="/imu" to="/imu/data" />
 		<param name="base_link_id" value="/base_link" />
-		<param name="z_filter" value="1.0" />
-		<param name="tf_tolerance" value="0.1" />
-		<param name="without_odom" type="bool" value="$(arg without_odom)" />
 	</node>
+
 	<node pkg="trajectory_tracker" type="trajectory_recorder" name="path_recorder"
 			 if="$(arg use_neonavigation)">
 		<param name="dist_interval" value="0.1" />
@@ -82,5 +68,4 @@
 		<param name="dist_interval" value="0.5" />
 		<param name="ang_interval" value="100.0" />
 	</node>
-
 </launch>
