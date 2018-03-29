@@ -1,12 +1,13 @@
 mcl_3dl:
   map_frame: "map"
+  odom_frame: "base_link"
   accum_cloud: 1
   lpf_step: 0.0
   num_particles: 256
   resample_var_x: 0.2
   resample_var_y: 0.2
-  resample_var_z: 0.1
-  match_dist_min: 0.8
+  resample_var_z: 0.05
+  bias_var_dist: 100.0
 obj_to_pointcloud:
   frame_id: "map"
   points_per_meter_sq: 1200.0
