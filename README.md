@@ -40,7 +40,7 @@ All you need is *mcl_3dl* and rviz.
 roslaunch mcl_3dl test.launch use_pointcloud_map:=false use_cad_map:=false use_bag_file:=true bag_file:=${HOME}/Downloads/short_test.bag
 ```
 
-![Rviz image of the demo](https://github.com/at-wat/mcl_3dl/blob/fix-demo-without-odom/doc/images/demo_rviz.jpg?raw=true)
+![Rviz image of the demo](https://github.com/at-wat/mcl_3dl/blob/master/doc/images/demo_rviz.jpg?raw=true)
 
 MarkerArray shows several *mcl_3dl* internal information.
 - Purple spheres: sampled points used in the likelihood-model calculation
