@@ -7,7 +7,9 @@ Download the example bag and run the demo with following arguments.
 
 ```.sh
 # Running the demo without odometry
-roslaunch mcl_3dl test.launch use_pointcloud_map:=false use_cad_map:=false use_bag_file:=true bag_file:=${HOME}/Downloads/short_test.bag use_neonavigation:=true without_odom:=true
+roslaunch mcl_3dl test.launch use_pointcloud_map:=false use_cad_map:=false \
+  use_bag_file:=true bag_file:=${HOME}/Downloads/short_test.bag \
+  use_neonavigation:=true without_odom:=true
 ```
 
 neonavigation meta-package is required to try this.
