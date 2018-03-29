@@ -1,5 +1,8 @@
 ## Demo without odometry (very experimental)
 
+Increasing number of the particles and noise variance enables localization without odometry.
+Currently, this feature is very experimental and should be improved in the future.
+
 Even if without odometry, *mcl_3dl* node requires `/odom` topic that has orientation from IMU.
 track_odometry node in [neonavigation meta-package](https://github.com/at-wat/neonavigation), which is designed to combine wheel odometry and IMU, can generate it.
 
