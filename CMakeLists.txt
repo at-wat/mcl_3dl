@@ -9,6 +9,9 @@ find_package(PCL 1.7 REQUIRED)
 add_service_files(
   FILES ResizeParticle.srv
 )
+add_message_files(
+  FILES Status.msg
+)
 generate_messages(
   DEPENDENCIES std_msgs
 )
