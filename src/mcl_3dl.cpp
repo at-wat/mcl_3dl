@@ -144,6 +144,7 @@ protected:
     double odom_err_integ_ang_sigma;
     std::shared_ptr<ros::Duration> match_output_interval;
     std::shared_ptr<ros::Duration> tf_tolerance;
+    double lpf_step;
   };
 
   class State : public pf::ParticleBase<float>
@@ -1403,73 +1404,75 @@ protected:
 
 public:
   MCL3dlNode(int argc, char *argv[])
-    : engine_(seed_gen_())
+    : nh_("")
+    , pnh_("~")
+    , engine_(seed_gen_())
   {
-    ros::NodeHandle nh("~");
+    sub_cloud_ = pnh_.subscribe("cloud", 100, &MCL3dlNode::cbCloud, this);
+    sub_odom_ = pnh_.subscribe("odom", 200, &MCL3dlNode::cbOdom, this);
+    sub_imu_ = pnh_.subscribe("imu", 200, &MCL3dlNode::cbImu, this);
+    sub_mapcloud_ = pnh_.subscribe("mapcloud", 1, &MCL3dlNode::cbMapcloud, this);
+    sub_mapcloud_update_ = pnh_.subscribe("mapcloud_update", 1, &MCL3dlNode::cbMapcloudUpdate, this);
+    sub_position_ = pnh_.subscribe("initialpose", 1, &MCL3dlNode::cbPosition, this);
+    sub_landmark_ = pnh_.subscribe("landmark", 1, &MCL3dlNode::cbLandmark, this);
 
-    sub_cloud_ = nh.subscribe("cloud", 100, &MCL3dlNode::cbCloud, this);
-    sub_odom_ = nh.subscribe("odom", 200, &MCL3dlNode::cbOdom, this);
-    sub_imu_ = nh.subscribe("imu", 200, &MCL3dlNode::cbImu, this);
-    sub_mapcloud_ = nh.subscribe("mapcloud", 1, &MCL3dlNode::cbMapcloud, this);
-    sub_mapcloud_update_ = nh.subscribe("mapcloud_update", 1, &MCL3dlNode::cbMapcloudUpdate, this);
-    sub_position_ = nh.subscribe("initialpose", 1, &MCL3dlNode::cbPosition, this);
-    sub_landmark_ = nh.subscribe("landmark", 1, &MCL3dlNode::cbLandmark, this);
-    pub_pose_ = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("/amcl_pose", 5, false);
-    pub_particle_ = nh.advertise<geometry_msgs::PoseArray>("particles", 1, true);
-    pub_mapcloud_ = nh.advertise<sensor_msgs::PointCloud2>("updated_map", 1, true);
-    pub_debug_marker_ = nh.advertise<visualization_msgs::MarkerArray>("debug_marker", 1, true);
-    srv_particle_size_ = nh.advertiseService("resize_particle", &MCL3dlNode::cbResizeParticle, this);
-    srv_global_localization_ = nh.advertiseService("global_localization", &MCL3dlNode::cbGlobalLocalization, this);
-    srv_expansion_reset_ = nh.advertiseService("expansion_resetting", &MCL3dlNode::cbExpansionReset, this);
+    pub_pose_ = nh_.advertise<geometry_msgs::PoseWithCovarianceStamped>("amcl_pose", 5, false);
+    pub_particle_ = pnh_.advertise<geometry_msgs::PoseArray>("particles", 1, true);
+    pub_mapcloud_ = pnh_.advertise<sensor_msgs::PointCloud2>("updated_map", 1, true);
+    pub_debug_marker_ = pnh_.advertise<visualization_msgs::MarkerArray>("debug_marker", 1, true);
 
-    nh.param("map_frame", frame_ids_["map"], std::string("map"));
-    nh.param("robot_frame", frame_ids_["base_link"], std::string("base_link"));
-    nh.param("odom_frame", frame_ids_["odom"], std::string("odom"));
-    nh.param("floor_frame", frame_ids_["floor"], std::string("floor"));
-    nh.param("clip_near", params_.clip_near, 0.5);
-    nh.param("clip_far", params_.clip_far, 10.0);
+    srv_particle_size_ = pnh_.advertiseService("resize_particle", &MCL3dlNode::cbResizeParticle, this);
+    srv_global_localization_ = pnh_.advertiseService("global_localization", &MCL3dlNode::cbGlobalLocalization, this);
+    srv_expansion_reset_ = pnh_.advertiseService("expansion_resetting", &MCL3dlNode::cbExpansionReset, this);
+
+    pnh_.param("map_frame", frame_ids_["map"], std::string("map"));
+    pnh_.param("robot_frame", frame_ids_["base_link"], std::string("base_link"));
+    pnh_.param("odom_frame", frame_ids_["odom"], std::string("odom"));
+    pnh_.param("floor_frame", frame_ids_["floor"], std::string("floor"));
+    pnh_.param("clip_near", params_.clip_near, 0.5);
+    pnh_.param("clip_far", params_.clip_far, 10.0);
     params_.clip_near_sq = pow(params_.clip_near, 2.0);
     params_.clip_far_sq = pow(params_.clip_far, 2.0);
-    nh.param("clip_z_min", params_.clip_z_min, -2.0);
-    nh.param("clip_z_max", params_.clip_z_max, 2.0);
-    nh.param("clip_beam_near", params_.clip_beam_near, 0.5);
-    nh.param("clip_beam_far", params_.clip_beam_far, 4.0);
+    pnh_.param("clip_z_min", params_.clip_z_min, -2.0);
+    pnh_.param("clip_z_max", params_.clip_z_max, 2.0);
+    pnh_.param("clip_beam_near", params_.clip_beam_near, 0.5);
+    pnh_.param("clip_beam_far", params_.clip_beam_far, 4.0);
     params_.clip_beam_near_sq = pow(params_.clip_beam_near, 2.0);
     params_.clip_beam_far_sq = pow(params_.clip_beam_far, 2.0);
-    nh.param("clip_beam_z_min", params_.clip_beam_z_min, -2.0);
-    nh.param("clip_beam_z_max", params_.clip_beam_z_max, 2.0);
-    nh.param("map_downsample_x", params_.map_downsample_x, 0.1);
-    nh.param("map_downsample_y", params_.map_downsample_y, 0.1);
-    nh.param("map_downsample_z", params_.map_downsample_z, 0.1);
-    nh.param("downsample_x", params_.downsample_x, 0.1);
-    nh.param("downsample_y", params_.downsample_y, 0.1);
-    nh.param("downsample_z", params_.downsample_z, 0.05);
+    pnh_.param("clip_beam_z_min", params_.clip_beam_z_min, -2.0);
+    pnh_.param("clip_beam_z_max", params_.clip_beam_z_max, 2.0);
+    pnh_.param("map_downsample_x", params_.map_downsample_x, 0.1);
+    pnh_.param("map_downsample_y", params_.map_downsample_y, 0.1);
+    pnh_.param("map_downsample_z", params_.map_downsample_z, 0.1);
+    pnh_.param("downsample_x", params_.downsample_x, 0.1);
+    pnh_.param("downsample_y", params_.downsample_y, 0.1);
+    pnh_.param("downsample_z", params_.downsample_z, 0.05);
     params_.map_grid_min = std::min(std::min(params_.map_downsample_x, params_.map_downsample_y),
                                     params_.map_downsample_z);
     params_.map_grid_max = std::max(std::max(params_.map_downsample_x, params_.map_downsample_y),
                                     params_.map_downsample_z);
-    nh.param("update_downsample_x", params_.update_downsample_x, 0.3);
-    nh.param("update_downsample_y", params_.update_downsample_y, 0.3);
-    nh.param("update_downsample_z", params_.update_downsample_z, 0.3);
+    pnh_.param("update_downsample_x", params_.update_downsample_x, 0.3);
+    pnh_.param("update_downsample_y", params_.update_downsample_y, 0.3);
+    pnh_.param("update_downsample_z", params_.update_downsample_z, 0.3);
     double map_update_interval_t;
-    nh.param("map_update_interval_interval", map_update_interval_t, 2.0);
+    pnh_.param("map_update_interval_interval", map_update_interval_t, 2.0);
     params_.map_update_interval.reset(new ros::Duration(map_update_interval_t));
 
-    nh.param("match_dist_min", params_.match_dist_min, 0.2);
-    nh.param("match_weight", params_.match_weight, 5.0);
+    pnh_.param("match_dist_min", params_.match_dist_min, 0.2);
+    pnh_.param("match_weight", params_.match_weight, 5.0);
 
     double weight[3];
     float weight_f[4];
-    nh.param("dist_weight_x", weight[0], 1.0);
-    nh.param("dist_weight_y", weight[1], 1.0);
-    nh.param("dist_weight_z", weight[2], 5.0);
+    pnh_.param("dist_weight_x", weight[0], 1.0);
+    pnh_.param("dist_weight_y", weight[1], 1.0);
+    pnh_.param("dist_weight_z", weight[2], 5.0);
     for (size_t i = 0; i < 3; i++)
       weight_f[i] = weight[i];
     weight_f[3] = 0.0;
     point_rep_.setRescaleValues(weight_f);
 
     double map_chunk;
-    nh.param("map_chunk", map_chunk, 20.0);
+    pnh_.param("map_chunk", map_chunk, 20.0);
     const double max_search_radius = std::max(
         params_.unmatch_output_dist,
         std::max(
@@ -1483,63 +1486,63 @@ public:
             pcl::PointRepresentation<pcl::PointXYZI>,
             MyPointRepresentation>(boost::make_shared<MyPointRepresentation>(point_rep_)));
 
-    nh.param("global_localization_grid_lin", params_.global_localization_grid, 0.3);
+    pnh_.param("global_localization_grid_lin", params_.global_localization_grid, 0.3);
     double grid_ang;
-    nh.param("global_localization_grid_ang", grid_ang, 0.524);
+    pnh_.param("global_localization_grid_ang", grid_ang, 0.524);
     params_.global_localization_div_yaw = lroundf(2 * M_PI / grid_ang);
 
-    nh.param("num_particles", params_.num_particles, 64);
+    pnh_.param("num_particles", params_.num_particles, 64);
     pf_.reset(new pf::ParticleFilter<State, float, ParticleWeightedMeanQuat>(params_.num_particles));
-    nh.param("num_points", params_.num_points, 96);
-    nh.param("num_points_global", params_.num_points_global, 8);
-    nh.param("num_points_beam", params_.num_points_beam, 3);
+    pnh_.param("num_points", params_.num_points, 96);
+    pnh_.param("num_points_global", params_.num_points_global, 8);
+    pnh_.param("num_points_beam", params_.num_points_beam, 3);
 
-    nh.param("beam_likelihood", params_.beam_likelihood_min, 0.2);
+    pnh_.param("beam_likelihood", params_.beam_likelihood_min, 0.2);
     params_.beam_likelihood = powf(params_.beam_likelihood_min, 1.0 / static_cast<float>(params_.num_points_beam));
     double ang_total_ref;
-    nh.param("ang_total_ref", ang_total_ref, M_PI / 6.0);
+    pnh_.param("ang_total_ref", ang_total_ref, M_PI / 6.0);
     params_.sin_total_ref = sinf(ang_total_ref);
 
-    nh.param("resample_var_x", params_.resample_var_x, 0.05);
-    nh.param("resample_var_y", params_.resample_var_y, 0.05);
-    nh.param("resample_var_z", params_.resample_var_z, 0.05);
-    nh.param("resample_var_roll", params_.resample_var_roll, 0.05);
-    nh.param("resample_var_pitch", params_.resample_var_pitch, 0.05);
-    nh.param("resample_var_yaw", params_.resample_var_yaw, 0.05);
-    nh.param("expansion_var_x", params_.expansion_var_x, 0.2);
-    nh.param("expansion_var_y", params_.expansion_var_y, 0.2);
-    nh.param("expansion_var_z", params_.expansion_var_z, 0.2);
-    nh.param("expansion_var_roll", params_.expansion_var_roll, 0.05);
-    nh.param("expansion_var_pitch", params_.expansion_var_pitch, 0.05);
-    nh.param("expansion_var_yaw", params_.expansion_var_yaw, 0.05);
-    nh.param("match_ratio_thresh", params_.match_ratio_thresh, 0.0);
+    pnh_.param("resample_var_x", params_.resample_var_x, 0.05);
+    pnh_.param("resample_var_y", params_.resample_var_y, 0.05);
+    pnh_.param("resample_var_z", params_.resample_var_z, 0.05);
+    pnh_.param("resample_var_roll", params_.resample_var_roll, 0.05);
+    pnh_.param("resample_var_pitch", params_.resample_var_pitch, 0.05);
+    pnh_.param("resample_var_yaw", params_.resample_var_yaw, 0.05);
+    pnh_.param("expansion_var_x", params_.expansion_var_x, 0.2);
+    pnh_.param("expansion_var_y", params_.expansion_var_y, 0.2);
+    pnh_.param("expansion_var_z", params_.expansion_var_z, 0.2);
+    pnh_.param("expansion_var_roll", params_.expansion_var_roll, 0.05);
+    pnh_.param("expansion_var_pitch", params_.expansion_var_pitch, 0.05);
+    pnh_.param("expansion_var_yaw", params_.expansion_var_yaw, 0.05);
+    pnh_.param("match_ratio_thresh", params_.match_ratio_thresh, 0.0);
 
-    nh.param("odom_err_lin_lin", params_.odom_err_lin_lin, 0.10);
-    nh.param("odom_err_lin_ang", params_.odom_err_lin_ang, 0.05);
-    nh.param("odom_err_ang_lin", params_.odom_err_ang_lin, 0.05);
-    nh.param("odom_err_ang_ang", params_.odom_err_ang_ang, 0.05);
+    pnh_.param("odom_err_lin_lin", params_.odom_err_lin_lin, 0.10);
+    pnh_.param("odom_err_lin_ang", params_.odom_err_lin_ang, 0.05);
+    pnh_.param("odom_err_ang_lin", params_.odom_err_ang_lin, 0.05);
+    pnh_.param("odom_err_ang_ang", params_.odom_err_ang_ang, 0.05);
 
-    nh.param("odom_err_integ_lin_tc", params_.odom_err_integ_lin_tc, 10.0);
-    nh.param("odom_err_integ_lin_sigma", params_.odom_err_integ_lin_sigma, 100.0);
-    nh.param("odom_err_integ_ang_tc", params_.odom_err_integ_ang_tc, 10.0);
-    nh.param("odom_err_integ_ang_sigma", params_.odom_err_integ_ang_sigma, 100.0);
+    pnh_.param("odom_err_integ_lin_tc", params_.odom_err_integ_lin_tc, 10.0);
+    pnh_.param("odom_err_integ_lin_sigma", params_.odom_err_integ_lin_sigma, 100.0);
+    pnh_.param("odom_err_integ_ang_tc", params_.odom_err_integ_ang_tc, 10.0);
+    pnh_.param("odom_err_integ_ang_sigma", params_.odom_err_integ_ang_sigma, 100.0);
 
     double x, y, z;
     double roll, pitch, yaw;
     double v_x, v_y, v_z;
     double v_roll, v_pitch, v_yaw;
-    nh.param("init_x", x, 0.0);
-    nh.param("init_y", y, 0.0);
-    nh.param("init_z", z, 0.0);
-    nh.param("init_roll", roll, 0.0);
-    nh.param("init_pitch", pitch, 0.0);
-    nh.param("init_yaw", yaw, 0.0);
-    nh.param("init_var_x", v_x, 2.0);
-    nh.param("init_var_y", v_y, 2.0);
-    nh.param("init_var_z", v_z, 0.5);
-    nh.param("init_var_roll", v_roll, 0.1);
-    nh.param("init_var_pitch", v_pitch, 0.1);
-    nh.param("init_var_yaw", v_yaw, 0.5);
+    pnh_.param("init_x", x, 0.0);
+    pnh_.param("init_y", y, 0.0);
+    pnh_.param("init_z", z, 0.0);
+    pnh_.param("init_roll", roll, 0.0);
+    pnh_.param("init_pitch", pitch, 0.0);
+    pnh_.param("init_yaw", yaw, 0.0);
+    pnh_.param("init_var_x", v_x, 2.0);
+    pnh_.param("init_var_y", v_y, 2.0);
+    pnh_.param("init_var_z", v_z, 0.5);
+    pnh_.param("init_var_roll", v_roll, 0.1);
+    pnh_.param("init_var_pitch", v_pitch, 0.1);
+    pnh_.param("init_var_yaw", v_yaw, 0.5);
     pf_->init(
         State(
             Vec3(x, y, z),
@@ -1548,54 +1551,54 @@ public:
             Vec3(v_x, v_y, v_z),
             Vec3(v_roll, v_pitch, v_yaw)));
 
-    double lpf_step;
-    nh.param("lpf_step", lpf_step, 16.0);
-    f_pos_[0].reset(new Filter(Filter::FILTER_LPF, lpf_step, 0.0));
-    f_pos_[1].reset(new Filter(Filter::FILTER_LPF, lpf_step, 0.0));
-    f_pos_[2].reset(new Filter(Filter::FILTER_LPF, lpf_step, 0.0));
-    f_ang_[0].reset(new Filter(Filter::FILTER_LPF, lpf_step, 0.0, true));
-    f_ang_[1].reset(new Filter(Filter::FILTER_LPF, lpf_step, 0.0, true));
-    f_ang_[2].reset(new Filter(Filter::FILTER_LPF, lpf_step, 0.0, true));
+    pnh_.param("lpf_step", params_.lpf_step, 16.0);
+    f_pos_[0].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step, 0.0));
+    f_pos_[1].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step, 0.0));
+    f_pos_[2].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step, 0.0));
+    f_ang_[0].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step, 0.0, true));
+    f_ang_[1].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step, 0.0, true));
+    f_ang_[2].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step, 0.0, true));
 
-    nh.param("acc_lpf_step", lpf_step, 128.0);
-    f_acc_[0].reset(new Filter(Filter::FILTER_LPF, lpf_step, 0.0));
-    f_acc_[1].reset(new Filter(Filter::FILTER_LPF, lpf_step, 0.0));
-    f_acc_[2].reset(new Filter(Filter::FILTER_LPF, lpf_step, 0.0));
-    nh.param("acc_var", params_.acc_var, M_PI / 4.0);  // 45 deg
+    double acc_lpf_step;
+    pnh_.param("acc_lpf_step", acc_lpf_step, 128.0);
+    f_acc_[0].reset(new Filter(Filter::FILTER_LPF, acc_lpf_step, 0.0));
+    f_acc_[1].reset(new Filter(Filter::FILTER_LPF, acc_lpf_step, 0.0));
+    f_acc_[2].reset(new Filter(Filter::FILTER_LPF, acc_lpf_step, 0.0));
+    pnh_.param("acc_var", params_.acc_var, M_PI / 4.0);  // 45 deg
 
-    nh.param("jump_dist", params_.jump_dist, 1.0);
-    nh.param("jump_ang", params_.jump_ang, 1.57);
-    nh.param("fix_dist", params_.fix_dist, 0.2);
-    nh.param("fix_ang", params_.fix_ang, 0.1);
-    nh.param("bias_var_dist", params_.bias_var_dist, 2.0);
-    nh.param("bias_var_ang", params_.bias_var_ang, 1.57);
+    pnh_.param("jump_dist", params_.jump_dist, 1.0);
+    pnh_.param("jump_ang", params_.jump_ang, 1.57);
+    pnh_.param("fix_dist", params_.fix_dist, 0.2);
+    pnh_.param("fix_ang", params_.fix_ang, 0.1);
+    pnh_.param("bias_var_dist", params_.bias_var_dist, 2.0);
+    pnh_.param("bias_var_ang", params_.bias_var_ang, 1.57);
 
-    nh.param("skip_measure", params_.skip_measure, 1);
+    pnh_.param("skip_measure", params_.skip_measure, 1);
     cnt_measure_ = 0;
-    nh.param("accum_cloud", params_.accum_cloud, 1);
+    pnh_.param("accum_cloud", params_.accum_cloud, 1);
     cnt_accum_ = 0;
 
-    nh.param("match_output_dist", params_.match_output_dist, 0.1);
-    nh.param("unmatch_output_dist", params_.unmatch_output_dist, 0.5);
+    pnh_.param("match_output_dist", params_.match_output_dist, 0.1);
+    pnh_.param("unmatch_output_dist", params_.unmatch_output_dist, 0.5);
     double match_output_interval_t;
-    nh.param("match_output_interval_interval", match_output_interval_t, 0.2);
+    pnh_.param("match_output_interval_interval", match_output_interval_t, 0.2);
     params_.match_output_interval.reset(new ros::Duration(match_output_interval_t));
-    pub_matched_ = nh.advertise<sensor_msgs::PointCloud2>("matched", 2, true);
-    pub_unmatched_ = nh.advertise<sensor_msgs::PointCloud2>("unmatched", 2, true);
+    pub_matched_ = pnh_.advertise<sensor_msgs::PointCloud2>("matched", 2, true);
+    pub_unmatched_ = pnh_.advertise<sensor_msgs::PointCloud2>("unmatched", 2, true);
 
     double tf_tolerance_t;
-    nh.param("tf_tolerance", tf_tolerance_t, 0.05);
+    pnh_.param("tf_tolerance", tf_tolerance_t, 0.05);
     params_.tf_tolerance.reset(new ros::Duration(tf_tolerance_t));
 
-    nh.param("publish_tf", publish_tf_, true);
-    nh.param("output_pcd", output_pcd_, false);
+    pnh_.param("publish_tf", publish_tf_, true);
+    pnh_.param("output_pcd", output_pcd_, false);
 
     imu_quat_ = Quat(0.0, 0.0, 0.0, 1.0);
 
     has_odom_ = has_map_ = has_imu_ = false;
     localize_rate_.reset(new Filter(Filter::FILTER_LPF, 5.0, 0.0));
 
-    map_update_timer_ = nh.createTimer(
+    map_update_timer_ = nh_.createTimer(
         *params_.map_update_interval,
         &MCL3dlNode::cbMapUpdateTimer, this);
   }
@@ -1639,6 +1642,9 @@ public:
   }
 
 protected:
+  ros::NodeHandle nh_;
+  ros::NodeHandle pnh_;
+
   ros::Subscriber sub_cloud_;
   ros::Subscriber sub_mapcloud_;
   ros::Subscriber sub_mapcloud_update_;
