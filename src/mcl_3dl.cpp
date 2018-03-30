@@ -37,6 +37,7 @@
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <mcl_3dl/ResizeParticle.h>
+#include <mcl_3dl/Status.h>
 #include <std_srvs/Trigger.h>
 
 #include <tf/transform_listener.h>
@@ -534,6 +535,10 @@ protected:
   }
   void cbCloud(const sensor_msgs::PointCloud2::ConstPtr &msg)
   {
+    mcl_3dl::Status status;
+    status.header.stamp = ros::Time::now();
+    status.status = mcl_3dl::Status::NORMAL;
+
     if (!has_map_)
       return;
     if (frames_.find(msg->header.frame_id) == frames_.end())
@@ -1191,6 +1196,7 @@ protected:
           Vec3(params_.expansion_var_roll,
                params_.expansion_var_pitch,
                params_.expansion_var_yaw)));
+      status.status = mcl_3dl::Status::EXPANSION_RESETTING;
     }
     pc_local_accum_.reset(new pcl::PointCloud<pcl::PointXYZI>);
     pc_accum_header_.clear();
@@ -1215,7 +1221,17 @@ protected:
       {
         pf_->resizeParticle(params_.num_particles);
       }
+      global_localization_fix_cnt_ = ceil(params_.lpf_step) * 3.0;  // wait 99.7% fix (three-sigma)
     }
+    if (global_localization_fix_cnt_)
+    {
+      global_localization_fix_cnt_--;
+      status.status = mcl_3dl::Status::GLOBAL_LOCALIZATION;
+    }
+
+    status.match_ratio = match_ratio_max;
+    status.particle_size = pf_->getParticleSize();
+    pub_status_.publish(status);
   }
   void cbLandmark(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg)
   {
@@ -1420,6 +1436,7 @@ public:
     pub_particle_ = pnh_.advertise<geometry_msgs::PoseArray>("particles", 1, true);
     pub_mapcloud_ = pnh_.advertise<sensor_msgs::PointCloud2>("updated_map", 1, true);
     pub_debug_marker_ = pnh_.advertise<visualization_msgs::MarkerArray>("debug_marker", 1, true);
+    pub_status_ = pnh_.advertise<mcl_3dl::Status>("status", 1, true);
 
     srv_particle_size_ = pnh_.advertiseService("resize_particle", &MCL3dlNode::cbResizeParticle, this);
     srv_global_localization_ = pnh_.advertiseService("global_localization", &MCL3dlNode::cbGlobalLocalization, this);
@@ -1658,6 +1675,7 @@ protected:
   ros::Publisher pub_matched_;
   ros::Publisher pub_unmatched_;
   ros::Publisher pub_debug_marker_;
+  ros::Publisher pub_status_;
   ros::Timer map_update_timer_;
   ros::ServiceServer srv_particle_size_;
   ros::ServiceServer srv_global_localization_;
@@ -1693,6 +1711,7 @@ protected:
   int cnt_measure_;
   int cnt_accum_;
   Quat imu_quat_;
+  size_t global_localization_fix_cnt_;
 
   MyPointRepresentation point_rep_;
 
