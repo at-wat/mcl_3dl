@@ -1423,6 +1423,7 @@ public:
     : nh_("")
     , pnh_("~")
     , engine_(seed_gen_())
+    , global_localization_fix_cnt_(0)
   {
     sub_cloud_ = pnh_.subscribe("cloud", 100, &MCL3dlNode::cbCloud, this);
     sub_odom_ = pnh_.subscribe("odom", 200, &MCL3dlNode::cbOdom, this);
