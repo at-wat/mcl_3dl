@@ -1221,7 +1221,7 @@ protected:
       {
         pf_->resizeParticle(params_.num_particles);
       }
-      global_localization_fix_cnt_ = ceil(params_.lpf_step) * 3.0;  // wait 99.7% fix (three-sigma)
+      global_localization_fix_cnt_ = 1 + ceil(params_.lpf_step) * 3.0;  // wait 99.7% fix (three-sigma)
     }
     if (global_localization_fix_cnt_)
     {
