@@ -6,26 +6,25 @@ cache:
     - /home/travis/docker/
 env:
   global:
-    - DOCKER_CACHE_FILE=/home/travis/docker/cache.tar.lz4
-    - DOCKER_CACHE_TARGETS="mcl3dl:latest mcl3dl:indigo"
+    - DOCKER_CACHE_TARGET=mcl3dl
+    - DOCKER_CACHE_REGISTRY=atwat/ros-mcl-3dl-cache
     - DATASET_CACHE_DIR=/home/travis/docker/dataset
     - DATASET_FILE=short_test.bag
     - DATASET_REF_FILE=short_test_ref.topic
+  matrix:
+    - ROS_DISTRO_TARGET=kinetic
+    - ROS_DISTRO_TARGET=indigo
 branches:
   only:
     - master
 
 before_install:
-  - .travis.scripts/setup_docker.sh
   - .travis.scripts/load_cache.sh
   - .travis.scripts/cache_dataset.sh
 
 install: true
 
 script:
-  - docker build -t mcl3dl:latest --pull=true ${TRAVIS_BUILD_DIR}
-  - docker run --rm -it  -e TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST} -e TRAVIS_PULL_REQUEST_SLUG=${TRAVIS_PULL_REQUEST_SLUG} -e TRAVIS_BOT_GITHUB_TOKEN=${TRAVIS_BOT_GITHUB_TOKEN} mcl3dl:latest /catkin_ws/src/mcl_3dl/.travis.scripts/test.sh
-  - docker build -t mcl3dl:indigo -f Dockerfile.indigo --pull=true ${TRAVIS_BUILD_DIR}
-  - docker run --rm -it  -e TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST} -e TRAVIS_PULL_REQUEST_SLUG=${TRAVIS_PULL_REQUEST_SLUG} -e TRAVIS_BOT_GITHUB_TOKEN=${TRAVIS_BOT_GITHUB_TOKEN} mcl3dl:indigo /catkin_ws/src/mcl_3dl/.travis.scripts/test.sh
+  - docker build --cache-from ${DOCKER_CACHE_REGISTRY}:${ROS_DISTRO_TARGET} -t ${DOCKER_CACHE_TARGET}:${ROS_DISTRO_TARGET} -f Dockerfile.${ROS_DISTRO_TARGET} --pull=true ${TRAVIS_BUILD_DIR}
+  - docker run --rm -it  -e TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST} -e TRAVIS_PULL_REQUEST_SLUG=${TRAVIS_PULL_REQUEST_SLUG} -e TRAVIS_BOT_GITHUB_TOKEN=${TRAVIS_BOT_GITHUB_TOKEN} ${DOCKER_CACHE_TARGET}:${ROS_DISTRO_TARGET} /catkin_ws/src/mcl_3dl/.travis.scripts/test.sh
   - .travis.scripts/save_cache.sh
-
