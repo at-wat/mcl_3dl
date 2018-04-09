@@ -6,7 +6,6 @@ RUN apt-get -qq update \
     curl \
     libeigen3-dev \
     libgtest-dev \
-    libpcl-dev \
     libproj-dev \
     libqtgui4 \
     python-pip \
