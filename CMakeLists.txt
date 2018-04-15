@@ -2,7 +2,18 @@ cmake_minimum_required(VERSION 2.8.3)
 project(mcl_3dl)
 
 find_package(catkin REQUIRED COMPONENTS
-	roscpp std_msgs message_generation sensor_msgs pcl_ros visualization_msgs roslint rostest
+  geometry_msgs
+  message_generation
+  nav_msgs
+  pcl_ros
+	roscpp
+  roslint
+  rostest
+  sensor_msgs
+  std_msgs
+  std_srvs
+  tf
+  visualization_msgs
 )
 find_package(PCL 1.7 REQUIRED)
 
@@ -17,7 +28,16 @@ generate_messages(
 )
 
 catkin_package(
-	CATKIN_DEPENDS roscpp std_msgs sensor_msgs pcl_ros
+	CATKIN_DEPENDS
+    geometry_msgs
+    nav_msgs
+    pcl_ros
+    roscpp
+    sensor_msgs
+    std_msgs
+    std_srvs
+    tf
+    visualization_msgs
 )
 find_package(Boost REQUIRED COMPONENTS chrono REQUIRED)
 find_package(Eigen3 REQUIRED)
