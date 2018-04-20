@@ -6,7 +6,6 @@ set -o verbose
 pip install gh-pr-comment
 
 source /opt/ros/${ROS_DISTRO}/setup.bash
-source /catkin_ws/devel/setup.bash
 
 cd /catkin_ws
 
