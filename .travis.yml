@@ -6,6 +6,7 @@ cache:
     - /home/travis/docker/
 env:
   global:
+    - PACKAGE_NAME=mcl_3dl
     - DOCKER_CACHE_TARGET=mcl3dl
     - DOCKER_CACHE_REGISTRY=atwat/ros-mcl-3dl-cache
     - DATASET_CACHE_DIR=/home/travis/docker/dataset
