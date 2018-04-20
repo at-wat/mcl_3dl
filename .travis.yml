@@ -6,6 +6,7 @@ cache:
     - /home/travis/docker/
 env:
   global:
+    - PACKAGE_NAME=mcl_3dl
     - DOCKER_CACHE_TARGET=mcl3dl
     - DOCKER_CACHE_REGISTRY=atwat/ros-mcl-3dl-cache
     - DATASET_CACHE_DIR=/home/travis/docker/dataset
@@ -26,5 +27,5 @@ install: true
 
 script:
   - docker build --cache-from ${DOCKER_CACHE_REGISTRY}:${ROS_DISTRO_TARGET} -t ${DOCKER_CACHE_TARGET}:${ROS_DISTRO_TARGET} -f Dockerfile.${ROS_DISTRO_TARGET} --pull=true ${TRAVIS_BUILD_DIR}
-  - docker run --rm -it  -e TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST} -e TRAVIS_PULL_REQUEST_SLUG=${TRAVIS_PULL_REQUEST_SLUG} -e TRAVIS_BOT_GITHUB_TOKEN=${TRAVIS_BOT_GITHUB_TOKEN} ${DOCKER_CACHE_TARGET}:${ROS_DISTRO_TARGET} /catkin_ws/src/mcl_3dl/.travis.scripts/test.sh
+  - docker run --rm -it  -e TRAVIS_PULL_REQUEST=${TRAVIS_PULL_REQUEST} -e TRAVIS_PULL_REQUEST_SLUG=${TRAVIS_PULL_REQUEST_SLUG} -e TRAVIS_BOT_GITHUB_TOKEN=${TRAVIS_BOT_GITHUB_TOKEN} ${DOCKER_CACHE_TARGET}:${ROS_DISTRO_TARGET} /catkin_ws/src/${PACKAGE_NAME}/.travis.scripts/test.sh
   - .travis.scripts/save_cache.sh

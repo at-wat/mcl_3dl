@@ -6,7 +6,6 @@ set -o verbose
 pip install gh-pr-comment
 
 source /opt/ros/${ROS_DISTRO}/setup.bash
-source /catkin_ws/devel/setup.bash
 
 cd /catkin_ws
 
@@ -37,13 +36,13 @@ if [ catkin_test_results ];
 then
   result_text="
 \`\`\`
-`catkin_test_results --all || true`
+`catkin_test_results --all | grep -v Skipping || true`
 \`\`\`
 "
 else
   result_text="
 \`\`\`
-`catkin_test_results --all || true`
+`catkin_test_results --all | grep -v Skipping || true`
 \`\`\`
 `find build/test_results/ -name *.xml | xargs -n 1 -- bash -c 'echo; echo \#\#\# $0; echo; echo \\\`\\\`\\\`; xmllint --format $0; echo \\\`\\\`\\\`;'`
 "
