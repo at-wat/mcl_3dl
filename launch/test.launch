@@ -21,7 +21,7 @@
   <param name="/use_sim_time" value="true" if="$(arg use_bag_file)" />
   <node pkg="rosbag" type="play" name="playback" args="--clock $(arg bag_file)"
       if="$(arg use_bag_file)">
-    <remap from="/odom" to="/odom_unused" if="$(arg without_odom)" />
+    <remap from="odom" to="odom_unused" if="$(arg without_odom)" />
   </node>
 
   <rosparam command="load" file="$(arg config_file)"/>
@@ -41,11 +41,7 @@
 
   <node pkg="rviz" type="rviz" name="rviz" args="-d $(find mcl_3dl)/launch/mcl_3dl.rviz" />
   <node pkg="mcl_3dl" type="mcl_3dl" name="mcl_3dl" output="screen" unless="$(arg generate_test_bag)">
-    <remap from="~/cloud" to="/cloud" />
-    <remap from="~/mapcloud" to="/mapcloud" />
-    <remap from="~/odom" to="/odom" />
-    <remap from="~/imu" to="/imu/data" />
-    <remap from="~/initialpose" to="/initialpose" />
+    <param name="compatible" value="false" />
   </node>
   <node pkg="obj_to_pointcloud" type="obj_to_pointcloud" name="obj_to_pointcloud"
       if="$(arg use_cad_map)">
@@ -53,15 +49,15 @@
     <param name="offset_x" value="$(arg map_offset_x)" />
     <param name="offset_y" value="$(arg map_offset_y)" />
     <param name="scale" value="$(arg map_scale)" />
-    <remap from="~/cloud" to="/mapcloud" />
+    <remap from="~/cloud" to="mapcloud" />
   </node>
   <node pkg="pcl_ros" type="pcd_to_pointcloud" name="pcd_to_pointcloud"
       args="$(arg map_pcd)" if="$(arg use_pointcloud_map)">
-    <remap from="/cloud_pcd" to="/mapcloud" />
+    <remap from="cloud_pcd" to="mapcloud" />
   </node>
   <node pkg="track_odometry" type="track_odometry" name="track_odometry"
       if="$(arg use_neonavigation)">
-    <remap from="/imu" to="/imu/data" />
+    <remap from="imu" to="imu/data" />
     <param name="base_link_id" value="base_link" />
   </node>
 
