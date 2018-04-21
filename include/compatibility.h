@@ -32,6 +32,8 @@
 
 #include <ros/ros.h>
 
+#include <string>
+
 namespace mcl_3dl_compat
 {
 bool getCompat()
@@ -162,6 +164,6 @@ ros::ServiceServer advertiseService(
     return nh_new.advertiseService(service_new, srv_func, obj);
   }
 }
-}
+}  // namespace mcl_3dl_compat
 
 #endif  // COMPATIBILITY_H
