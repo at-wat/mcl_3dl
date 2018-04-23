@@ -10,7 +10,7 @@
   <node pkg="rostopic" type="rostopic" name="set_initial" args="pub -1 -f @PROJECT_BINARY_DIR@/test/short_test_ref.topic /compare_pose/poses_ref nav_msgs/Path" />
 
   <node pkg="mcl_3dl" type="mcl_3dl" name="mcl_3dl" output="log">
-    <param name="compatible" value="false" />
+    <param name="compatible" value="1" />
     <param name="skip_measure" value="2" />
   </node>
 </launch>

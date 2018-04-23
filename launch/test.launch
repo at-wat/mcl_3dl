@@ -41,7 +41,7 @@
 
   <node pkg="rviz" type="rviz" name="rviz" args="-d $(find mcl_3dl)/launch/mcl_3dl.rviz" />
   <node pkg="mcl_3dl" type="mcl_3dl" name="mcl_3dl" output="screen" unless="$(arg generate_test_bag)">
-    <param name="compatible" value="false" />
+    <param name="compatible" value="1" />
   </node>
   <node pkg="obj_to_pointcloud" type="obj_to_pointcloud" name="obj_to_pointcloud"
       if="$(arg use_cad_map)">

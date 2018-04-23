@@ -36,16 +36,36 @@
 
 namespace mcl_3dl_compat
 {
-bool getCompat()
+const int current_level = 1;
+const int supported_level = current_level - 1;
+const int default_level = supported_level;
+
+int getCompat()
 {
-  bool compat(true);
+  int compat(default_level);
   ros::NodeHandle("~").param("compatible", compat, compat);
 
   return compat;
 }
 void checkCompatMode()
 {
-  if (getCompat())
+  if (getCompat() < supported_level)
+  {
+    const std::string message =
+        "======= [Obsolated] your configuration for " + ros::this_node::getName() + " is outdated =======";
+    ROS_FATAL("%s", message.c_str());
+    ros::shutdown();
+    throw std::runtime_error(message);
+  }
+  else if (getCompat() > current_level)
+  {
+    const std::string message =
+        "======= [Unsupported] your configuration for " + ros::this_node::getName() + " is futuredated =======";
+    ROS_FATAL("%s", message.c_str());
+    ros::shutdown();
+    throw std::runtime_error(message);
+  }
+  else if (getCompat() != current_level)
   {
     ROS_ERROR_ONCE(
         "======= [Deprecated] %s is run in compatible mode =======\n"
@@ -75,7 +95,7 @@ ros::Subscriber subscribe(
     T *obj,
     const ros::TransportHints &transport_hints = ros::TransportHints())
 {
-  if (getCompat())
+  if (getCompat() != current_level)
   {
     ROS_ERROR(
         "Use %s (%s%s) topic instead of %s (%s%s)",
@@ -101,7 +121,7 @@ ros::Subscriber subscribe(
     T *obj,
     const ros::TransportHints &transport_hints = ros::TransportHints())
 {
-  if (getCompat())
+  if (getCompat() != current_level)
   {
     ROS_ERROR(
         "Use %s (%s%s) topic instead of %s (%s%s)",
@@ -125,7 +145,7 @@ ros::Publisher advertise(
     uint32_t queue_size,
     bool latch = false)
 {
-  if (getCompat())
+  if (getCompat() != current_level)
   {
     ROS_ERROR(
         "Use %s (%s%s) topic instead of %s (%s%s)",
@@ -149,7 +169,7 @@ ros::ServiceServer advertiseService(
     bool (T::*srv_func)(MReq &, MRes &),
     T *obj)
 {
-  if (getCompat())
+  if (getCompat() != current_level)
   {
     ROS_ERROR(
         "Use %s (%s%s) service instead of %s (%s%s)",
