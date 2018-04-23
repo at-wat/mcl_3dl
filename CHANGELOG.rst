@@ -2,8 +2,8 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.0 (2018-04-23)
+------------------
 * Migrate to ROS recommended namespace model (`#130 <https://github.com/at-wat/mcl_3dl/issues/130>`_)
 * Minor CI setting updates (`#129 <https://github.com/at-wat/mcl_3dl/issues/129>`_)
 * Fix package deps (`#127 <https://github.com/at-wat/mcl_3dl/issues/127>`_)
