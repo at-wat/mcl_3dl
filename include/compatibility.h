@@ -36,6 +36,8 @@
 
 namespace mcl_3dl_compat
 {
+#define STATIC_ASSERT(EXPR) static_assert(EXPR, #EXPR)
+
 // Update cycle
 // 1. Increment current_level and indicate topic changes using mcl_3dl_compat::subscribe/advertise.
 //    Set default_level to supported_level.
@@ -45,8 +47,8 @@ const int current_level = 1;
 const int supported_level = 0;
 const int default_level = supported_level;
 
-static_assert(supported_level <= current_level && current_level <= supported_level + 1);
-static_assert(supported_level <= default_level && default_level <= current_level);
+STATIC_ASSERT(supported_level <= current_level && current_level <= supported_level + 1);
+STATIC_ASSERT(supported_level <= default_level && default_level <= current_level);
 
 int getCompat()
 {
