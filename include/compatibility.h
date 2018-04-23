@@ -36,9 +36,17 @@
 
 namespace mcl_3dl_compat
 {
+// Update cycle
+// 1. Increment current_level and indicate topic changes using mcl_3dl_compat::subscribe/advertise.
+//    Set default_level to supported_level.
+// 2. Set default_level to current_level.
+// 3. Increment supported_level and remove old topic names.
 const int current_level = 1;
-const int supported_level = current_level - 1;
+const int supported_level = 0;
 const int default_level = supported_level;
+
+static_assert(supported_level <= current_level && current_level <= supported_level + 1);
+static_assert(supported_level <= default_level && default_level <= current_level);
 
 int getCompat()
 {
