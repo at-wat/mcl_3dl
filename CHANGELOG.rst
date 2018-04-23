@@ -98,10 +98,8 @@ Forthcoming
 
 * Fix odometry noise function. (`#87 <https://github.com/at-wat/mcl_3dl/issues/87>`_)
 
-  - wrong:
-  `nd(mean = 1.0, sigma = sigma_trans_trans) * nd(mean = 1.0, sigma = sigma_rot_trans)`
-  - corrected:
-  `nd(mean = 0.0, sigma = sigma_trans_trans) + nd(mean = 0.0, sigma = sigma_rot_trans)`
+  - wrong: `nd(mean = 1.0, sigma = sigma_trans_trans) * nd(mean = 1.0, sigma = sigma_rot_trans)`
+  - corrected: `nd(mean = 0.0, sigma = sigma_trans_trans) + nd(mean = 0.0, sigma = sigma_rot_trans)`
 
 * Skip random points sampling if all points are filtered out. (`#86 <https://github.com/at-wat/mcl_3dl/issues/86>`_)
 * Fix build on indigo. (`#84 <https://github.com/at-wat/mcl_3dl/issues/84>`_)
