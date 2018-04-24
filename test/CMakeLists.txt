@@ -58,7 +58,7 @@ if(MCL_3DL_EXTRA_TESTS)
 
 else(MCL_3DL_EXTRA_TESTS)
 
-  message(WARNING "To perform extra heavy tests for mcl_3dl, use -DMCL_3DL_EXTRA_TESTS:=ON")
+  message("To perform extra heavy tests for mcl_3dl, use -DMCL_3DL_EXTRA_TESTS:=ON")
 
 endif(MCL_3DL_EXTRA_TESTS)
 
