@@ -8,6 +8,7 @@ RUN apt-get -qq update \
     libgtest-dev \
     libproj-dev \
     libqtgui4 \
+    libxml2-utils \
     python-pip \
     sudo \
     wget \
@@ -19,8 +20,10 @@ RUN rosdep update \
   && cd /catkin_ws/src \
   && bash -c ". /opt/ros/${ROS_DISTRO}/setup.bash && catkin_init_workspace && cd .. && catkin_make"
 
-COPY ./.travis.scripts/install_deps.sh /catkin_ws/src/mcl_3dl/.travis.scripts/install_deps.sh
 COPY ./package.xml /catkin_ws/src/mcl_3dl/package.xml
-RUN /catkin_ws/src/mcl_3dl/.travis.scripts/install_deps.sh
+RUN apt-get -qq update \
+  && rosdep install --from-paths /catkin_ws/src --ignore-src --rosdistro=${ROS_DISTRO} -y \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
 
 COPY . /catkin_ws/src/mcl_3dl
