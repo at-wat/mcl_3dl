@@ -1,9 +1,6 @@
 sudo: required
 services: docker
 
-cache:
-  directories:
-    - /home/travis/docker/
 env:
   global:
     - PACKAGE_NAME=mcl_3dl
