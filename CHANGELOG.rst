@@ -2,8 +2,8 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.1 (2018-04-25)
+------------------
 * Update CI settings (`#136 <https://github.com/at-wat/mcl_3dl/issues/136>`_)
 * Remove CMake warning message (`#134 <https://github.com/at-wat/mcl_3dl/issues/134>`_)
 * Contributors: Atsushi Watanabe
