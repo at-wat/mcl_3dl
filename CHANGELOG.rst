@@ -2,6 +2,12 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Update CI settings (`#136 <https://github.com/at-wat/mcl_3dl/issues/136>`_)
+* Remove CMake warning message (`#134 <https://github.com/at-wat/mcl_3dl/issues/134>`_)
+* Contributors: Atsushi Watanabe
+
 0.1.0 (2018-04-23)
 ------------------
 * Migrate to ROS recommended namespace model (`#130 <https://github.com/at-wat/mcl_3dl/issues/130>`_)
