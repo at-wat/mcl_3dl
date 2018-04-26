@@ -16,7 +16,6 @@ find_package(catkin REQUIRED
     tf
     visualization_msgs
 )
-find_package(PCL 1.7 REQUIRED)
 
 add_service_files(
   FILES ResizeParticle.srv
@@ -40,8 +39,29 @@ catkin_package(
     tf
     visualization_msgs
 )
-find_package(Boost REQUIRED COMPONENTS chrono REQUIRED)
+
 find_package(Eigen3 REQUIRED)
+find_package(PCL 1.7 REQUIRED
+  COMPONENTS
+    core
+    filters
+    kdtree
+)
+# Boost must be find_packaged after pcl on Ubuntu Trusty
+find_package(Boost REQUIRED COMPONENTS chrono)
+
+# Workaround for debian stretch build (https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=894656)
+list(REMOVE_ITEM PCL_LIBRARIES
+  "vtkGUISupportQt"
+  "vtkGUISupportQtOpenGL"
+  "vtkGUISupportQtSQL"
+  "vtkGUISupportQtWebkit"
+  "vtkViewsQt"
+  "vtkRenderingQt"
+)
+
+# Workaround for the bug in PCL(<1.8.1) https://github.com/PointCloudLibrary/pcl/issues/1406
+remove_definitions(-DDISABLE_LIBUSB-1.0)
 
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -60,9 +80,6 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O1")
 include_directories(${catkin_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${PCL_INCLUDE_DIR} include)
 link_directories(${Boost_LIBRARY_DIRS} ${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
-
-# Workaround for the bug in PCL(<1.8.1) https://github.com/PointCloudLibrary/pcl/issues/1406
-remove_definitions(-DDISABLE_LIBUSB-1.0)
 
 add_executable(mcl_3dl src/mcl_3dl.cpp)
 target_link_libraries(mcl_3dl ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${PCL_LIBRARIES})
