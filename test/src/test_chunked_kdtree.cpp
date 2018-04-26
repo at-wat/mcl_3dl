@@ -53,37 +53,37 @@ TEST(ChunkedKdtreeTest, testRadiusSearch)
   kdtree.radiusSearch(
       pcl::PointXYZ(0.5, 0.5, 0.5),
       0.3, id, dist, 1);
-  ASSERT_EQ(id.size(), 1);
+  ASSERT_EQ(id.size(), 1u);
   ASSERT_EQ(id[0], 0);
 
   kdtree.radiusSearch(
       pcl::PointXYZ(0.5, 0.4, 0.5),
       0.3, id, dist, 1);
-  ASSERT_EQ(id.size(), 1);
+  ASSERT_EQ(id.size(), 1u);
   ASSERT_EQ(id[0], 0);
 
   kdtree.radiusSearch(
       pcl::PointXYZ(1.05, 0.0, 0.0),
       0.3, id, dist, 1);
-  ASSERT_EQ(id.size(), 1);
+  ASSERT_EQ(id.size(), 1u);
   ASSERT_EQ(id[0], 1);
 
   kdtree.radiusSearch(
       pcl::PointXYZ(1.1, 0.0, 0.0),
       0.3, id, dist, 1);
-  ASSERT_EQ(id.size(), 1);
+  ASSERT_EQ(id.size(), 1u);
   ASSERT_EQ(id[0], 2);
 
   kdtree.radiusSearch(
       pcl::PointXYZ(0.0, -0.05, 0.0),
       0.3, id, dist, 1);
-  ASSERT_EQ(id.size(), 1);
+  ASSERT_EQ(id.size(), 1u);
   ASSERT_EQ(id[0], 3);
 
   kdtree.radiusSearch(
       pcl::PointXYZ(0.0, -0.15, 0.0),
       0.3, id, dist, 1);
-  ASSERT_EQ(id.size(), 1);
+  ASSERT_EQ(id.size(), 1u);
   ASSERT_EQ(id[0], 4);
 }
 
