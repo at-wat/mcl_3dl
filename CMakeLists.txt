@@ -16,7 +16,6 @@ find_package(catkin REQUIRED
     tf
     visualization_msgs
 )
-find_package(PCL 1.7 REQUIRED)
 
 add_service_files(
   FILES ResizeParticle.srv
@@ -40,8 +39,25 @@ catkin_package(
     tf
     visualization_msgs
 )
+
 find_package(Boost REQUIRED COMPONENTS chrono REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(PCL REQUIRED
+  COMPONENTS
+    core
+    filters
+    kdtree
+)
+
+# Workaround for debian stretch build (https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=894656)
+list(REMOVE_ITEM PCL_LIBRARIES
+  "vtkGUISupportQt"
+  "vtkGUISupportQtOpenGL"
+  "vtkGUISupportQtSQL"
+  "vtkGUISupportQtWebkit"
+  "vtkViewsQt"
+  "vtkRenderingQt"
+)
 
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
