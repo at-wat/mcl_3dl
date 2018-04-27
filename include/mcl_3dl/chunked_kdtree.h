@@ -27,8 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CHUNKED_KDTREE_H
-#define CHUNKED_KDTREE_H
+#ifndef MCL_3DL_CHUNKED_KDTREE_H
+#define MCL_3DL_CHUNKED_KDTREE_H
 
 #include <pcl/point_types.h>
 #include <pcl/kdtree/kdtree.h>
@@ -38,6 +38,8 @@
 #include <unordered_map>
 #include <vector>
 
+namespace mcl_3dl
+{
 template <typename POINT_TYPE>
 class ChunkedKdtree
 {
@@ -243,5 +245,6 @@ protected:
                    static_cast<int>(floor(p.z * pos_to_chunk_)));
   }
 };
+}  // namespace mcl_3dl
 
-#endif  // CHUNKED_KDTREE_H
+#endif  // MCL_3DL_CHUNKED_KDTREE_H

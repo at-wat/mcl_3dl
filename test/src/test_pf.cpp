@@ -35,7 +35,7 @@
 #include <mcl_3dl/pf.h>
 #include <mcl_3dl/nd.h>
 
-class State : public pf::ParticleBase<float>
+class State : public mcl_3dl::pf::ParticleBase<float>
 {
 public:
   float x;
@@ -76,7 +76,7 @@ public:
 
 TEST(PfTest, testBayesianEstimation)
 {
-  pf::ParticleFilter<State, float> pf(1024);
+  mcl_3dl::pf::ParticleFilter<State, float> pf(1024);
   const float center_list[] =
       {
         10.0, 11.0, 9.5
@@ -108,8 +108,8 @@ TEST(PfTest, testBayesianEstimation)
       const float HISTOGRAM_RESOLUTION = 0.02;
 
       float dist[HISTOGRAM_SIZE];
-      NormalLikelihood<float> nd1(sigma);
-      NormalLikelihood<float> nd2(sigma2);
+      mcl_3dl::NormalLikelihood<float> nd1(sigma);
+      mcl_3dl::NormalLikelihood<float> nd2(sigma2);
       double avg = 0;
       float total = 0;
       for (int i = 0; i < HISTOGRAM_SIZE; i++)
@@ -148,7 +148,7 @@ TEST(PfTest, testVariableParticleSize)
       {
         1024, 2048, 900
       };
-  pf::ParticleFilter<State, float> pf(size[0]);
+  mcl_3dl::pf::ParticleFilter<State, float> pf(size[0]);
 
   const float center = 12.3;
   const float sigma = 0.45;

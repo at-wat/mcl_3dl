@@ -27,14 +27,16 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef ND_H
-#define ND_H
+#ifndef MCL_3DL_ND_H
+#define MCL_3DL_ND_H
 
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <Eigen/Core>
 #include <Eigen/LU>
 
+namespace mcl_3dl
+{
 template <typename FLT_TYPE = float>
 class NormalLikelihood
 {
@@ -75,5 +77,6 @@ protected:
   FLT_TYPE a_;
   Matrix sigma_inv_;
 };
+}  // namespace mcl_3dl
 
-#endif  // ND_H
+#endif  // MCL_3DL_ND_H

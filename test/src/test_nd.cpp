@@ -39,7 +39,7 @@ TEST(NormalLiklihoodTest, testNormality)
   for (float sigma = 1.0; sigma <= 3.0; sigma += 1.0)
   {
     // Check distribution
-    NormalLikelihood<float> nl(sigma);
+    mcl_3dl::NormalLikelihood<float> nl(sigma);
     const float likelihood0 = 1.0 / sqrtf(M_PI * 2.0 * sigma * sigma);
     ASSERT_LT(fabs(nl(0.0) - likelihood0), 1e-6);
     ASSERT_LT(fabs(nl(sigma) - likelihood0 * 0.60653066), 1e-6);

@@ -27,8 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef COMPATIBILITY_H
-#define COMPATIBILITY_H
+#ifndef MCL_3DL_COMPAT_COMPATIBILITY_H
+#define MCL_3DL_COMPAT_COMPATIBILITY_H
 
 #include <ros/ros.h>
 
@@ -196,4 +196,4 @@ ros::ServiceServer advertiseService(
 }
 }  // namespace mcl_3dl_compat
 
-#endif  // COMPATIBILITY_H
+#endif  // MCL_3DL_COMPAT_COMPATIBILITY_H

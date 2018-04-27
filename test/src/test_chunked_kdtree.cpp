@@ -44,7 +44,7 @@ TEST(ChunkedKdtreeTest, testRadiusSearch)
   pc.push_back(pcl::PointXYZ(0.0, 0.2, 0.0));   // 3
   pc.push_back(pcl::PointXYZ(0.0, -0.3, 0.0));  // 4
 
-  ChunkedKdtree<pcl::PointXYZ> kdtree(1.0, 0.3);
+  mcl_3dl::ChunkedKdtree<pcl::PointXYZ> kdtree(1.0, 0.3);
   kdtree.setInputCloud(pc.makeShared());
 
   std::vector<int> id;

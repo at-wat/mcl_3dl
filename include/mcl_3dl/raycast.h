@@ -27,14 +27,16 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef RAYCAST_H
-#define RAYCAST_H
+#ifndef MCL_3DL_RAYCAST_H
+#define MCL_3DL_RAYCAST_H
 
 #include <mcl_3dl/vec3.h>
 #include <mcl_3dl/chunked_kdtree.h>
 
 #include <vector>
 
+namespace mcl_3dl
+{
 template <typename POINT_TYPE>
 class Raycast
 {
@@ -153,5 +155,6 @@ public:
     return end_;
   }
 };
+}  // namespace mcl_3dl
 
-#endif  // RAYCAST_H
+#endif  // MCL_3DL_RAYCAST_H

@@ -27,11 +27,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef FILTER_H
-#define FILTER_H
+#ifndef MCL_3DL_FILTER_H
+#define MCL_3DL_FILTER_H
 
 #include <cmath>
 
+namespace mcl_3dl
+{
 class Filter
 {
 public:
@@ -99,5 +101,6 @@ public:
     return out_;
   }
 };
+}  // namespace mcl_3dl
 
-#endif  // FILTER_H
+#endif  // MCL_3DL_FILTER_H

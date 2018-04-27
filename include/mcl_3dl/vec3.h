@@ -27,9 +27,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef VEC3_H
-#define VEC3_H
+#ifndef MCL_3DL_VEC3_H
+#define MCL_3DL_VEC3_H
 
+namespace mcl_3dl
+{
 class Vec3
 {
 public:
@@ -135,5 +137,6 @@ public:
     return *this / norm();
   }
 };
+}  // namespace mcl_3dl
 
-#endif  // VEC3_H
+#endif  // MCL_3DL_VEC3_H
