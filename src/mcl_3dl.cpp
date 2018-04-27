@@ -62,15 +62,15 @@
 #include <map>
 #include <vector>
 
-#include <pf.h>
-#include <vec3.h>
-#include <quat.h>
-#include <filter.h>
-#include <nd.h>
-#include <raycast.h>
-#include <chunked_kdtree.h>
+#include <mcl_3dl/pf.h>
+#include <mcl_3dl/vec3.h>
+#include <mcl_3dl/quat.h>
+#include <mcl_3dl/filter.h>
+#include <mcl_3dl/nd.h>
+#include <mcl_3dl/raycast.h>
+#include <mcl_3dl/chunked_kdtree.h>
 
-#include <compatibility.h>
+#include <mcl_3dl_compat/compatibility.h>
 
 class MCL3dlNode
 {
@@ -150,26 +150,26 @@ protected:
     double lpf_step;
   };
 
-  class State : public pf::ParticleBase<float>
+  class State : public mcl_3dl::pf::ParticleBase<float>
   {
   public:
-    Vec3 pos;
-    Quat rot;
+    mcl_3dl::Vec3 pos;
+    mcl_3dl::Quat rot;
     bool diff;
     float noise_ll_;
     float noise_la_;
     float noise_al_;
     float noise_aa_;
-    Vec3 odom_err_integ_lin;
-    Vec3 odom_err_integ_ang;
+    mcl_3dl::Vec3 odom_err_integ_lin;
+    mcl_3dl::Vec3 odom_err_integ_ang;
     class RPYVec
     {
     public:
-      Vec3 v;
+      mcl_3dl::Vec3 v;
       RPYVec()
       {
       }
-      explicit RPYVec(const Vec3 &v)
+      explicit RPYVec(const mcl_3dl::Vec3 &v)
       {
         this->v = v;
       }
@@ -259,25 +259,25 @@ protected:
     {
       diff = false;
       noise_ll_ = noise_la_ = noise_aa_ = noise_al_ = 0.0;
-      odom_err_integ_lin = Vec3(0.0, 0.0, 0.0);
-      odom_err_integ_ang = Vec3(0.0, 0.0, 0.0);
+      odom_err_integ_lin = mcl_3dl::Vec3(0.0, 0.0, 0.0);
+      odom_err_integ_ang = mcl_3dl::Vec3(0.0, 0.0, 0.0);
     }
-    State(const Vec3 pos, const Quat rot)
+    State(const mcl_3dl::Vec3 pos, const mcl_3dl::Quat rot)
     {
       this->pos = pos;
       this->rot = rot;
       noise_ll_ = noise_la_ = noise_aa_ = noise_al_ = 0.0;
-      odom_err_integ_lin = Vec3(0.0, 0.0, 0.0);
-      odom_err_integ_ang = Vec3(0.0, 0.0, 0.0);
+      odom_err_integ_lin = mcl_3dl::Vec3(0.0, 0.0, 0.0);
+      odom_err_integ_ang = mcl_3dl::Vec3(0.0, 0.0, 0.0);
       diff = false;
     }
-    State(const Vec3 pos, const Vec3 rpy)
+    State(const mcl_3dl::Vec3 pos, const mcl_3dl::Vec3 rpy)
     {
       this->pos = pos;
       this->rpy = RPYVec(rpy);
       noise_ll_ = noise_la_ = noise_aa_ = noise_al_ = 0.0;
-      odom_err_integ_lin = Vec3(0.0, 0.0, 0.0);
-      odom_err_integ_ang = Vec3(0.0, 0.0, 0.0);
+      odom_err_integ_lin = mcl_3dl::Vec3(0.0, 0.0, 0.0);
+      odom_err_integ_ang = mcl_3dl::Vec3(0.0, 0.0, 0.0);
       diff = true;
     }
     bool isDiff()
@@ -289,7 +289,7 @@ protected:
       auto r = rot.normalized();
       for (auto &p : pc.points)
       {
-        auto t = r * Vec3(p.x, p.y, p.z) + pos;
+        auto t = r * mcl_3dl::Vec3(p.x, p.y, p.z) + pos;
         p.x = t.x;
         p.y = t.y;
         p.z = t.z;
@@ -302,20 +302,20 @@ protected:
       State noise;
       if (mean.isDiff() || !sigma.isDiff())
       {
-        ROS_ERROR("Failed to generate noise. mean must be Quat and sigma must be rpy vec.");
+        ROS_ERROR("Failed to generate noise. mean must be mcl_3dl::Quat and sigma must be rpy vec.");
       }
       for (size_t i = 0; i < 3; i++)
       {
         std::normal_distribution<float> nd(mean[i], sigma[i]);
         noise[i] = noise[i + 7] = nd(engine_);
       }
-      Vec3 rpy_noise;
+      mcl_3dl::Vec3 rpy_noise;
       for (size_t i = 0; i < 3; i++)
       {
         std::normal_distribution<float> nd(0.0, sigma.rpy.v[i]);
         rpy_noise[i] = noise[i + 10] = nd(engine_);
       }
-      noise.rot = Quat(rpy_noise) * mean.rot;
+      noise.rot = mcl_3dl::Quat(rpy_noise) * mean.rot;
       return noise;
     }
     State operator+(const State &a) const
@@ -345,11 +345,11 @@ protected:
       return ret;
     }
   };
-  class ParticleWeightedMeanQuat : public pf::ParticleWeightedMean<State, float>
+  class ParticleWeightedMeanQuat : public mcl_3dl::pf::ParticleWeightedMean<State, float>
   {
   protected:
-    Vec3 front_sum_;
-    Vec3 up_sum_;
+    mcl_3dl::Vec3 front_sum_;
+    mcl_3dl::Vec3 up_sum_;
 
   public:
     ParticleWeightedMeanQuat()
@@ -366,8 +366,8 @@ protected:
       State e1 = s;
       e_.pos += e1.pos * prob;
 
-      const Vec3 front = s.rot * Vec3(1.0, 0.0, 0.0) * prob;
-      const Vec3 up = s.rot * Vec3(0.0, 0.0, 1.0) * prob;
+      const mcl_3dl::Vec3 front = s.rot * mcl_3dl::Vec3(1.0, 0.0, 0.0) * prob;
+      const mcl_3dl::Vec3 up = s.rot * mcl_3dl::Vec3(0.0, 0.0, 1.0) * prob;
 
       front_sum_ += front;
       up_sum_ += up;
@@ -377,7 +377,7 @@ protected:
     {
       assert(p_sum_ > 0.0);
 
-      return State(e_.pos / p_sum_, Quat(front_sum_, up_sum_));
+      return State(e_.pos / p_sum_, mcl_3dl::Quat(front_sum_, up_sum_));
     }
 
     float getTotalProbability()
@@ -385,7 +385,7 @@ protected:
       return p_sum_;
     }
   };
-  std::shared_ptr<pf::ParticleFilter<State, float, ParticleWeightedMeanQuat>> pf_;
+  std::shared_ptr<mcl_3dl::pf::ParticleFilter<State, float, ParticleWeightedMeanQuat>> pf_;
 
   class MyPointRepresentation : public pcl::PointRepresentation<pcl::PointXYZI>
   {
@@ -463,23 +463,23 @@ protected:
     }
     pf_->init(
         State(
-            Vec3(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z),
-            Quat(pose.pose.orientation.x,
-                 pose.pose.orientation.y,
-                 pose.pose.orientation.z,
-                 pose.pose.orientation.w)),
+            mcl_3dl::Vec3(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z),
+            mcl_3dl::Quat(pose.pose.orientation.x,
+                          pose.pose.orientation.y,
+                          pose.pose.orientation.z,
+                          pose.pose.orientation.w)),
         State(
-            Vec3(msg->pose.covariance[0],
-                 msg->pose.covariance[6 * 1 + 1],
-                 msg->pose.covariance[6 * 2 + 2]),
-            Vec3(msg->pose.covariance[6 * 3 + 3],
-                 msg->pose.covariance[6 * 4 + 4],
-                 msg->pose.covariance[6 * 5 + 5])));
+            mcl_3dl::Vec3(msg->pose.covariance[0],
+                          msg->pose.covariance[6 * 1 + 1],
+                          msg->pose.covariance[6 * 2 + 2]),
+            mcl_3dl::Vec3(msg->pose.covariance[6 * 3 + 3],
+                          msg->pose.covariance[6 * 4 + 4],
+                          msg->pose.covariance[6 * 5 + 5])));
     pc_update_.reset();
     auto integ_reset_func = [](State &s)
     {
-      s.odom_err_integ_lin = Vec3();
-      s.odom_err_integ_ang = Vec3();
+      s.odom_err_integ_lin = mcl_3dl::Vec3();
+      s.odom_err_integ_ang = mcl_3dl::Vec3();
     };
     pf_->predict(integ_reset_func);
   }
@@ -488,13 +488,13 @@ protected:
   {
     odom_ =
         State(
-            Vec3(msg->pose.pose.position.x,
-                 msg->pose.pose.position.y,
-                 msg->pose.pose.position.z),
-            Quat(msg->pose.pose.orientation.x,
-                 msg->pose.pose.orientation.y,
-                 msg->pose.pose.orientation.z,
-                 msg->pose.pose.orientation.w));
+            mcl_3dl::Vec3(msg->pose.pose.position.x,
+                          msg->pose.pose.position.y,
+                          msg->pose.pose.position.z),
+            mcl_3dl::Quat(msg->pose.pose.orientation.x,
+                          msg->pose.pose.orientation.y,
+                          msg->pose.pose.orientation.z,
+                          msg->pose.pose.orientation.w));
     if (!has_odom_)
     {
       odom_prev_ = odom_;
@@ -511,22 +511,22 @@ protected:
     }
     else if (dt > 0.05)
     {
-      const Vec3 v = odom_prev_.rot.inv() * (odom_.pos - odom_prev_.pos);
-      const Quat r = odom_prev_.rot.inv() * odom_.rot;
-      Vec3 axis;
+      const mcl_3dl::Vec3 v = odom_prev_.rot.inv() * (odom_.pos - odom_prev_.pos);
+      const mcl_3dl::Quat r = odom_prev_.rot.inv() * odom_.rot;
+      mcl_3dl::Vec3 axis;
       float ang;
       r.getAxisAng(axis, ang);
 
       const float trans = v.norm();
       auto prediction_func = [this, &v, &r, axis, ang, trans, &dt](State &s)
       {
-        const Vec3 diff = v * (1.0 + s.noise_ll_) + Vec3(s.noise_al_ * ang, 0.0, 0.0);
+        const mcl_3dl::Vec3 diff = v * (1.0 + s.noise_ll_) + mcl_3dl::Vec3(s.noise_al_ * ang, 0.0, 0.0);
         s.odom_err_integ_lin += (diff - v);
         s.pos += s.rot * diff;
         const float yaw_diff = s.noise_la_ * trans + s.noise_aa_ * ang;
-        s.rot = Quat(Vec3(0.0, 0.0, 1.0), yaw_diff) * s.rot * r;
+        s.rot = mcl_3dl::Quat(mcl_3dl::Vec3(0.0, 0.0, 1.0), yaw_diff) * s.rot * r;
         s.rot.normalize();
-        s.odom_err_integ_ang += Vec3(0.0, 0.0, yaw_diff);
+        s.odom_err_integ_ang += mcl_3dl::Vec3(0.0, 0.0, yaw_diff);
         s.odom_err_integ_lin *= (1.0 - dt / params_.odom_err_integ_lin_tc);
         s.odom_err_integ_ang *= (1.0 - dt / params_.odom_err_integ_ang_tc);
       };
@@ -593,7 +593,7 @@ protected:
       pc_accum_header_.clear();
       return;
     }
-    std::vector<Vec3> origins;
+    std::vector<mcl_3dl::Vec3> origins;
     for (auto &h : pc_accum_header_)
     {
       try
@@ -603,7 +603,7 @@ protected:
                              h.frame_id, h.stamp,
                              frame_ids_["odom"], trans);
         auto origin = trans.getOrigin();
-        origins.push_back(Vec3(origin.x(), origin.y(), origin.z()));
+        origins.push_back(mcl_3dl::Vec3(origin.x(), origin.y(), origin.z()));
       }
       catch (tf::TransformException &e)
       {
@@ -727,8 +727,8 @@ protected:
     float match_ratio_max = FLT_MIN;
     const float match_dist_min = params_.match_dist_min;
     const float match_weight = params_.match_weight;
-    NormalLikelihood<float> odom_error_lin_nd(params_.odom_err_integ_lin_sigma);
-    NormalLikelihood<float> odom_error_ang_nd(params_.odom_err_integ_ang_sigma);
+    mcl_3dl::NormalLikelihood<float> odom_error_lin_nd(params_.odom_err_integ_lin_sigma);
+    mcl_3dl::NormalLikelihood<float> odom_error_ang_nd(params_.odom_err_integ_ang_sigma);
     auto measure_func = [this, &match_dist_min, &match_weight,
                          &id, &sqdist, &pc_particle, &pc_local,
                          &pc_particle_beam, &pc_local_beam, &origins,
@@ -768,10 +768,10 @@ protected:
       for (auto &p : pc_particle_beam->points)
       {
         const int beam_header_id = lroundf(p.intensity);
-        Raycast<pcl::PointXYZI> ray(
+        mcl_3dl::Raycast<pcl::PointXYZI> ray(
             kdtree_,
             s.pos + s.rot * origins[beam_header_id],
-            Vec3(p.x, p.y, p.z),
+            mcl_3dl::Vec3(p.x, p.y, p.z),
             params_.map_grid_min, params_.map_grid_max);
         for (auto point : ray)
         {
@@ -806,12 +806,12 @@ protected:
     }
     else
     {
-      NormalLikelihood<float> nl_lin(params_.bias_var_dist);
-      NormalLikelihood<float> nl_ang(params_.bias_var_ang);
+      mcl_3dl::NormalLikelihood<float> nl_lin(params_.bias_var_dist);
+      mcl_3dl::NormalLikelihood<float> nl_ang(params_.bias_var_ang);
       auto bias_func = [this, &nl_lin, &nl_ang](const State &s, float &p_bias) -> void
       {
         const float lin_diff = (s.pos - state_prev_.pos).norm();
-        Vec3 axis;
+        mcl_3dl::Vec3 axis;
         float ang_diff;
         (s.rot * state_prev_.rot.inv()).getAxisAng(axis, ang_diff);
         p_bias = nl_lin(lin_diff) * nl_ang(ang_diff) + 1e-6;
@@ -840,8 +840,8 @@ protected:
       for (auto &p : pc_particle_beam->points)
       {
         int beam_header_id = lroundf(p.intensity);
-        Vec3 pos = e.pos + e.rot * origins[beam_header_id];
-        Vec3 end(p.x, p.y, p.z);
+        mcl_3dl::Vec3 pos = e.pos + e.rot * origins[beam_header_id];
+        mcl_3dl::Vec3 end(p.x, p.y, p.z);
 
         visualization_msgs::Marker marker;
         marker.header.frame_id = frame_ids_["map"];
@@ -882,10 +882,10 @@ protected:
       for (auto &p : pc_particle_beam->points)
       {
         const int beam_header_id = lroundf(p.intensity);
-        Raycast<pcl::PointXYZI> ray(
+        mcl_3dl::Raycast<pcl::PointXYZI> ray(
             kdtree_,
             e.pos + e.rot * origins[beam_header_id],
-            Vec3(p.x, p.y, p.z),
+            mcl_3dl::Vec3(p.x, p.y, p.z),
             params_.map_grid_min, params_.map_grid_max);
         for (auto point : ray)
         {
@@ -954,8 +954,8 @@ protected:
       pub_debug_marker_.publish(markers);
     }
 
-    Vec3 map_pos;
-    Quat map_rot;
+    mcl_3dl::Vec3 map_pos;
+    mcl_3dl::Quat map_rot;
     map_pos = e.pos - e.rot * odom_.rot.inv() * odom_.pos;
     map_rot = e.rot * odom_.rot.inv();
 
@@ -967,7 +967,7 @@ protected:
     }
     else
     {
-      Vec3 jump_axis;
+      mcl_3dl::Vec3 jump_axis;
       float jump_ang;
       float jump_dist = (e.pos - state_prev_.pos).norm();
       (e.rot.inv() * state_prev_.rot).getAxisAng(jump_axis, jump_ang);
@@ -979,8 +979,8 @@ protected:
 
         auto integ_reset_func = [](State &s)
         {
-          s.odom_err_integ_lin = Vec3();
-          s.odom_err_integ_ang = Vec3();
+          s.odom_err_integ_lin = mcl_3dl::Vec3();
+          s.odom_err_integ_ang = mcl_3dl::Vec3();
         };
         pf_->predict(integ_reset_func);
       }
@@ -1057,7 +1057,7 @@ protected:
 
     {
       bool fix = false;
-      Vec3 fix_axis;
+      mcl_3dl::Vec3 fix_axis;
       const float fix_ang = sqrtf(cov[3][3] + cov[4][4] + cov[5][5]);
       const float fix_dist = sqrtf(cov[0][0] + cov[1][1] + cov[2][2]);
       ROS_DEBUG("cov: lin %0.3f ang %0.3f", fix_dist, fix_ang);
@@ -1145,12 +1145,12 @@ protected:
     pub_particle_.publish(pa);
 
     pf_->resample(State(
-        Vec3(params_.resample_var_x,
-             params_.resample_var_y,
-             params_.resample_var_z),
-        Vec3(params_.resample_var_roll,
-             params_.resample_var_pitch,
-             params_.resample_var_yaw)));
+        mcl_3dl::Vec3(params_.resample_var_x,
+                      params_.resample_var_y,
+                      params_.resample_var_z),
+        mcl_3dl::Vec3(params_.resample_var_roll,
+                      params_.resample_var_pitch,
+                      params_.resample_var_yaw)));
 
     std::normal_distribution<float> noise(0.0, 1.0);
     auto update_noise_func = [this, &noise](State &s)
@@ -1192,12 +1192,12 @@ protected:
     {
       ROS_WARN_THROTTLE(3.0, "Low match_ratio. Expansion resetting.");
       pf_->noise(State(
-          Vec3(params_.expansion_var_x,
-               params_.expansion_var_y,
-               params_.expansion_var_z),
-          Vec3(params_.expansion_var_roll,
-               params_.expansion_var_pitch,
-               params_.expansion_var_yaw)));
+          mcl_3dl::Vec3(params_.expansion_var_x,
+                        params_.expansion_var_y,
+                        params_.expansion_var_z),
+          mcl_3dl::Vec3(params_.expansion_var_roll,
+                        params_.expansion_var_pitch,
+                        params_.expansion_var_yaw)));
       status.status = mcl_3dl::Status::EXPANSION_RESETTING;
     }
     pc_local_accum_.reset(new pcl::PointCloud<pcl::PointXYZI>);
@@ -1237,21 +1237,22 @@ protected:
   }
   void cbLandmark(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg)
   {
-    NormalLikelihoodNd<float, 6> nd(Eigen::Matrix<double, 6, 6>(
-                                        msg->pose.covariance.data())
-                                        .cast<float>());
+    mcl_3dl::NormalLikelihoodNd<float, 6> nd(
+        Eigen::Matrix<double, 6, 6>(
+            msg->pose.covariance.data())
+            .cast<float>());
     const State measured(
-        Vec3(msg->pose.pose.position.x,
-             msg->pose.pose.position.y,
-             msg->pose.pose.position.z),
-        Quat(msg->pose.pose.orientation.x,
-             msg->pose.pose.orientation.y,
-             msg->pose.pose.orientation.z,
-             msg->pose.pose.orientation.w));
+        mcl_3dl::Vec3(msg->pose.pose.position.x,
+                      msg->pose.pose.position.y,
+                      msg->pose.pose.position.z),
+        mcl_3dl::Quat(msg->pose.pose.orientation.x,
+                      msg->pose.pose.orientation.y,
+                      msg->pose.pose.orientation.z,
+                      msg->pose.pose.orientation.w));
     auto measure_func = [this, &measured, &nd](const State &s) -> float
     {
       State diff = s - measured;
-      const Vec3 rot_rpy = diff.rot.getRPY();
+      const mcl_3dl::Vec3 rot_rpy = diff.rot.getRPY();
       const Eigen::Matrix<float, 6, 1> diff_vec =
           (Eigen::MatrixXf(6, 1) << diff.pos.x,
            diff.pos.y,
@@ -1267,7 +1268,7 @@ protected:
   }
   void cbImu(const sensor_msgs::Imu::ConstPtr &msg)
   {
-    Vec3 acc;
+    mcl_3dl::Vec3 acc;
     acc.x = f_acc_[0]->in(msg->linear_acceleration.x);
     acc.y = f_acc_[1]->in(msg->linear_acceleration.y);
     acc.z = f_acc_[2]->in(msg->linear_acceleration.z);
@@ -1291,7 +1292,7 @@ protected:
     }
     else if (dt > 0.05)
     {
-      Vec3 acc_measure = acc / acc.norm();
+      mcl_3dl::Vec3 acc_measure = acc / acc.norm();
       try
       {
         tf::Stamped<tf::Vector3> in, out;
@@ -1301,7 +1302,7 @@ protected:
         in.setY(acc_measure.y);
         in.setZ(acc_measure.z);
         tfl_.transformVector(frame_ids_["base_link"], in, out);
-        acc_measure = Vec3(out.x(), out.y(), out.z());
+        acc_measure = mcl_3dl::Vec3(out.x(), out.y(), out.z());
 
         tf::StampedTransform trans;
         // Static transform
@@ -1311,13 +1312,13 @@ protected:
         imu_quat_.y = msg->orientation.y;
         imu_quat_.z = msg->orientation.z;
         imu_quat_.w = msg->orientation.w;
-        Vec3 axis;
+        mcl_3dl::Vec3 axis;
         float angle;
         imu_quat_.getAxisAng(axis, angle);
-        axis = Quat(trans.getRotation().x(),
-                    trans.getRotation().y(),
-                    trans.getRotation().z(),
-                    trans.getRotation().w()) *
+        axis = mcl_3dl::Quat(trans.getRotation().x(),
+                             trans.getRotation().y(),
+                             trans.getRotation().z(),
+                             trans.getRotation().w()) *
                axis;
         imu_quat_.setAxisAng(axis, angle);
       }
@@ -1326,10 +1327,10 @@ protected:
         return;
       }
       const float acc_measure_norm = acc_measure.norm();
-      NormalLikelihood<float> nd(params_.acc_var);
+      mcl_3dl::NormalLikelihood<float> nd(params_.acc_var);
       auto imu_measure_func = [this, &nd, &acc_measure, &acc_measure_norm](const State &s) -> float
       {
-        const Vec3 acc_estim = s.rot.inv() * Vec3(0.0, 0.0, 1.0);
+        const mcl_3dl::Vec3 acc_estim = s.rot.inv() * mcl_3dl::Vec3(0.0, 0.0, 1.0);
         const float diff = acosf(
             acc_estim.dot(acc_measure) / (acc_measure_norm * acc_estim.norm()));
         return nd(diff);
@@ -1349,12 +1350,12 @@ protected:
                         std_srvs::TriggerResponse &response)
   {
     pf_->noise(State(
-        Vec3(params_.expansion_var_x,
-             params_.expansion_var_y,
-             params_.expansion_var_z),
-        Vec3(params_.expansion_var_roll,
-             params_.expansion_var_pitch,
-             params_.expansion_var_yaw)));
+        mcl_3dl::Vec3(params_.expansion_var_x,
+                      params_.expansion_var_y,
+                      params_.expansion_var_z),
+        mcl_3dl::Vec3(params_.expansion_var_roll,
+                      params_.expansion_var_pitch,
+                      params_.expansion_var_yaw)));
     return true;
   }
   bool cbGlobalLocalization(std_srvs::TriggerRequest &request,
@@ -1407,7 +1408,7 @@ protected:
       particle.state.pos.x = pit->x;
       particle.state.pos.y = pit->y;
       particle.state.pos.z = pit->z;
-      particle.state.rot = Quat(Vec3(0.0, 0.0, 2.0 * M_PI * cnt / dir)) * imu_quat_;
+      particle.state.rot = mcl_3dl::Quat(mcl_3dl::Vec3(0.0, 0.0, 2.0 * M_PI * cnt / dir)) * imu_quat_;
       particle.state.rot.normalize();
       if (++cnt >= dir)
       {
@@ -1522,7 +1523,7 @@ public:
             params_.match_output_dist,
             std::max(params_.match_dist_min, params_.map_grid_max * 4.0)));
     ROS_DEBUG("max_search_radius: %0.3f", max_search_radius);
-    kdtree_.reset(new ChunkedKdtree<pcl::PointXYZI>(map_chunk, max_search_radius));
+    kdtree_.reset(new mcl_3dl::ChunkedKdtree<pcl::PointXYZI>(map_chunk, max_search_radius));
     kdtree_->setEpsilon(params_.map_grid_min / 4);
     kdtree_->setPointRepresentation(
         boost::dynamic_pointer_cast<
@@ -1535,7 +1536,7 @@ public:
     params_.global_localization_div_yaw = lroundf(2 * M_PI / grid_ang);
 
     pnh_.param("num_particles", params_.num_particles, 64);
-    pf_.reset(new pf::ParticleFilter<State, float, ParticleWeightedMeanQuat>(params_.num_particles));
+    pf_.reset(new mcl_3dl::pf::ParticleFilter<State, float, ParticleWeightedMeanQuat>(params_.num_particles));
     pnh_.param("num_points", params_.num_points, 96);
     pnh_.param("num_points_global", params_.num_points_global, 8);
     pnh_.param("num_points_beam", params_.num_points_beam, 3);
@@ -1588,25 +1589,25 @@ public:
     pnh_.param("init_var_yaw", v_yaw, 0.5);
     pf_->init(
         State(
-            Vec3(x, y, z),
-            Quat(Vec3(roll, pitch, yaw))),
+            mcl_3dl::Vec3(x, y, z),
+            mcl_3dl::Quat(mcl_3dl::Vec3(roll, pitch, yaw))),
         State(
-            Vec3(v_x, v_y, v_z),
-            Vec3(v_roll, v_pitch, v_yaw)));
+            mcl_3dl::Vec3(v_x, v_y, v_z),
+            mcl_3dl::Vec3(v_roll, v_pitch, v_yaw)));
 
     pnh_.param("lpf_step", params_.lpf_step, 16.0);
-    f_pos_[0].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step, 0.0));
-    f_pos_[1].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step, 0.0));
-    f_pos_[2].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step, 0.0));
-    f_ang_[0].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step, 0.0, true));
-    f_ang_[1].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step, 0.0, true));
-    f_ang_[2].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step, 0.0, true));
+    f_pos_[0].reset(new mcl_3dl::Filter(mcl_3dl::Filter::FILTER_LPF, params_.lpf_step, 0.0));
+    f_pos_[1].reset(new mcl_3dl::Filter(mcl_3dl::Filter::FILTER_LPF, params_.lpf_step, 0.0));
+    f_pos_[2].reset(new mcl_3dl::Filter(mcl_3dl::Filter::FILTER_LPF, params_.lpf_step, 0.0));
+    f_ang_[0].reset(new mcl_3dl::Filter(mcl_3dl::Filter::FILTER_LPF, params_.lpf_step, 0.0, true));
+    f_ang_[1].reset(new mcl_3dl::Filter(mcl_3dl::Filter::FILTER_LPF, params_.lpf_step, 0.0, true));
+    f_ang_[2].reset(new mcl_3dl::Filter(mcl_3dl::Filter::FILTER_LPF, params_.lpf_step, 0.0, true));
 
     double acc_lpf_step;
     pnh_.param("acc_lpf_step", acc_lpf_step, 128.0);
-    f_acc_[0].reset(new Filter(Filter::FILTER_LPF, acc_lpf_step, 0.0));
-    f_acc_[1].reset(new Filter(Filter::FILTER_LPF, acc_lpf_step, 0.0));
-    f_acc_[2].reset(new Filter(Filter::FILTER_LPF, acc_lpf_step, 0.0));
+    f_acc_[0].reset(new mcl_3dl::Filter(mcl_3dl::Filter::FILTER_LPF, acc_lpf_step, 0.0));
+    f_acc_[1].reset(new mcl_3dl::Filter(mcl_3dl::Filter::FILTER_LPF, acc_lpf_step, 0.0));
+    f_acc_[2].reset(new mcl_3dl::Filter(mcl_3dl::Filter::FILTER_LPF, acc_lpf_step, 0.0));
     pnh_.param("acc_var", params_.acc_var, M_PI / 4.0);  // 45 deg
 
     pnh_.param("jump_dist", params_.jump_dist, 1.0);
@@ -1634,10 +1635,10 @@ public:
     pnh_.param("publish_tf", publish_tf_, true);
     pnh_.param("output_pcd", output_pcd_, false);
 
-    imu_quat_ = Quat(0.0, 0.0, 0.0, 1.0);
+    imu_quat_ = mcl_3dl::Quat(0.0, 0.0, 0.0, 1.0);
 
     has_odom_ = has_map_ = has_imu_ = false;
-    localize_rate_.reset(new Filter(Filter::FILTER_LPF, 5.0, 0.0));
+    localize_rate_.reset(new mcl_3dl::Filter(mcl_3dl::Filter::FILTER_LPF, 5.0, 0.0));
 
     map_update_timer_ = nh_.createTimer(
         *params_.map_update_interval,
@@ -1708,10 +1709,10 @@ protected:
   tf::TransformListener tfl_;
   tf::TransformBroadcaster tfb_;
 
-  std::shared_ptr<Filter> f_pos_[3];
-  std::shared_ptr<Filter> f_ang_[3];
-  std::shared_ptr<Filter> f_acc_[3];
-  std::shared_ptr<Filter> localize_rate_;
+  std::shared_ptr<mcl_3dl::Filter> f_pos_[3];
+  std::shared_ptr<mcl_3dl::Filter> f_ang_[3];
+  std::shared_ptr<mcl_3dl::Filter> f_acc_[3];
+  std::shared_ptr<mcl_3dl::Filter> localize_rate_;
   ros::Time localized_last_;
   ros::Duration tf_tolerance_base_;
 
@@ -1734,7 +1735,7 @@ protected:
   ros::Time imu_last_;
   int cnt_measure_;
   int cnt_accum_;
-  Quat imu_quat_;
+  mcl_3dl::Quat imu_quat_;
   size_t global_localization_fix_cnt_;
 
   MyPointRepresentation point_rep_;
@@ -1744,7 +1745,7 @@ protected:
   pcl::PointCloud<pcl::PointXYZI>::Ptr pc_update_;
   pcl::PointCloud<pcl::PointXYZI>::Ptr pc_all_accum_;
   pcl::PointCloud<pcl::PointXYZI>::Ptr pc_local_accum_;
-  ChunkedKdtree<pcl::PointXYZI>::Ptr kdtree_;
+  mcl_3dl::ChunkedKdtree<pcl::PointXYZI>::Ptr kdtree_;
   std::vector<std_msgs::Header> pc_accum_header_;
 
   std::random_device seed_gen_;

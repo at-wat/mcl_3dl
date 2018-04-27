@@ -33,8 +33,8 @@
 
 #include <boost/chrono.hpp>
 
-#include <chunked_kdtree.h>
-#include <raycast.h>
+#include <mcl_3dl/chunked_kdtree.h>
+#include <mcl_3dl/raycast.h>
 
 void performanceTestRaycast(const float chunk_size)
 {
@@ -49,7 +49,8 @@ void performanceTestRaycast(const float chunk_size)
       pc.push_back(pcl::PointXYZ(y + 10.0, 1.5, z));
     }
   }
-  ChunkedKdtree<pcl::PointXYZ>::Ptr kdtree(new ChunkedKdtree<pcl::PointXYZ>(chunk_size, 0.1));
+  mcl_3dl::ChunkedKdtree<pcl::PointXYZ>::Ptr kdtree(
+      new mcl_3dl::ChunkedKdtree<pcl::PointXYZ>(chunk_size, 0.1));
   kdtree->setInputCloud(pc.makeShared());
   const auto tnow = boost::chrono::high_resolution_clock::now();
   std::cerr << "- Generate kdtree: "
@@ -64,9 +65,9 @@ void performanceTestRaycast(const float chunk_size)
     for (float z = -50.0; z < 50.0; z += 1.1)
     {
       cnt++;
-      Raycast<pcl::PointXYZ> ray(
+      mcl_3dl::Raycast<pcl::PointXYZ> ray(
           kdtree,
-          Vec3(0.0, 0.0, 0.0), Vec3(1.0, y * 2.0, z * 2.0), 0.1, 0.1);
+          mcl_3dl::Vec3(0.0, 0.0, 0.0), mcl_3dl::Vec3(1.0, y * 2.0, z * 2.0), 0.1, 0.1);
       for (auto point : ray)
       {
         if (point.collision_)
@@ -79,7 +80,7 @@ void performanceTestRaycast(const float chunk_size)
   }
   std::cerr << "- Collisions: " << collision_cnt << "/" << cnt << std::endl;
   const auto tnow2 = boost::chrono::high_resolution_clock::now();
-  std::cerr << "- Raycast: "
+  std::cerr << "- mcl_3dl::Raycast: "
             << boost::chrono::duration<float>(tnow2 - ts2).count()
             << " sec" << std::endl;
   std::cerr << std::endl;

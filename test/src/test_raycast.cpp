@@ -33,8 +33,8 @@
 
 #include <gtest/gtest.h>
 
-#include <chunked_kdtree.h>
-#include <raycast.h>
+#include <mcl_3dl/chunked_kdtree.h>
+#include <mcl_3dl/raycast.h>
 
 TEST(RaycastTest, testCollision)
 {
@@ -46,7 +46,7 @@ TEST(RaycastTest, testCollision)
       pc.push_back(pcl::PointXYZ(0.5, y, z));
     }
   }
-  ChunkedKdtree<pcl::PointXYZ>::Ptr kdtree(new ChunkedKdtree<pcl::PointXYZ>(10.0, 1.0));
+  mcl_3dl::ChunkedKdtree<pcl::PointXYZ>::Ptr kdtree(new mcl_3dl::ChunkedKdtree<pcl::PointXYZ>(10.0, 1.0));
   kdtree->setInputCloud(pc.makeShared());
 
   for (float y = -0.8; y < 0.8; y += 0.11)
@@ -54,15 +54,15 @@ TEST(RaycastTest, testCollision)
     for (float z = -0.8; z < 0.8; z += 0.13)
     {
       bool collision = false;
-      Raycast<pcl::PointXYZ> ray(
+      mcl_3dl::Raycast<pcl::PointXYZ> ray(
           kdtree,
-          Vec3(0.0, 0.0, 0.0), Vec3(1.0, y * 2.0, z * 2.0), 0.1, 0.1);
+          mcl_3dl::Vec3(0.0, 0.0, 0.0), mcl_3dl::Vec3(1.0, y * 2.0, z * 2.0), 0.1, 0.1);
       for (auto point : ray)
       {
         if (point.collision_)
         {
           collision = true;
-          EXPECT_NEAR((point.pos_ - Vec3(0.5, y, z)).norm(), 0.0, 0.2);
+          EXPECT_NEAR((point.pos_ - mcl_3dl::Vec3(0.5, y, z)).norm(), 0.0, 0.2);
           break;
         }
       }
@@ -74,9 +74,9 @@ TEST(RaycastTest, testCollision)
     for (float z = -1.0; z < 1.0; z += 0.13)
     {
       bool collision = false;
-      Raycast<pcl::PointXYZ> ray(
+      mcl_3dl::Raycast<pcl::PointXYZ> ray(
           kdtree,
-          Vec3(0.0, 0.0, 0.0), Vec3(0.5, y, z), 0.1, 0.1);
+          mcl_3dl::Vec3(0.0, 0.0, 0.0), mcl_3dl::Vec3(0.5, y, z), 0.1, 0.1);
       for (auto point : ray)
       {
         if (point.collision_)
@@ -87,9 +87,9 @@ TEST(RaycastTest, testCollision)
   }
   {
     bool collision = false;
-    Raycast<pcl::PointXYZ> ray(
+    mcl_3dl::Raycast<pcl::PointXYZ> ray(
         kdtree,
-        Vec3(0.0, 0.0, 0.0), Vec3(0.5, 3.0, 0.0), 0.1, 0.1);
+        mcl_3dl::Vec3(0.0, 0.0, 0.0), mcl_3dl::Vec3(0.5, 3.0, 0.0), 0.1, 0.1);
     for (auto point : ray)
     {
       if (point.collision_)
@@ -109,14 +109,14 @@ TEST(RaycastTest, testCollisionTolerance)
       pc.push_back(pcl::PointXYZ(0.5, y, z));
     }
   }
-  ChunkedKdtree<pcl::PointXYZ>::Ptr kdtree(new ChunkedKdtree<pcl::PointXYZ>(10.0, 1.0));
+  mcl_3dl::ChunkedKdtree<pcl::PointXYZ>::Ptr kdtree(new mcl_3dl::ChunkedKdtree<pcl::PointXYZ>(10.0, 1.0));
   kdtree->setInputCloud(pc.makeShared());
 
   {
     bool collision = false;
-    Raycast<pcl::PointXYZ> ray(
+    mcl_3dl::Raycast<pcl::PointXYZ> ray(
         kdtree,
-        Vec3(0.0, 0.0, 0.0), Vec3(0.7, 0.0, 0.0), 0.05, 0.1);
+        mcl_3dl::Vec3(0.0, 0.0, 0.0), mcl_3dl::Vec3(0.7, 0.0, 0.0), 0.05, 0.1);
     for (auto point : ray)
     {
       if (point.collision_)
@@ -129,9 +129,9 @@ TEST(RaycastTest, testCollisionTolerance)
   }
   {
     bool collision = false;
-    Raycast<pcl::PointXYZ> ray(
+    mcl_3dl::Raycast<pcl::PointXYZ> ray(
         kdtree,
-        Vec3(0.0, 0.0, 0.0), Vec3(0.5, 0.0, 0.0), 0.1, 0.15);
+        mcl_3dl::Vec3(0.0, 0.0, 0.0), mcl_3dl::Vec3(0.5, 0.0, 0.0), 0.1, 0.15);
     for (auto point : ray)
     {
       if (point.collision_)
@@ -144,9 +144,9 @@ TEST(RaycastTest, testCollisionTolerance)
   }
   {
     bool collision = false;
-    Raycast<pcl::PointXYZ> ray(
+    mcl_3dl::Raycast<pcl::PointXYZ> ray(
         kdtree,
-        Vec3(0.0, 0.0, 0.0), Vec3(0.3, 0.0, 0.0), 0.1, 0.15);
+        mcl_3dl::Vec3(0.0, 0.0, 0.0), mcl_3dl::Vec3(0.3, 0.0, 0.0), 0.1, 0.15);
     for (auto point : ray)
     {
       if (point.collision_)
@@ -168,14 +168,14 @@ TEST(RaycastTest, testSinAng)
       pc.push_back(pcl::PointXYZ(0.5, y, z));
     }
   }
-  ChunkedKdtree<pcl::PointXYZ>::Ptr kdtree(new ChunkedKdtree<pcl::PointXYZ>(10.0, 1.0));
+  mcl_3dl::ChunkedKdtree<pcl::PointXYZ>::Ptr kdtree(new mcl_3dl::ChunkedKdtree<pcl::PointXYZ>(10.0, 1.0));
   kdtree->setInputCloud(pc.makeShared());
 
   {
     bool collision = false;
-    Raycast<pcl::PointXYZ> ray(
+    mcl_3dl::Raycast<pcl::PointXYZ> ray(
         kdtree,
-        Vec3(0.0, 0.0, 0.0), Vec3(1.0, 0.0, 0.0), 0.1, 0.1);
+        mcl_3dl::Vec3(0.0, 0.0, 0.0), mcl_3dl::Vec3(1.0, 0.0, 0.0), 0.1, 0.1);
     for (auto point : ray)
     {
       if (point.collision_)
@@ -189,9 +189,9 @@ TEST(RaycastTest, testSinAng)
   }
   {
     bool collision = false;
-    Raycast<pcl::PointXYZ> ray(
+    mcl_3dl::Raycast<pcl::PointXYZ> ray(
         kdtree,
-        Vec3(0.0, 5.0, 0.0), Vec3(1.0, -5.0, 0.0), 0.1, 0.1);
+        mcl_3dl::Vec3(0.0, 5.0, 0.0), mcl_3dl::Vec3(1.0, -5.0, 0.0), 0.1, 0.1);
     for (auto point : ray)
     {
       if (point.collision_)
@@ -205,9 +205,9 @@ TEST(RaycastTest, testSinAng)
   }
   {
     bool collision = false;
-    Raycast<pcl::PointXYZ> ray(
+    mcl_3dl::Raycast<pcl::PointXYZ> ray(
         kdtree,
-        Vec3(0.0, 3.0, 0.0), Vec3(1.0, -3.0, 0.0), 0.1, 0.1);
+        mcl_3dl::Vec3(0.0, 3.0, 0.0), mcl_3dl::Vec3(1.0, -3.0, 0.0), 0.1, 0.1);
     for (auto point : ray)
     {
       if (point.collision_)

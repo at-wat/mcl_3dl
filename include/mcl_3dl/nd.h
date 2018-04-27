@@ -27,77 +27,56 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef FILTER_H
-#define FILTER_H
+#ifndef MCL_3DL_ND_H
+#define MCL_3DL_ND_H
 
+#define _USE_MATH_DEFINES
 #include <cmath>
+#include <Eigen/Core>
+#include <Eigen/LU>
 
-class Filter
+namespace mcl_3dl
+{
+template <typename FLT_TYPE = float>
+class NormalLikelihood
 {
 public:
-  enum type_t
+  explicit NormalLikelihood(const FLT_TYPE sigma)
   {
-    FILTER_HPF,
-    FILTER_LPF
-  };
+    a_ = 1.0 / sqrtf(2.0 * M_PI * sigma * sigma);
+    sq2_ = sigma * sigma * 2.0;
+  }
+  FLT_TYPE operator()(const FLT_TYPE x)
+  {
+    return a_ * expf(-x * x / sq2_);
+  }
 
 protected:
-  type_t type_;
-  float time_const_;
-  float x_;
-  float out_;
-  float k_[4];
-  bool angle_;
-
-public:
-  Filter(const enum type_t type, const float tc, const float out0, const bool angle = false)
-  {
-    angle_ = angle;
-    time_const_ = tc;
-    type_ = type;
-    switch (type_)
-    {
-      case FILTER_LPF:
-        k_[3] = -1 / (1.0 + 2 * time_const_);
-        k_[2] = -k_[3];
-        k_[1] = (1.0 - 2 * time_const_) * k_[3];
-        k_[0] = -k_[1] - 1.0;
-        x_ = (1 - k_[2]) * out0 / k_[3];
-        break;
-      case FILTER_HPF:
-        k_[3] = -1 / (1.0 + 2 * time_const_);
-        k_[2] = -k_[3] * 2 * time_const_;
-        k_[1] = (1.0 - 2 * time_const_) * k_[3];
-        k_[0] = 2 * time_const_ * (-k_[1] + 1.0);
-        x_ = (1 - k_[2]) * out0 / k_[3];
-        break;
-    }
-    out_ = out0;
-  }
-  void set(const float &out0)
-  {
-    x_ = (1 - k_[2]) * out0 / k_[3];
-    out_ = out0;
-  }
-  float in(const float &i)
-  {
-    float in = i;
-    assert(std::isfinite(in));
-
-    if (angle_)
-    {
-      in = out_ + remainder(in - out_, M_PI * 2.0);
-    }
-    x_ = k_[0] * in + k_[1] * x_;
-    out_ = k_[2] * in + k_[3] * x_;
-
-    assert(std::isfinite(out_));
-    return out_;
-  }
-  float get()
-  {
-    return out_;
-  }
+  FLT_TYPE a_;
+  FLT_TYPE sq2_;
 };
 
-#endif  // FILTER_H
+template <typename FLT_TYPE = float, size_t DIMENSION = 6>
+class NormalLikelihoodNd
+{
+public:
+  using Matrix = Eigen::Matrix<FLT_TYPE, DIMENSION, DIMENSION>;
+  using Vector = Eigen::Matrix<FLT_TYPE, DIMENSION, 1>;
+
+  explicit NormalLikelihoodNd(const Matrix sigma)
+  {
+    a_ = 1.0 / (pow(2.0 * M_PI, 0.5 * DIMENSION) * sqrt(sigma.determinant()));
+    sigma_inv_ = sigma.inverse();
+  }
+  FLT_TYPE operator()(const Vector x)
+  {
+    return a_ * expf(-0.5 * x.transpose() * sigma_inv_ * x);
+  }
+
+protected:
+  FLT_TYPE a_;
+  Matrix sigma_inv_;
+};
+}  // namespace mcl_3dl
+
+#endif  // MCL_3DL_ND_H

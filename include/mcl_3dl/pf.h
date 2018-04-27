@@ -27,8 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef PF_H
-#define PF_H
+#ifndef MCL_3DL_PF_H
+#define MCL_3DL_PF_H
 
 #include <random>
 #include <vector>
@@ -36,6 +36,8 @@
 #include <functional>
 #include <cmath>
 
+namespace mcl_3dl
+{
 namespace pf
 {
 template <typename FLT_TYPE = float>
@@ -408,5 +410,6 @@ protected:
 };
 
 }  // namespace pf
+}  // namespace mcl_3dl
 
-#endif  // PF_H
+#endif  // MCL_3DL_PF_H

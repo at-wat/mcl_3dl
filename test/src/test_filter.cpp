@@ -31,13 +31,13 @@
 
 #include <gtest/gtest.h>
 
-#include <filter.h>
+#include <mcl_3dl/filter.h>
 
 TEST(FilterTest, testLPF)
 {
   for (int time_const = 20; time_const < 100; time_const += 20)
   {
-    Filter lpf(Filter::FILTER_LPF, time_const, 0.0);
+    mcl_3dl::Filter lpf(mcl_3dl::Filter::FILTER_LPF, time_const, 0.0);
     ASSERT_LT(fabs(lpf.get()), 1e-6);
 
     // Input step function
@@ -70,8 +70,8 @@ TEST(FilterTest, testHPF)
 {
   for (int time_const = 20; time_const < 100; time_const += 20)
   {
-    Filter lpf(Filter::FILTER_LPF, time_const, 0.0);
-    Filter hpf(Filter::FILTER_HPF, time_const, 0.0);
+    mcl_3dl::Filter lpf(mcl_3dl::Filter::FILTER_LPF, time_const, 0.0);
+    mcl_3dl::Filter hpf(mcl_3dl::Filter::FILTER_HPF, time_const, 0.0);
 
     // Input step function
     for (int i = 0; i < time_const * 10; ++i)
@@ -94,8 +94,8 @@ TEST(FilterTest, testAugleLPF)
     const float start1 = zero + 0.5;
     const float end1 = zero + M_PI * 2.0 - 0.5;
 
-    Filter lpf(Filter::FILTER_LPF, 10, start1);
-    Filter lpf_angle(Filter::FILTER_LPF, 10, start1, true);
+    mcl_3dl::Filter lpf(mcl_3dl::Filter::FILTER_LPF, 10, start1);
+    mcl_3dl::Filter lpf_angle(mcl_3dl::Filter::FILTER_LPF, 10, start1, true);
     ASSERT_LT(fabs(lpf.get() - start1), 1e-6);
     ASSERT_LT(fabs(lpf_angle.get() - start1), 1e-6);
 

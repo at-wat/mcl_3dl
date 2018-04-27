@@ -27,13 +27,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef QUAT_H
-#define QUAT_H
+#ifndef MCL_3DL_QUAT_H
+#define MCL_3DL_QUAT_H
 
 #include <algorithm>
 
-#include <vec3.h>
+#include <mcl_3dl/vec3.h>
 
+namespace mcl_3dl
+{
 class Quat
 {
 public:
@@ -251,5 +253,6 @@ public:
     setAxisAng(r * axis, ang);
   }
 };
+}  // namespace mcl_3dl
 
-#endif  // QUAT_H
+#endif  // MCL_3DL_QUAT_H
