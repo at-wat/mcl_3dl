@@ -2,8 +2,8 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.2 (2018-04-27)
+------------------
 * Workaround for debian stretch build (`#140 <https://github.com/at-wat/mcl_3dl/issues/140>`_)
 * Contributors: Atsushi Watanabe
 
