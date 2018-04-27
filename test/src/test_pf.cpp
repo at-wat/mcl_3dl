@@ -32,8 +32,8 @@
 
 #include <gtest/gtest.h>
 
-#include <pf.h>
-#include <nd.h>
+#include <mcl_3dl/pf.h>
+#include <mcl_3dl/nd.h>
 
 class State : public pf::ParticleBase<float>
 {

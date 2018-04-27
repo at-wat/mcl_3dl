@@ -34,7 +34,7 @@
 
 #include <gtest/gtest.h>
 
-#include <quat.h>
+#include <mcl_3dl/quat.h>
 
 TEST(QuatTest, testConstractors)
 {

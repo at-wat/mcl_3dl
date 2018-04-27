@@ -33,8 +33,8 @@
 
 #include <gtest/gtest.h>
 
-#include <chunked_kdtree.h>
-#include <raycast.h>
+#include <mcl_3dl/chunked_kdtree.h>
+#include <mcl_3dl/raycast.h>
 
 TEST(RaycastTest, testCollision)
 {

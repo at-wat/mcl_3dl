@@ -32,7 +32,7 @@
 
 #include <gtest/gtest.h>
 
-#include <vec3.h>
+#include <mcl_3dl/vec3.h>
 
 TEST(Vec3Test, testConstructors)
 {

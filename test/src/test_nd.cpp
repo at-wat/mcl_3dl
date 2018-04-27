@@ -32,7 +32,7 @@
 
 #include <gtest/gtest.h>
 
-#include <nd.h>
+#include <mcl_3dl/nd.h>
 
 TEST(NormalLiklihoodTest, testNormality)
 {

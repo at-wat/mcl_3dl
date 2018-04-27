@@ -32,7 +32,7 @@
 
 #include <algorithm>
 
-#include <vec3.h>
+#include <mcl_3dl/vec3.h>
 
 class Quat
 {

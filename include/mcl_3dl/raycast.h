@@ -30,8 +30,8 @@
 #ifndef RAYCAST_H
 #define RAYCAST_H
 
-#include <vec3.h>
-#include <chunked_kdtree.h>
+#include <mcl_3dl/vec3.h>
+#include <mcl_3dl/chunked_kdtree.h>
 
 #include <vector>
 

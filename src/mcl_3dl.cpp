@@ -62,15 +62,15 @@
 #include <map>
 #include <vector>
 
-#include <pf.h>
-#include <vec3.h>
-#include <quat.h>
-#include <filter.h>
-#include <nd.h>
-#include <raycast.h>
-#include <chunked_kdtree.h>
+#include <mcl_3dl/pf.h>
+#include <mcl_3dl/vec3.h>
+#include <mcl_3dl/quat.h>
+#include <mcl_3dl/filter.h>
+#include <mcl_3dl/nd.h>
+#include <mcl_3dl/raycast.h>
+#include <mcl_3dl/chunked_kdtree.h>
 
-#include <compatibility.h>
+#include <mcl_3dl/compatibility.h>
 
 class MCL3dlNode
 {

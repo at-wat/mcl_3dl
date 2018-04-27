@@ -31,7 +31,7 @@
 
 #include <gtest/gtest.h>
 
-#include <filter.h>
+#include <mcl_3dl/filter.h>
 
 TEST(FilterTest, testLPF)
 {
