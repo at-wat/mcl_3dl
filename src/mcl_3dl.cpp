@@ -724,7 +724,7 @@ protected:
     std::vector<float> sqdist(1);
 
     float match_ratio_min = FLT_MAX;
-    float match_ratio_max = FLT_MIN;
+    float match_ratio_max = -FLT_MAX;
     const float match_dist_min = params_.match_dist_min;
     const float match_weight = params_.match_weight;
     mcl_3dl::NormalLikelihood<float> odom_error_lin_nd(params_.odom_err_integ_lin_sigma);
