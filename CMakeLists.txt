@@ -4,7 +4,6 @@ project(mcl_3dl)
 find_package(catkin REQUIRED
   COMPONENTS
     geometry_msgs
-    message_generation
     nav_msgs
     pcl_ros
     roscpp
@@ -15,16 +14,6 @@ find_package(catkin REQUIRED
     std_srvs
     tf
     visualization_msgs
-)
-
-add_service_files(
-  FILES ResizeParticle.srv
-)
-add_message_files(
-  FILES Status.msg
-)
-generate_messages(
-  DEPENDENCIES std_msgs
 )
 
 catkin_package(
