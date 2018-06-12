@@ -36,8 +36,8 @@
 #include <geometry_msgs/PoseArray.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <visualization_msgs/MarkerArray.h>
-#include <mcl_3dl/ResizeParticle.h>
-#include <mcl_3dl/Status.h>
+#include <mcl_3dl_msgs/ResizeParticle.h>
+#include <mcl_3dl_msgs/Status.h>
 #include <std_srvs/Trigger.h>
 
 #include <tf/transform_listener.h>
