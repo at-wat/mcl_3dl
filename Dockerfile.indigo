@@ -1,5 +1,7 @@
 FROM ros:indigo
 
+RUN echo 'deb http://packages.ros.org/ros-shadow-fixed/ubuntu `lsb_release -sc` main" > /etc/apt/sources.list.d/ros-latest.list
+
 RUN apt-get -qq update \
   && apt-get install -y --no-install-recommends \
     build-essential \
