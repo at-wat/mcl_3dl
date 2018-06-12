@@ -1,15 +1,9 @@
-FROM ros:indigo
+FROM ros:indigo-ros-core
 
 RUN echo "deb http://packages.ros.org/ros-shadow-fixed/ubuntu `lsb_release -sc` main" > /etc/apt/sources.list.d/ros-latest.list
 
 RUN apt-get -qq update \
   && apt-get install -y --no-install-recommends \
-    build-essential \
-    curl \
-    libeigen3-dev \
-    libgtest-dev \
-    libproj-dev \
-    libqtgui4 \
     libxml2-utils \
     python-pip \
     sudo \
