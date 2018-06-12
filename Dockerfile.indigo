@@ -22,9 +22,8 @@ RUN rosdep update \
 
 COPY ./package.xml /catkin_ws/src/mcl_3dl/package.xml
 RUN apt-get -qq update \
-  && rosdep install --from-paths /catkin_ws/src --skip-keys=mcl_3dl_msgs --ignore-src --rosdistro=${ROS_DISTRO} -y \
+  && rosdep install --from-paths /catkin_ws/src --ignore-src --rosdistro=${ROS_DISTRO} -y \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
-RUN cd /catkin_ws/src/ && git clone --depth=1 https://github.com/at-wat/mcl_3dl_msgs.git
 
 COPY . /catkin_ws/src/mcl_3dl
