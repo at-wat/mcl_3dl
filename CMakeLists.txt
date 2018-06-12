@@ -3,30 +3,36 @@ project(mcl_3dl)
 
 find_package(catkin REQUIRED
   COMPONENTS
-    geometry_msgs
-    nav_msgs
-    pcl_ros
     roscpp
     roslint
     rostest
+
+    pcl_ros
+    tf
+
+    geometry_msgs
+    mcl_3dl_msgs
+    nav_msgs
     sensor_msgs
     std_msgs
     std_srvs
-    tf
     visualization_msgs
 )
 
 catkin_package(
   INCLUDE_DIRS include
   CATKIN_DEPENDS
-    geometry_msgs
-    nav_msgs
-    pcl_ros
     roscpp
+
+    pcl_ros
+    tf
+
+    geometry_msgs
+    mcl_3dl_msgs
+    nav_msgs
     sensor_msgs
     std_msgs
     std_srvs
-    tf
     visualization_msgs
 )
 
