@@ -17,12 +17,36 @@ MCL represents a probabilistic distribution of estimated pose as density and wei
 
 See [details](doc/Algorithms.md).
 
+## Install
+
+### from source
+
+**Note: mcl_3dl_msgs package is required to build mcl_3dl package.**
+
+```shell
+# clone
+cd /path/to/your/catkin_ws/src
+git clone https://github.com/at-wat/mcl_3dl.git
+git clone https://github.com/at-wat/mcl_3dl_msgs.git
+
+# build
+cd /path/to/your/catkin_ws
+# Release build is recommended
+catkin_make -DCMAKE_BUILD_TYPE=Release
+```
+
+### from apt repository (for ROS Indigo/Kinetic/Lunar on Ubuntu)
+
+```
+sudo apt-get install ros-${ROS_DISTRO}-mcl-3dl
+```
+
 ## Running the demo
 
 The example bag file of 2+4-DOF tracked vehicle with two Hokuyo YVT-X002 3-D LIDAR is available online.
 Pre-processed (filtered) 3-D pointcloud, IMU pose, odometry, and map data are packed in the bag.
 
-```.sh
+```shell
 # Download the example bag (230M)
 wget -P ~/Downloads https://openspur.org/~atsushi.w/dataset/mcl_3dl/short_test.bag
 
