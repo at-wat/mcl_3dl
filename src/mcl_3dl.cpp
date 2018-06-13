@@ -36,8 +36,8 @@
 #include <geometry_msgs/PoseArray.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <visualization_msgs/MarkerArray.h>
-#include <mcl_3dl/ResizeParticle.h>
-#include <mcl_3dl/Status.h>
+#include <mcl_3dl_msgs/ResizeParticle.h>
+#include <mcl_3dl_msgs/Status.h>
 #include <std_srvs/Trigger.h>
 
 #include <tf/transform_listener.h>
@@ -537,9 +537,9 @@ protected:
   }
   void cbCloud(const sensor_msgs::PointCloud2::ConstPtr &msg)
   {
-    mcl_3dl::Status status;
+    mcl_3dl_msgs::Status status;
     status.header.stamp = ros::Time::now();
-    status.status = mcl_3dl::Status::NORMAL;
+    status.status = mcl_3dl_msgs::Status::NORMAL;
 
     if (!has_map_)
       return;
@@ -1198,7 +1198,7 @@ protected:
           mcl_3dl::Vec3(params_.expansion_var_roll,
                         params_.expansion_var_pitch,
                         params_.expansion_var_yaw)));
-      status.status = mcl_3dl::Status::EXPANSION_RESETTING;
+      status.status = mcl_3dl_msgs::Status::EXPANSION_RESETTING;
     }
     pc_local_accum_.reset(new pcl::PointCloud<pcl::PointXYZI>);
     pc_accum_header_.clear();
@@ -1228,7 +1228,7 @@ protected:
     if (global_localization_fix_cnt_)
     {
       global_localization_fix_cnt_--;
-      status.status = mcl_3dl::Status::GLOBAL_LOCALIZATION;
+      status.status = mcl_3dl_msgs::Status::GLOBAL_LOCALIZATION;
     }
 
     status.match_ratio = match_ratio_max;
@@ -1340,8 +1340,8 @@ protected:
       imu_last_ = msg->header.stamp;
     }
   }
-  bool cbResizeParticle(mcl_3dl::ResizeParticleRequest &request,
-                        mcl_3dl::ResizeParticleResponse &response)
+  bool cbResizeParticle(mcl_3dl_msgs::ResizeParticleRequest &request,
+                        mcl_3dl_msgs::ResizeParticleResponse &response)
   {
     pf_->resizeParticle(request.size);
     return true;
@@ -1455,7 +1455,7 @@ public:
     pub_particle_ = pnh_.advertise<geometry_msgs::PoseArray>("particles", 1, true);
     pub_mapcloud_ = pnh_.advertise<sensor_msgs::PointCloud2>("updated_map", 1, true);
     pub_debug_marker_ = pnh_.advertise<visualization_msgs::MarkerArray>("debug_marker", 1, true);
-    pub_status_ = pnh_.advertise<mcl_3dl::Status>("status", 1, true);
+    pub_status_ = pnh_.advertise<mcl_3dl_msgs::Status>("status", 1, true);
     pub_matched_ = pnh_.advertise<sensor_msgs::PointCloud2>("matched", 2, true);
     pub_unmatched_ = pnh_.advertise<sensor_msgs::PointCloud2>("unmatched", 2, true);
 

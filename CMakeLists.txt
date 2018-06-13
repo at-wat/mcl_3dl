@@ -3,41 +3,36 @@ project(mcl_3dl)
 
 find_package(catkin REQUIRED
   COMPONENTS
-    geometry_msgs
-    message_generation
-    nav_msgs
-    pcl_ros
     roscpp
     roslint
     rostest
+
+    pcl_ros
+    tf
+
+    geometry_msgs
+    mcl_3dl_msgs
+    nav_msgs
     sensor_msgs
     std_msgs
     std_srvs
-    tf
     visualization_msgs
-)
-
-add_service_files(
-  FILES ResizeParticle.srv
-)
-add_message_files(
-  FILES Status.msg
-)
-generate_messages(
-  DEPENDENCIES std_msgs
 )
 
 catkin_package(
   INCLUDE_DIRS include
   CATKIN_DEPENDS
-    geometry_msgs
-    nav_msgs
-    pcl_ros
     roscpp
+
+    pcl_ros
+    tf
+
+    geometry_msgs
+    mcl_3dl_msgs
+    nav_msgs
     sensor_msgs
     std_msgs
     std_srvs
-    tf
     visualization_msgs
 )
 
@@ -84,7 +79,7 @@ add_definitions(${PCL_DEFINITIONS})
 
 add_executable(mcl_3dl src/mcl_3dl.cpp)
 target_link_libraries(mcl_3dl ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${PCL_LIBRARIES})
-add_dependencies(mcl_3dl mcl_3dl_generate_messages)
+add_dependencies(mcl_3dl ${catkin_EXPORTED_TARGETS}})
 
 
 roslint_cpp()
