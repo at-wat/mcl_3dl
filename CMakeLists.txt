@@ -79,7 +79,7 @@ add_definitions(${PCL_DEFINITIONS})
 
 add_executable(mcl_3dl src/mcl_3dl.cpp)
 target_link_libraries(mcl_3dl ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${PCL_LIBRARIES})
-add_dependencies(mcl_3dl ${catkin_EXPORTED_TARGETS}})
+add_dependencies(mcl_3dl ${catkin_EXPORTED_TARGETS})
 
 
 roslint_cpp()
