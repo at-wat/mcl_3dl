@@ -4,7 +4,6 @@ project(mcl_3dl)
 find_package(catkin REQUIRED
   COMPONENTS
     roscpp
-    rostest
 
     pcl_ros
     tf
@@ -82,6 +81,7 @@ add_dependencies(mcl_3dl ${catkin_EXPORTED_TARGETS})
 
 
 if(CATKIN_ENABLE_TESTING)
+  find_package(rostest REQUIRED)
   add_subdirectory(test)
 
   find_package(roslint REQUIRED)
