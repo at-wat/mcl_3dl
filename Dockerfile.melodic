@@ -8,6 +8,7 @@ RUN apt-get -qq update \
     python-pip \
     sudo \
     wget \
+  && apt-get upgrade \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
