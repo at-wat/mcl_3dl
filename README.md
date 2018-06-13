@@ -31,8 +31,8 @@ git clone https://github.com/at-wat/mcl_3dl_msgs.git
 
 # build
 cd /path/to/your/catkin_ws
-# Release build is recommended
-catkin_make -DCMAKE_BUILD_TYPE=Release
+rosdep install --from-paths src --ignore-src -y  # Install dependencies
+catkin_make -DCMAKE_BUILD_TYPE=Release  # Release build is recommended
 ```
 
 ### from apt repository (for ROS Indigo/Kinetic/Lunar on Ubuntu)
