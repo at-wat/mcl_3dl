@@ -68,6 +68,8 @@ else()
   message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
 
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O1")
+
 
 include_directories(${catkin_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${PCL_INCLUDE_DIR} include)
 link_directories(${Boost_LIBRARY_DIRS} ${PCL_LIBRARY_DIRS})
@@ -77,11 +79,6 @@ add_definitions(${PCL_DEFINITIONS})
 # which causes a lot of compatibility problems.
 # Define PCL_NO_PRECOMPILE to disable using the binary version.
 add_definitions(-DPCL_NO_PRECOMPILE)
-
-# This node requires optimization for CI test.
-# Due to PCL_NO_PRECOMPILE, higher level of optimization is mandatory.
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O1 -mssse3 -mfpmath=sse")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mssse3 -mfpmath=sse")
 
 add_executable(mcl_3dl src/mcl_3dl.cpp)
 target_link_libraries(mcl_3dl ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${PCL_LIBRARIES})
