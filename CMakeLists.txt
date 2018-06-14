@@ -78,7 +78,7 @@ add_definitions(${PCL_DEFINITIONS})
 # Binary installed pcl provided by Linux distro is built with -march=native
 # which causes a lot of compatibility problems.
 # Define PCL_NO_PRECOMPILE to disable using the binary version.
-add_definitions(PCL_NO_PRECOMPILE)
+add_definitions(-DPCL_NO_PRECOMPILE)
 
 add_executable(mcl_3dl src/mcl_3dl.cpp)
 target_link_libraries(mcl_3dl ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${PCL_LIBRARIES})
