@@ -75,6 +75,11 @@ include_directories(${catkin_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR} ${Boost_INCLUDE
 link_directories(${Boost_LIBRARY_DIRS} ${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
+# Binary installed pcl provided by Linux distro is built with -march=native
+# which causes a lot of compatibility problems.
+# Define PCL_NO_PRECOMPILE to disable using the binary version.
+add_definitions(-DPCL_NO_PRECOMPILE)
+
 add_executable(mcl_3dl src/mcl_3dl.cpp)
 target_link_libraries(mcl_3dl ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${PCL_LIBRARIES})
 add_dependencies(mcl_3dl ${catkin_EXPORTED_TARGETS})
