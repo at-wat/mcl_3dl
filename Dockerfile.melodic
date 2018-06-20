@@ -1,14 +1,14 @@
-FROM ros:indigo-ros-core
+FROM ros:melodic-ros-core
 
 RUN echo "deb http://packages.ros.org/ros-shadow-fixed/ubuntu `lsb_release -sc` main" > /etc/apt/sources.list.d/ros-latest.list
 
 RUN apt-get -qq update \
   && apt-get install -y --no-install-recommends \
-    build-essential \
     libxml2-utils \
     python-pip \
     sudo \
     wget \
+  && apt-get upgrade -y \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
