@@ -2,6 +2,26 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix install of demo launch and config (`#164 <https://github.com/at-wat/mcl_3dl/issues/164>`_)
+* Update CI and add test on ROS Melodic (`#155 <https://github.com/at-wat/mcl_3dl/issues/155>`_)
+* Ignore gh-pr-comment failure (`#162 <https://github.com/at-wat/mcl_3dl/issues/162>`_)
+* Compile with PCL_NO_PRECOMPILE (`#161 <https://github.com/at-wat/mcl_3dl/issues/161>`_)
+* Fix rostest dependency (`#160 <https://github.com/at-wat/mcl_3dl/issues/160>`_)
+* Fix roslint dependency (`#159 <https://github.com/at-wat/mcl_3dl/issues/159>`_)
+* Update install instructions in README (`#158 <https://github.com/at-wat/mcl_3dl/issues/158>`_)
+* Update manifest format and fix CMakeLists (`#157 <https://github.com/at-wat/mcl_3dl/issues/157>`_)
+* Use mcl_3dl_msgs package (`#152 <https://github.com/at-wat/mcl_3dl/issues/152>`_)
+* Test with shadow-fixed repository (`#154 <https://github.com/at-wat/mcl_3dl/issues/154>`_)
+* Update CI bot environments (`#150 <https://github.com/at-wat/mcl_3dl/issues/150>`_)
+* Add encrypted token for image caching (`#149 <https://github.com/at-wat/mcl_3dl/issues/149>`_)
+* Fix migration instruction message (`#147 <https://github.com/at-wat/mcl_3dl/issues/147>`_)
+* Fix match ratio min/max check (`#146 <https://github.com/at-wat/mcl_3dl/issues/146>`_)
+* Add interfaces to ChunkedKdtree for external usages (`#145 <https://github.com/at-wat/mcl_3dl/issues/145>`_)
+* Install headers (`#143 <https://github.com/at-wat/mcl_3dl/issues/143>`_)
+* Contributors: Atsushi Watanabe
+
 0.1.2 (2018-04-27)
 ------------------
 * Workaround for debian stretch build (`#140 <https://github.com/at-wat/mcl_3dl/issues/140>`_)
