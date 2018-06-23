@@ -2,8 +2,8 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.3 (2018-06-23)
+------------------
 * Fix install of demo launch and config (`#164 <https://github.com/at-wat/mcl_3dl/issues/164>`_)
 * Update CI and add test on ROS Melodic (`#155 <https://github.com/at-wat/mcl_3dl/issues/155>`_)
 * Ignore gh-pr-comment failure (`#162 <https://github.com/at-wat/mcl_3dl/issues/162>`_)
