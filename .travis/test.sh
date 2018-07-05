@@ -1,7 +1,6 @@
 #!/bin/bash
 
 set -o errexit
-set -o verbose
 
 pip install gh-pr-comment
 
@@ -13,9 +12,9 @@ mkdir -p /catkin_ws/build/mcl_3dl/test/
 mv /catkin_ws/src/mcl_3dl/.cached-dataset/* /catkin_ws/build/mcl_3dl/test/
 ls -lh /catkin_ws/build/mcl_3dl/test/
 
-sed -i -e '5a set(CMAKE_C_FLAGS "-Wall -Werror")' \
+sed -i -e '5a set(CMAKE_C_FLAGS "-Wall -Werror -O1 -coverage")' \
   /opt/ros/${ROS_DISTRO}/share/catkin/cmake/toplevel.cmake
-sed -i -e '5a set(CMAKE_CXX_FLAGS "-Wall -Werror")' \
+sed -i -e '5a set(CMAKE_CXX_FLAGS "-Wall -Werror -O1 -coverage")' \
   /opt/ros/${ROS_DISTRO}/share/catkin/cmake/toplevel.cmake
 
 CM_OPTIONS=""
@@ -25,12 +24,15 @@ then
   echo "On indigo-trusty, we need release build due to the bug of PCL1.7 with c++11." 1>&2
 fi
 
-catkin_make ${CM_OPTIONS} || \
+
+catkin_make -DMCL_3DL_EXTRA_TESTS=ON ${CM_OPTIONS} || \
   (gh-pr-comment "FAILED on ${ROS_DISTRO}" '```catkin_make``` failed'; false)
-catkin_make tests -DMCL_3DL_EXTRA_TESTS=ON ${CM_OPTIONS} || \
+catkin_make -DMCL_3DL_EXTRA_TESTS=ON tests ${CM_OPTIONS} || \
   (gh-pr-comment "FAILED on ${ROS_DISTRO}" '```catkin_make tests``` failed'; false)
-catkin_make run_tests -DMCL_3DL_EXTRA_TESTS=ON ${CM_OPTIONS} || \
+catkin_make -DMCL_3DL_EXTRA_TESTS=ON run_tests ${CM_OPTIONS} || \
   (gh-pr-comment "FAILED on ${ROS_DISTRO}" '```catkin_make run_tests``` failed'; false)
+
+bash <(curl -s https://codecov.io/bash)
 
 if [ catkin_test_results ];
 then
@@ -50,7 +52,3 @@ fi
 catkin_test_results || (gh-pr-comment "FAILED on ${ROS_DISTRO}" "Test failed$result_text"; false)
 
 gh-pr-comment "PASSED on ${ROS_DISTRO}" "All tests passed$result_text" || true
-
-cd ..
-rm -rf /catkin_ws || true
-
