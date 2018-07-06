@@ -6,6 +6,8 @@ pip install gh-pr-comment
 
 source /opt/ros/${ROS_DISTRO}/setup.bash
 
+set -o verbose
+
 cd /catkin_ws
 
 mkdir -p /catkin_ws/build/mcl_3dl/test/
