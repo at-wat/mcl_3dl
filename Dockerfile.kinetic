@@ -4,6 +4,7 @@ RUN echo "deb http://packages.ros.org/ros-shadow-fixed/ubuntu `lsb_release -sc` 
 
 RUN apt-get -qq update \
   && apt-get install -y --no-install-recommends \
+    curl \
     libxml2-utils \
     python-pip \
     sudo \
