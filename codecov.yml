@@ -1,5 +1,0 @@
-ignore:
-  - "test/src/*"
-
-fixes:
-  - "src/mcl_3dl/::"

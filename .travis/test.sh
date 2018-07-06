@@ -29,13 +29,12 @@ fi
 
 catkin_make -DMCL_3DL_EXTRA_TESTS=ON ${CM_OPTIONS} || \
   (gh-pr-comment "FAILED on ${ROS_DISTRO}" '```catkin_make``` failed'; false)
-catkin_make -DMCL_3DL_EXTRA_TESTS=ON tests ${CM_OPTIONS} || \
+catkin_make tests -DMCL_3DL_EXTRA_TESTS=ON ${CM_OPTIONS} || \
   (gh-pr-comment "FAILED on ${ROS_DISTRO}" '```catkin_make tests``` failed'; false)
-catkin_make -DMCL_3DL_EXTRA_TESTS=ON run_tests ${CM_OPTIONS} || \
+catkin_make run_tests -DMCL_3DL_EXTRA_TESTS=ON ${CM_OPTIONS} || \
   (gh-pr-comment "FAILED on ${ROS_DISTRO}" '```catkin_make run_tests``` failed'; false)
 
-curl -s -o codecov.sh https://codecov.io/bash
-bash codecov.sh -y src/mcl_3dl/codecov.yml
+(cd src/mcl_3dl; bash <(curl -s https://codecov.io/bash))
 
 if [ catkin_test_results ];
 then
