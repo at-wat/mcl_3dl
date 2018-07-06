@@ -1,2 +1,5 @@
 ignore:
-  - "**/test/src/*"
+  - "test/src/*"
+
+fixes:
+  - "src/mcl_3dl/::"
