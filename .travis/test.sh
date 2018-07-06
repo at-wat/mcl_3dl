@@ -34,7 +34,7 @@ catkin_make tests -DMCL_3DL_EXTRA_TESTS=ON ${CM_OPTIONS} || \
 catkin_make run_tests -DMCL_3DL_EXTRA_TESTS=ON ${CM_OPTIONS} || \
   (gh-pr-comment "FAILED on ${ROS_DISTRO}" '```catkin_make run_tests``` failed'; false)
 
-(cd src/mcl_3dl/; cp -r /catkin_ws/build ./; bash <(curl -s https://codecov.io/bash))
+(cd src/mcl_3dl/; cp -r /catkin_ws/build ./; bash <(curl -s https://codecov.io/bash) -y .codecov.yml)
 
 if [ catkin_test_results ];
 then
