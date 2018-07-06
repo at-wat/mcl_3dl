@@ -4,6 +4,11 @@ addons:
     packages:
       - python-pip
 
+
+cache:
+  directories:
+    - /home/travis/docker/dataset
+
 env:
   global:
     - PACKAGE_NAME=mcl_3dl
@@ -24,7 +29,7 @@ branches:
 before_install:
   - .travis/load_cache.sh
   - .travis/cache_dataset.sh
-  - pip install --user gh-pr-comment cpp-coveralls
+  - pip install --user gh-pr-comment
 
 install: true
 
@@ -32,6 +37,3 @@ script:
   - docker build --cache-from ${DOCKER_CACHE_REGISTRY}:${ROS_DISTRO_TARGET} -t ${DOCKER_CACHE_TARGET}:${ROS_DISTRO_TARGET} -f Dockerfile.${ROS_DISTRO_TARGET} --pull=true ${TRAVIS_BUILD_DIR} || (gh-pr-comment FAILED "docker build failed"; false)
   - docker run --rm -it -v /tmp/cov:/tmp/cov -e TRAVIS_PULL_REQUEST -e TRAVIS_REPO_SLUG -e TRAVIS_BOT_GITHUB_TOKEN -e GITHUB_API_URL_BASE ${DOCKER_CACHE_TARGET}:${ROS_DISTRO_TARGET} /catkin_ws/src/${PACKAGE_NAME}/.travis/test.sh
   - .travis/save_cache.sh
-
-after_success:
-  - cpp-coverall -b /tmp/gcov
