@@ -41,7 +41,7 @@ TEST(FilterTest, testLPF)
     ASSERT_LT(fabs(lpf.get()), 1e-6);
 
     // Input step function
-    float ret;
+    float ret = 0;
     for (int i = 0; i < time_const; ++i)
     {
       ret = lpf.in(1.0);
