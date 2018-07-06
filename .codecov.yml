@@ -1,2 +1,2 @@
 ignore:
-  - "test/src"
+  - "src/mcl_3dl/test/src"
