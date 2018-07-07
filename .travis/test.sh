@@ -49,8 +49,12 @@ else
 `find build/test_results/ -name *.xml | xargs -n 1 -- bash -c 'echo; echo \#\#\# $0; echo; echo \\\`\\\`\\\`; xmllint --format $0; echo \\\`\\\`\\\`;'`
 "
 fi
-catkin_test_results || (gh-pr-comment "FAILED on ${ROS_DISTRO}" "Test failed$result_text"; false)
+catkin_test_results || (gh-pr-comment "FAILED on ${ROS_DISTRO}" "<details><summary>Test failed</summary>
+
+$result_text</details>"; false)
 
 (cd src/mcl_3dl/; cp -r /catkin_ws/build ./; bash <(curl -s https://codecov.io/bash) -y .codecov.yml)
 
-gh-pr-comment "PASSED on ${ROS_DISTRO}" "All tests passed$result_text" || true
+gh-pr-comment "PASSED on ${ROS_DISTRO}" "<details><summary>All tests passed</summary>
+
+$result_text</details>" || true
