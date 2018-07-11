@@ -38,12 +38,13 @@ script:
     --cache-from ${DOCKER_CACHE_REGISTRY}:${ROS_DISTRO_TARGET}
     -t ${DOCKER_CACHE_TARGET}:${ROS_DISTRO_TARGET}
     -f Dockerfile.${ROS_DISTRO_TARGET}
-    --pull=true ${TRAVIS_BUILD_DIR} || (gh-pr-comment FAILED "docker build failed"; false)
+    --pull=true ${TRAVIS_BUILD_DIR} || (gh-pr-comment "[#${TRAVIS_BUILD_NUMBER}] FAILED" "docker build failed"; false)
   - docker run --rm -it
     -e TRAVIS_PULL_REQUEST
     -e TRAVIS_REPO_SLUG
     -e TRAVIS_BOT_GITHUB_TOKEN
     -e GITHUB_API_URL_BASE
+    -e TRAVIS_BUILD_NUMBER
     `bash <(curl -s https://codecov.io/env)`
     ${DOCKER_CACHE_TARGET}:${ROS_DISTRO_TARGET} /catkin_ws/src/${PACKAGE_NAME}/.travis/test.sh
   - .travis/save_cache.sh
