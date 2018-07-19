@@ -34,7 +34,7 @@
 
 #include <gtest/gtest.h>
 
-TEST(compare_tf, compare)
+TEST(CompareTf, Compare)
 {
   ros::NodeHandle nh("~");
   tf::TransformListener tfl;

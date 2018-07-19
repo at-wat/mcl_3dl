@@ -35,7 +35,7 @@
 
 #include <mcl_3dl/nd.h>
 
-TEST(NormalLiklihoodTest, testNormality)
+TEST(NormalLiklihood, Normality)
 {
   for (double sigma = 1.0; sigma <= 3.0; sigma += 1.0)
   {
@@ -59,7 +59,7 @@ TEST(NormalLiklihoodTest, testNormality)
   }
 }
 
-TEST(NormalLiklihoodTest, testNormalityNd)
+TEST(NormalLiklihood, NormalityNd)
 {
   for (double sigma = 1.0; sigma <= 3.0; sigma += 1.0)
   {

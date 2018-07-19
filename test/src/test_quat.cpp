@@ -36,7 +36,7 @@
 
 #include <mcl_3dl/quat.h>
 
-TEST(QuatTest, testConstractors)
+TEST(Quat, Constractors)
 {
   // Test quaternion elements style constructor and copy constructor
   const mcl_3dl::Quat a(1.0, 2.0, 3.0, 4.0);
@@ -119,7 +119,7 @@ TEST(QuatTest, testConstractors)
   }
 }
 
-TEST(QuatTest, testOperators)
+TEST(Quat, Operators)
 {
   const mcl_3dl::Quat a(1.0, 2.0, 3.0, 4.0);
 
@@ -162,7 +162,7 @@ TEST(QuatTest, testOperators)
   ASSERT_TRUE(a / 2.0 == a_div);
 }
 
-TEST(QuatTest, testNorm)
+TEST(Quat, Norm)
 {
   // Check norm operations
   const mcl_3dl::Quat a(1.0, 2.0, 3.0, 4.0);
@@ -173,7 +173,7 @@ TEST(QuatTest, testNorm)
   ASSERT_LT(fabs(b.normalized().norm() - 1.0), 1e-6);
 }
 
-TEST(QuatTest, testProducts)
+TEST(Quat, Products)
 {
   // Check cross and dot products
   const int num_samples = 8;

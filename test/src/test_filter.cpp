@@ -33,7 +33,7 @@
 
 #include <mcl_3dl/filter.h>
 
-TEST(FilterTest, testLPF)
+TEST(Filter, LPFCharacteristic)
 {
   for (int time_const = 20; time_const < 100; time_const += 20)
   {
@@ -66,7 +66,7 @@ TEST(FilterTest, testLPF)
   }
 }
 
-TEST(FilterTest, testHPF)
+TEST(Filter, HPFCharacteristic)
 {
   for (int time_const = 20; time_const < 100; time_const += 20)
   {
@@ -86,7 +86,7 @@ TEST(FilterTest, testHPF)
   }
 }
 
-TEST(FilterTest, testAugleLPF)
+TEST(Filter, AugleLPF)
 {
   for (float zero = 0.0; zero < M_PI * 2 * 4; zero += M_PI * 2)
   {

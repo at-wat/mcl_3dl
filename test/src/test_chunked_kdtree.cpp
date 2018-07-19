@@ -35,7 +35,7 @@
 
 #include <mcl_3dl/chunked_kdtree.h>
 
-TEST(ChunkedKdtreeTest, testRadiusSearch)
+TEST(ChunkedKdtree, RadiusSearch)
 {
   pcl::PointCloud<pcl::PointXYZ> pc;
   pc.push_back(pcl::PointXYZ(0.5, 0.5, 0.5));   // 0

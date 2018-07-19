@@ -33,7 +33,7 @@
 
 #include <gtest/gtest.h>
 
-TEST(compare_pose, compare)
+TEST(ComparePose, Compare)
 {
   ros::NodeHandle nh("~");
 
