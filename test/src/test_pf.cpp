@@ -74,7 +74,7 @@ public:
   }
 };
 
-TEST(PfTest, testBayesianEstimation)
+TEST(Pf, BayesianEstimation)
 {
   mcl_3dl::pf::ParticleFilter<State, float> pf(1024);
   const float center_list[] =
@@ -141,7 +141,7 @@ TEST(PfTest, testBayesianEstimation)
   }
 }
 
-TEST(PfTest, testVariableParticleSize)
+TEST(Pf, VariableParticleSize)
 {
   const size_t size_num = 3;
   const size_t size[size_num] =
