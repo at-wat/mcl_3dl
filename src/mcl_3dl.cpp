@@ -550,8 +550,21 @@ protected:
     }
 
     sensor_msgs::PointCloud2 pc_bl;
-    if (!pcl_ros::transformPointCloud(frame_ids_["odom"], *msg, pc_bl, tfl_))
+    try
     {
+      if (!pcl_ros::transformPointCloud(frame_ids_["odom"], *msg, pc_bl, tfl_))
+      {
+        ROS_INFO("Failed to transform pointcloud.");
+        pc_local_accum_.reset(new pcl::PointCloud<pcl::PointXYZI>);
+        pc_accum_header_.clear();
+        return;
+      }
+    }
+    catch (tf::TransformException &e)
+    {
+      ROS_INFO("Failed to transform pointcloud: %s", e.what());
+      pc_local_accum_.reset(new pcl::PointCloud<pcl::PointXYZI>);
+      pc_accum_header_.clear();
       return;
     }
     pcl::PointCloud<pcl::PointXYZI>::Ptr pc_tmp(new pcl::PointCloud<pcl::PointXYZI>);
@@ -585,10 +598,20 @@ protected:
       return;
     }
 
-    if (!pcl_ros::transformPointCloud(
-            frame_ids_["base_link"], *pc_local_accum_, *pc_local_accum_, tfl_))
+    try
     {
-      ROS_ERROR("Failed to transform laser origin.");
+      if (!pcl_ros::transformPointCloud(
+            frame_ids_["base_link"], *pc_local_accum_, *pc_local_accum_, tfl_))
+      {
+        ROS_INFO("Failed to transform pointcloud.");
+        pc_local_accum_.reset(new pcl::PointCloud<pcl::PointXYZI>);
+        pc_accum_header_.clear();
+        return;
+      }
+    }
+    catch (tf::TransformException &e)
+    {
+      ROS_INFO("Failed to transform pointcloud: %s", e.what());
       pc_local_accum_.reset(new pcl::PointCloud<pcl::PointXYZI>);
       pc_accum_header_.clear();
       return;
@@ -607,7 +630,7 @@ protected:
       }
       catch (tf::TransformException &e)
       {
-        ROS_ERROR("Failed to transform laser origin.");
+        ROS_INFO("Failed to transform pointcloud: %s", e.what());
         pc_local_accum_.reset(new pcl::PointCloud<pcl::PointXYZI>);
         pc_accum_header_.clear();
         return;
