@@ -86,6 +86,7 @@ add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 
 if(CATKIN_ENABLE_TESTING)
   find_package(rostest REQUIRED)
+  find_package(rosunit REQUIRED)
   add_subdirectory(test)
 
   find_package(roslint REQUIRED)
