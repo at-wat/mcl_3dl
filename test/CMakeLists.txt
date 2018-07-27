@@ -46,7 +46,7 @@ if(MCL_3DL_EXTRA_TESTS)
   add_dependencies(compare_pose 
         ${PROJECT_NAME}_short_test.bag
         ${PROJECT_NAME}_short_test_ref.topic
-        ${PROJECT_NAME}
+        mcl_3dl
       )
   add_rostest_gtest(compare_tf ${PROJECT_BINARY_DIR}/test/tests/tf_rostest.test
       src/compare_tf.cpp)
@@ -54,7 +54,7 @@ if(MCL_3DL_EXTRA_TESTS)
   add_dependencies(compare_tf 
         ${PROJECT_NAME}_short_test.bag
         ${PROJECT_NAME}_short_test_ref.topic
-        ${PROJECT_NAME}
+        mcl_3dl
       )
 
 else()
