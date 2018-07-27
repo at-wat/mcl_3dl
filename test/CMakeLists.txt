@@ -1,7 +1,3 @@
-cmake_minimum_required(VERSION 2.8.3)
-
-find_package(catkin REQUIRED COMPONENTS roscpp rostest nav_msgs tf)
-
 catkin_add_gtest(test_vec3 src/test_vec3.cpp)
 target_link_libraries(test_vec3 ${catkin_LIBRARIES})
 catkin_add_gtest(test_quat src/test_quat.cpp)
@@ -23,7 +19,7 @@ target_link_libraries(performance_raycast ${catkin_LIBRARIES} ${Boost_LIBRARIES}
 add_rostest_gtest(test_transform_failure tests/transform_rostest.test
     src/test_transform_failure.cpp)
 target_link_libraries(test_transform_failure ${catkin_LIBRARIES})
-add_dependencies(test_transform_failure mcl_3dl)
+add_dependencies(test_transform_failure ${PROJECT_NAME})
 
 if(MCL_3DL_EXTRA_TESTS)
 
@@ -50,7 +46,7 @@ if(MCL_3DL_EXTRA_TESTS)
   add_dependencies(compare_pose 
         ${PROJECT_NAME}_short_test.bag
         ${PROJECT_NAME}_short_test_ref.topic
-        mcl_3dl
+        ${PROJECT_NAME}
       )
   add_rostest_gtest(compare_tf ${PROJECT_BINARY_DIR}/test/tests/tf_rostest.test
       src/compare_tf.cpp)
@@ -58,7 +54,7 @@ if(MCL_3DL_EXTRA_TESTS)
   add_dependencies(compare_tf 
         ${PROJECT_NAME}_short_test.bag
         ${PROJECT_NAME}_short_test_ref.topic
-        mcl_3dl
+        ${PROJECT_NAME}
       )
 
 else(MCL_3DL_EXTRA_TESTS)
@@ -66,4 +62,3 @@ else(MCL_3DL_EXTRA_TESTS)
   message("To perform extra heavy tests for mcl_3dl, use -DMCL_3DL_EXTRA_TESTS:=ON")
 
 endif(MCL_3DL_EXTRA_TESTS)
-
