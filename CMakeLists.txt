@@ -72,7 +72,6 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O1")
 
 
 include_directories(${catkin_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${PCL_INCLUDE_DIR} include)
-link_directories(${Boost_LIBRARY_DIRS} ${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
 # Binary installed pcl provided by Linux distro is built with -march=native
@@ -87,6 +86,7 @@ add_dependencies(mcl_3dl ${catkin_EXPORTED_TARGETS})
 
 if(CATKIN_ENABLE_TESTING)
   find_package(rostest REQUIRED)
+  find_package(rosunit REQUIRED)
   add_subdirectory(test)
 
   find_package(roslint REQUIRED)

@@ -1,7 +1,3 @@
-cmake_minimum_required(VERSION 2.8.3)
-
-find_package(catkin REQUIRED COMPONENTS roscpp rostest nav_msgs tf)
-
 catkin_add_gtest(test_vec3 src/test_vec3.cpp)
 target_link_libraries(test_vec3 ${catkin_LIBRARIES})
 catkin_add_gtest(test_quat src/test_quat.cpp)
@@ -61,9 +57,8 @@ if(MCL_3DL_EXTRA_TESTS)
         mcl_3dl
       )
 
-else(MCL_3DL_EXTRA_TESTS)
+else()
 
   message("To perform extra heavy tests for mcl_3dl, use -DMCL_3DL_EXTRA_TESTS:=ON")
 
-endif(MCL_3DL_EXTRA_TESTS)
-
+endif()

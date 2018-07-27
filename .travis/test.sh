@@ -2,13 +2,31 @@
 
 set -o errexit
 
-pip install gh-pr-comment
+pip install gh-pr-comment catkin_lint
 
 source /opt/ros/${ROS_DISTRO}/setup.bash
 
 set -o verbose
 
 cd /catkin_ws
+
+
+pkgs=`find . -name package.xml | xargs -n1 dirname`
+catkin_lint $pkgs \
+  || (gh-pr-comment "[#${TRAVIS_BUILD_NUMBER}] FAILED on ${ROS_DISTRO}" \
+      "<details><summary>catkin_lint failed</summary>
+
+\`\`\`
+`catkin_lint $pkgs 2>&1`
+\`\`\`
+</details>"; false)
+
+
+sed -i -e '5a set(CMAKE_C_FLAGS "-Wall -Werror -O2")' \
+  /opt/ros/${ROS_DISTRO}/share/catkin/cmake/toplevel.cmake
+sed -i -e '5a set(CMAKE_CXX_FLAGS "-Wall -Werror -O2")' \
+  /opt/ros/${ROS_DISTRO}/share/catkin/cmake/toplevel.cmake
+
 
 mkdir -p /catkin_ws/build/mcl_3dl/test/
 mv /catkin_ws/src/mcl_3dl/.cached-dataset/* /catkin_ws/build/mcl_3dl/test/

@@ -2,7 +2,7 @@
 <package format="2">
   <name>mcl_3dl</name>
   <version>0.1.3</version>
-  <description>The mcl_3dl package</description>
+  <description>3-D/6-DOF localization for mobile robots with 3-D LIDAR(s)</description>
 
   <maintainer email="atsushi.w@ieee.org">Atsushi Watanabe</maintainer>
   <license>BSD</license>
@@ -10,10 +10,10 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>cmake_modules</build_depend>
   <depend>roscpp</depend>
   <test_depend>roslint</test_depend>
   <test_depend>rostest</test_depend>
+  <test_depend>rosunit</test_depend>
 
   <depend>geometry_msgs</depend>
   <depend>nav_msgs</depend>
