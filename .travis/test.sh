@@ -21,12 +21,16 @@ catkin_lint $pkgs \
 \`\`\`
 </details>"; false)
 
-
 mkdir -p /catkin_ws/build/mcl_3dl/test/
 mv /catkin_ws/src/mcl_3dl/.cached-dataset/* /catkin_ws/build/mcl_3dl/test/
 ls -lh /catkin_ws/build/mcl_3dl/test/
 
-CM_OPTIONS='-DCMAKE_CXX_FLAGS="-Wall -Werror -O1 -coverage"'
+sed -i -e '5a set(CMAKE_C_FLAGS "-Wall -Werror -O1 -coverage")' \
+  /opt/ros/${ROS_DISTRO}/share/catkin/cmake/toplevel.cmake
+sed -i -e '5a set(CMAKE_CXX_FLAGS "-Wall -Werror -O1 -coverage")' \
+  /opt/ros/${ROS_DISTRO}/share/catkin/cmake/toplevel.cmake
+
+CM_OPTIONS=''
 
 catkin_make -DMCL_3DL_EXTRA_TESTS=ON ${CM_OPTIONS} || \
   (gh-pr-comment "[#${TRAVIS_BUILD_NUMBER}] FAILED on ${ROS_DISTRO}" '```catkin_make``` failed'; false)
