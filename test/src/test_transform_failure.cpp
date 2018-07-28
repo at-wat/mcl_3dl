@@ -109,7 +109,6 @@ TEST(TransformFailure, NoDeadAgainstTransformFailure)
   while (ros::ok())
   {
     ++cnt;
-    std::cerr << "- cnt: " << cnt << std::endl;
     tfb.sendTransform(
         tf::StampedTransform(
             tf::Transform(tf::Quaternion(0, 0, 0, 1)),
