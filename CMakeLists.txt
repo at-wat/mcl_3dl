@@ -54,7 +54,7 @@ list(REMOVE_ITEM PCL_LIBRARIES
   "vtkRenderingQt"
 )
 
-# Workaround for the bug in PCL(<1.8.1) https://github.com/PointCloudLibrary/pcl/issues/1406
+# Workaround for the bug in PCL<1.8.1 (https://github.com/PointCloudLibrary/pcl/issues/1406)
 remove_definitions(-DDISABLE_LIBUSB-1.0)
 
 include(CheckCXXCompilerFlag)
@@ -68,6 +68,12 @@ else()
   message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
 
+# Workaround for PCL-1.7 problem on C++11 (https://github.com/PointCloudLibrary/pcl/issues/619)
+# Debug build without optimization causes Segmentation fault.
+# Set default build type to Release and add -O1 to CXX_FLAGS_DEBUG.
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
+endif()
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O1")
 
 

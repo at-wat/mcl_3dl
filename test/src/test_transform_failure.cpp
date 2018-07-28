@@ -42,8 +42,7 @@ namespace
 {
 void GenerateSinglePointPointcloud2(
     sensor_msgs::PointCloud2 &cloud,
-    const float x, const float y,
-    const float z)
+    const float x, const float y, const float z)
 {
   cloud.height = 1;
   cloud.width = 1;
@@ -105,6 +104,7 @@ TEST(TransformFailure, NoDeadAgainstTransformFailure)
       break;
   }
   std::cerr << "mcl_3dl started" << std::endl;
+  ros::Duration(1.0).sleep();
   int cnt = 0;
   while (ros::ok())
   {
@@ -140,8 +140,6 @@ TEST(TransformFailure, NoDeadAgainstTransformFailure)
 
     ros::spinOnce();
     rate.sleep();
-
-    ASSERT_TRUE(true);
   }
   ASSERT_TRUE(ros::ok());
 }
