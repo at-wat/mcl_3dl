@@ -180,7 +180,7 @@ public:
     particles_dup_ = particles_;
     std::sort(particles_dup_.begin(), particles_dup_.end());
 
-    const FLT_TYPE pstep = accum / particles_.size();
+    const FLT_TYPE pstep = accum / (particles_.size() - 1);
     FLT_TYPE pscan = 0;
     auto it = particles_dup_.begin();
     auto it_prev = particles_dup_.begin();
@@ -188,8 +188,8 @@ public:
     const FLT_TYPE prob = 1.0 / particles_.size();
     for (auto &p : particles_)
     {
-      pscan += pstep;
       it = std::lower_bound(it, particles_dup_.end(), Particle<T, FLT_TYPE>(pscan));
+      pscan += pstep;
       p.probability = prob;
       if (it == particles_dup_.end())
       {
