@@ -179,7 +179,7 @@ TEST(Pf, VariableParticleSize)
   }
 }
 
-TEST(Pf, Resample)
+TEST(Pf, ResampleFlatLikelihood)
 {
   mcl_3dl::pf::ParticleFilter<State, float> pf(10);
   const float center = 12.3;
@@ -191,14 +191,12 @@ TEST(Pf, Resample)
   std::vector<float> orig;
 
   for (size_t i = 0; i < pf.getParticleSize(); ++i)
-  {
     orig.push_back(pf.getParticle(i)[0]);
-  }
+
   pf.resample(State());
+
   for (size_t i = 0; i < pf.getParticleSize(); ++i)
-  {
     ASSERT_EQ(pf.getParticle(i)[0], orig[i]);
-  }
 }
 
 int main(int argc, char **argv)
