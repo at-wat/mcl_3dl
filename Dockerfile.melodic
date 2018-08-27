@@ -1,4 +1,4 @@
-FROM ros:melodic-ros-core
+FROM seqsense/ros-baremetal:melodic-ros-baremetal
 
 RUN echo "deb http://packages.ros.org/ros-shadow-fixed/ubuntu `lsb_release -sc` main" > /etc/apt/sources.list.d/ros-latest.list
 
