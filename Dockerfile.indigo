@@ -1,6 +1,20 @@
-FROM seqsense/ros-baremetal:indigo-ros-baremetal
+# ========================================
+FROM alpine:3.7 as cloner
 
-RUN echo "deb http://packages.ros.org/ros-shadow-fixed/ubuntu `lsb_release -sc` main" > /etc/apt/sources.list.d/ros-latest.list
+RUN apk add --no-cache git py-pip \
+  && pip install wstool
+
+WORKDIR /repos
+COPY .rosinstall /repos/deps.rosinstall
+
+RUN wstool init src --shallow deps.rosinstall
+COPY . /repos/src/self
+
+RUN mkdir -p /repos-manifests/src
+RUN find . -name package.xml | xargs -ISRC cp --parents SRC /repos-manifests/
+
+# ========================================
+FROM ros:indigo-ros-core
 
 RUN apt-get -qq update \
   && apt-get install -y --no-install-recommends \
@@ -13,16 +27,16 @@ RUN apt-get -qq update \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
-COPY ./package.xml /catkin_ws/src/mcl_3dl/package.xml
+COPY --from=cloner /repos-manifests/src /catkin_ws/src
 RUN rosdep update \
   && apt-get -qq update \
   && rosdep install --from-paths /catkin_ws/src --ignore-src --rosdistro=${ROS_DISTRO} -y \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
+COPY --from=cloner /repos/src /catkin_ws/src
+
 RUN mkdir -p /catkin_ws/src \
   && cd /catkin_ws/src \
   && . /opt/ros/${ROS_DISTRO}/setup.sh \
   && catkin_init_workspace
-
-COPY . /catkin_ws/src/mcl_3dl
