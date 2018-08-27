@@ -106,6 +106,7 @@ TEST(TransformFailure, NoDeadAgainstTransformFailure)
   std::cerr << "mcl_3dl started" << std::endl;
   ros::Duration(1.0).sleep();
   int cnt = 0;
+  // mcl_3dl is launched with required="true". This test is killed by roslaunch if mcl_3dl is dead.
   while (ros::ok())
   {
     ++cnt;
