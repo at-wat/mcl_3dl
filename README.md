@@ -19,7 +19,8 @@ The node provides classic MCL; currently, it doesn't implement adaptive feature 
 A fundamental algorithm of *mcl_3dl* node is Monte Carlo localization (MCL), aka particle filter localization.
 MCL represents a probabilistic distribution of estimated pose as density and weight of particles and estimates the pose from the distribution.
 
-See [details](doc/Algorithms.md).
+- [Algorithm details](doc/Algorithms.md).
+- [Parameters](doc/Parameters.md)
 
 ## Install
 
