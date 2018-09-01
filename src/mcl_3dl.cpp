@@ -1548,7 +1548,7 @@ public:
             std::max(params_.match_dist_min, params_.map_grid_max * 4.0)));
     ROS_DEBUG("max_search_radius: %0.3f", max_search_radius);
     kdtree_.reset(new mcl_3dl::ChunkedKdtree<pcl::PointXYZI>(map_chunk, max_search_radius));
-    kdtree_->setEpsilon(params_.map_grid_min / 4);
+    kdtree_->setEpsilon(params_.map_grid_min / 16);
     kdtree_->setPointRepresentation(
         boost::dynamic_pointer_cast<
             pcl::PointRepresentation<pcl::PointXYZI>,
