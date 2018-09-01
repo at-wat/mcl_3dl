@@ -1526,7 +1526,7 @@ public:
     params_.map_update_interval.reset(new ros::Duration(map_update_interval_t));
 
     pnh_.param("match_dist_min", params_.match_dist_min, 0.2);
-    pnh_.param("match_dist_flat", params_.match_dist_flat, 0.01);
+    pnh_.param("match_dist_flat", params_.match_dist_flat, 0.05);
     pnh_.param("match_weight", params_.match_weight, 5.0);
 
     double weight[3];
