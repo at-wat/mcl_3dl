@@ -92,18 +92,18 @@ void generateSamplePointcloud2(
       if (x0 < x && x < x1 && y0 < y && y < y1)
         points.push_back(Point(x, y, 0.0));
   // Draw objects
-  for (float x = -2; x < 1; x += grid_xy)
+  for (float x = -2; x < 1.6; x += grid_xy)
     if (x0 < x && x < x1)
       for (float z = 0.5; z < 1.5; z += grid_z)
-        points.push_back(Point(x, 1.0, z));
-  for (float x = -1.5; x < 0; x += grid_xy)
-    if (x0 < x && x < x1)
-      for (float z = 0.5; z < 2.0; z += grid_z)
-        points.push_back(Point(x, -1.5, z));
-  for (float y = -0.5; y < 1.0; y += grid_xy)
+        points.push_back(Point(x, 1.6, z));
+  for (float y = -0.5; y < 1.6; y += grid_xy)
     if (y0 < y && y < y1)
       for (float z = 0.5; z < 2.0; z += grid_z)
-        points.push_back(Point(1.0, y, z));
+        points.push_back(Point(1.6, y, z));
+  for (float x = 0; x < 1.6; x += grid_xy)
+    if (x0 < x && x < x1)
+      for (float z = 0.5; z < 2.0; z += grid_z)
+        points.push_back(Point(x, -2.1 + x, z));
 
   const float o_cos = cosf(offset_yaw);
   const float o_sin = sinf(offset_yaw);
