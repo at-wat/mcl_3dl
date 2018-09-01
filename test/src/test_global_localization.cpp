@@ -83,9 +83,9 @@ void generateSamplePointcloud2(
     }
   };
   std::vector<Point> points;
-  const float grid_xy = 0.05;
-  const float grid_z = 0.05;
-  const float floor_size = 7.5;
+  const float grid_xy = 0.15;
+  const float grid_z = 0.1;
+  const float floor_size = 6.0;
   // Draw floor
   for (float x = -floor_size; x < floor_size; x += grid_xy)
     for (float y = -floor_size; y < floor_size; y += grid_xy)
@@ -201,7 +201,7 @@ TEST(GlobalLocalization, Localize)
     for (float offset_yaw = -M_PI / 2; offset_yaw <= M_PI / 2 + 0.1; offset_yaw += M_PI)
     {
       const float laser_frame_height = 0.5;
-      const float offset_y = 0.5;
+      const float offset_y = 0.54;
       const float offset_z = 0.0;
 
       ros::Rate rate(10);
