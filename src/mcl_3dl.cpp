@@ -117,6 +117,7 @@ protected:
     double expansion_var_yaw;
     double match_ratio_thresh;
     double match_dist_min;
+    double match_dist_flat;
     double match_weight;
     double jump_dist;
     double jump_ang;
@@ -749,10 +750,11 @@ protected:
     float match_ratio_min = 1.0;
     float match_ratio_max = 0.0;
     const float match_dist_min = params_.match_dist_min;
+    const float match_dist_flat = params_.match_dist_flat;
     const float match_weight = params_.match_weight;
     mcl_3dl::NormalLikelihood<float> odom_error_lin_nd(params_.odom_err_integ_lin_sigma);
     mcl_3dl::NormalLikelihood<float> odom_error_ang_nd(params_.odom_err_integ_ang_sigma);
-    auto measure_func = [this, &match_dist_min, &match_weight,
+    auto measure_func = [this, &match_dist_min, &match_dist_flat, &match_weight,
                          &id, &sqdist, &pc_particle, &pc_local,
                          &pc_particle_beam, &pc_local_beam, &origins,
                          &odom_error_lin_nd,
@@ -767,10 +769,7 @@ protected:
       {
         if (kdtree_->radiusSearch(p, match_dist_min, id, sqdist, 1))
         {
-          float dist = sqdist[0];
-          if (dist < 0.05 * 0.05)
-            dist = 0.05 * 0.05;
-          dist = match_dist_min - sqrtf(dist);
+          const float dist = match_dist_min - std::max(sqrtf(sqdist[0]), match_dist_flat);
           if (dist < 0.0)
             continue;
 
@@ -1246,7 +1245,8 @@ protected:
       {
         pf_->resizeParticle(params_.num_particles);
       }
-      global_localization_fix_cnt_ = 1 + ceil(params_.lpf_step) * 3.0;  // wait 99.7% fix (three-sigma)
+      // wait 99.7% fix (three-sigma)
+      global_localization_fix_cnt_ = 1 + ceil(params_.lpf_step) * 3.0;
     }
     if (global_localization_fix_cnt_)
     {
@@ -1526,6 +1526,7 @@ public:
     params_.map_update_interval.reset(new ros::Duration(map_update_interval_t));
 
     pnh_.param("match_dist_min", params_.match_dist_min, 0.2);
+    pnh_.param("match_dist_flat", params_.match_dist_flat, 0.05);
     pnh_.param("match_weight", params_.match_weight, 5.0);
 
     double weight[3];
@@ -1547,7 +1548,7 @@ public:
             std::max(params_.match_dist_min, params_.map_grid_max * 4.0)));
     ROS_DEBUG("max_search_radius: %0.3f", max_search_radius);
     kdtree_.reset(new mcl_3dl::ChunkedKdtree<pcl::PointXYZI>(map_chunk, max_search_radius));
-    kdtree_->setEpsilon(params_.map_grid_min / 4);
+    kdtree_->setEpsilon(params_.map_grid_min / 16);
     kdtree_->setPointRepresentation(
         boost::dynamic_pointer_cast<
             pcl::PointRepresentation<pcl::PointXYZI>,
