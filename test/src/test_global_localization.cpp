@@ -37,9 +37,10 @@
 #include <sensor_msgs/point_cloud2_iterator.h>
 #include <std_srvs/Trigger.h>
 
-#include <gtest/gtest.h>
-
 #include <random>
+#include <vector>
+
+#include <gtest/gtest.h>
 
 namespace
 {
