@@ -29,13 +29,14 @@
 
 #include <ros/ros.h>
 
-#include <geometry_msgs/PoseWithCovarianceStamped.h>
+#include <geometry_msgs/PoseArray.h>
 #include <mcl_3dl_msgs/Status.h>
 #include <nav_msgs/Odometry.h>
 #include <sensor_msgs/Imu.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/point_cloud2_iterator.h>
 #include <std_srvs/Trigger.h>
+#include <tf/transform_datatypes.h>
 
 #include <random>
 #include <vector>
@@ -166,13 +167,13 @@ inline nav_msgs::Odometry generateOdomMsg()
 
 TEST(GlobalLocalization, Localize)
 {
-  geometry_msgs::PoseWithCovarianceStamped::ConstPtr pose;
+  geometry_msgs::PoseArray::ConstPtr poses;
   mcl_3dl_msgs::Status::ConstPtr status;
 
-  const boost::function<void(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &)> cb_pose =
-      [&pose](const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg) -> void
+  const boost::function<void(const geometry_msgs::PoseArray::ConstPtr &)> cb_pose =
+      [&poses](const geometry_msgs::PoseArray::ConstPtr &msg) -> void
   {
-    pose = msg;
+    poses = msg;
   };
   const boost::function<void(const mcl_3dl_msgs::Status::ConstPtr &)> cb_status =
       [&status](const mcl_3dl_msgs::Status::ConstPtr &msg) -> void
@@ -181,7 +182,7 @@ TEST(GlobalLocalization, Localize)
   };
 
   ros::NodeHandle nh("");
-  ros::Subscriber sub_pose = nh.subscribe("amcl_pose", 1, cb_pose);
+  ros::Subscriber sub_pose = nh.subscribe("mcl_3dl/particles", 1, cb_pose);
   ros::Subscriber sub_status = nh.subscribe("mcl_3dl/status", 1, cb_status);
 
   ros::ServiceClient src_global_localization =
@@ -263,16 +264,26 @@ TEST(GlobalLocalization, Localize)
       ASSERT_TRUE(ros::ok());
 
       ASSERT_TRUE(static_cast<bool>(status));
-      ASSERT_TRUE(static_cast<bool>(pose));
-      ASSERT_NEAR(-pose->pose.pose.position.x,
-                  offset_x * cos(-offset_yaw) - offset_y * sin(-offset_yaw), 2e-1);
-      ASSERT_NEAR(-pose->pose.pose.position.y,
-                  offset_x * sin(-offset_yaw) + offset_y * cos(-offset_yaw), 2e-1);
-      ASSERT_NEAR(-pose->pose.pose.position.z, offset_z, 2e-1);
-      ASSERT_NEAR(pose->pose.pose.orientation.x, 0, 1e-1);
-      ASSERT_NEAR(pose->pose.pose.orientation.y, 0, 1e-1);
-      ASSERT_NEAR(pose->pose.pose.orientation.z, sinf(-offset_yaw / 2), 1e-1);
-      ASSERT_NEAR(pose->pose.pose.orientation.w, cosf(-offset_yaw / 2), 1e-1);
+      ASSERT_TRUE(static_cast<bool>(poses));
+
+      const tf::Transform true_pose(
+          tf::Quaternion(0, 0, sinf(-offset_yaw / 2), cosf(-offset_yaw / 2)),
+          tf::Vector3(
+              -(offset_x * cos(-offset_yaw) - offset_y * sin(-offset_yaw)),
+              -(offset_x * sin(-offset_yaw) + offset_y * cos(-offset_yaw)),
+              -offset_z));
+      bool found_true_positive(false);
+      for (const auto &pose : poses->poses)
+      {
+        tf::Transform particle_pose;
+        tf::poseMsgToTF(pose, particle_pose);
+
+        const tf::Transform tf_diff = particle_pose.inverse() * true_pose;
+        if (tf_diff.getOrigin().length() < 2e-1 &&
+            fabs(tf::getYaw(tf_diff.getRotation())) < 2e-1)
+          found_true_positive = true;
+      }
+      ASSERT_TRUE(found_true_positive);
     }
   }
 }
