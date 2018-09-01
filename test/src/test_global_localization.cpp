@@ -54,8 +54,10 @@ void generateSamplePointcloud2(
     const float offset_z,
     const float offset_yaw)
 {
-  std::default_random_engine engine(1);
+  std::random_device seed;
+  std::default_random_engine engine(seed());
   std::normal_distribution<float> rand(0, 0.05);
+
   cloud.height = 1;
   cloud.is_bigendian = false;
   cloud.is_dense = false;
@@ -66,89 +68,58 @@ void generateSamplePointcloud2(
       "y", 1, sensor_msgs::PointField::FLOAT32,
       "z", 1, sensor_msgs::PointField::FLOAT32,
       "intensity", 1, sensor_msgs::PointField::FLOAT32);
-  modifier.reserve(200 * 200 * 2);
+
+  class Point
+  {
+  public:
+    float x_, y_, z_;
+    Point(const float x, const float y, const float z)
+      : x_(x)
+      , y_(y)
+      , z_(z)
+    {
+    }
+  };
+  std::vector<Point> points;
+  const float grid_xy = 0.15;
+  const float grid_z = 0.1;
+  const float floor_size = 7.5;
+  // Draw floor
+  for (float x = -floor_size; x < floor_size; x += grid_xy)
+    for (float y = -floor_size; y < floor_size; y += grid_xy)
+      if (x0 < x && x < x1 && y0 < y && y < y1)
+        points.push_back(Point(x, y, 0.0));
+  // Draw objects
+  for (float x = -2; x < 1; x += grid_xy)
+    if (x0 < x && x < x1)
+      for (float z = 0.5; z < 1.5; z += grid_z)
+        points.push_back(Point(x, 1.0, z));
+  for (float x = -1.5; x < 0; x += grid_xy)
+    if (x0 < x && x < x1)
+      for (float z = 0.5; z < 2.0; z += grid_z)
+        points.push_back(Point(x, -1.5, z));
+  for (float y = -0.5; y < 1.0; y += grid_xy)
+    if (y0 < y && y < y1)
+      for (float z = 0.5; z < 2.0; z += grid_z)
+        points.push_back(Point(1.0, y, z));
+
+  const float o_cos = cosf(offset_yaw);
+  const float o_sin = sinf(offset_yaw);
+  modifier.resize(points.size());
+  cloud.width = points.size();
   sensor_msgs::PointCloud2Iterator<float> iter_x(cloud, "x");
   sensor_msgs::PointCloud2Iterator<float> iter_y(cloud, "y");
   sensor_msgs::PointCloud2Iterator<float> iter_z(cloud, "z");
 
-  const float o_cos = cosf(offset_yaw);
-  const float o_sin = sinf(offset_yaw);
-
-  // Draw floor
-  for (float x = -10; x < 10; x += 0.2)
+  for (const Point &p : points)
   {
-    for (float y = -10; y < 10; y += 0.2)
-    {
-      if (x0 < x && x < x1 &&
-          y0 < y && y < y1)
-      {
-        const float z = 0;
-        modifier.resize(modifier.size() + 1);
-        *iter_x = x * o_cos - y * o_sin + offset_x + rand(engine);
-        *iter_y = x * o_sin + y * o_cos + offset_y + rand(engine);
-        *iter_z = z + offset_z + rand(engine);
-        ++iter_x;
-        ++iter_y;
-        ++iter_z;
-      }
-    }
+    *iter_x = p.x_ * o_cos - p.y_ * o_sin + offset_x + rand(engine);
+    *iter_y = p.x_ * o_sin + p.y_ * o_cos + offset_y + rand(engine);
+    *iter_z = p.z_ + offset_z + rand(engine);
+    ++iter_x;
+    ++iter_y;
+    ++iter_z;
   }
-  // Draw objects
-  for (float x = -2; x < 1; x += 0.2)
-  {
-    const float y = 1.0;
-    if (x0 < x && x < x1 &&
-        y0 < y && y < y1)
-    {
-      for (float z = 0.5; z < 1.5; z += 0.1)
-      {
-        modifier.resize(modifier.size() + 1);
-        *iter_x = x * o_cos - y * o_sin + offset_x + rand(engine);
-        *iter_y = x * o_sin + y * o_cos + offset_y + rand(engine);
-        *iter_z = z + offset_z + rand(engine);
-        ++iter_x;
-        ++iter_y;
-        ++iter_z;
-      }
-    }
-  }
-  for (float x = -1.5; x < 0; x += 0.2)
-  {
-    const float y = -1.5;
-    if (x0 < x && x < x1 &&
-        y0 < y && y < y1)
-    {
-      for (float z = 0.5; z < 2.0; z += 0.1)
-      {
-        modifier.resize(modifier.size() + 1);
-        *iter_x = x * o_cos - y * o_sin + offset_x + rand(engine);
-        *iter_y = x * o_sin + y * o_cos + offset_y + rand(engine);
-        *iter_z = z + offset_z + rand(engine);
-        ++iter_x;
-        ++iter_y;
-        ++iter_z;
-      }
-    }
-  }
-  for (float y = -0.5; y < 1.0; y += 0.2)
-  {
-    const float x = 1.0;
-    if (x0 < x && x < x1 &&
-        y0 < y && y < y1)
-    {
-      for (float z = 0.5; z < 2.0; z += 0.1)
-      {
-        modifier.resize(modifier.size() + 1);
-        *iter_x = x * o_cos - y * o_sin + offset_x + rand(engine);
-        *iter_y = x * o_sin + y * o_cos + offset_y + rand(engine);
-        *iter_z = z + offset_z + rand(engine);
-        ++iter_x;
-        ++iter_y;
-        ++iter_z;
-      }
-    }
-  }
-  cloud.width = modifier.size();
 }
 
 inline sensor_msgs::PointCloud2 generateMapMsg()
@@ -279,7 +250,7 @@ TEST(GlobalLocalization, Localize)
       ASSERT_TRUE(ros::ok());
 
       // Wait to improve accuracy
-      for (int i = 0; i < 20; ++i)
+      for (int i = 0; i < 40; ++i)
       {
         rate.sleep();
         ros::spinOnce();

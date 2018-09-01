@@ -8,6 +8,7 @@
     <param name="lpf_step" value="0" />
     <param name="clip_near" value="0.0" />
     <param name="clip_beam_near" value="0.0" />
+    <param name="dist_weight_z" value="1.0" />
   </node>
 
   <node pkg="tf" type="static_transform_publisher" name="stf_base_link" args="0 5 0 0 0 0 odom base_link 100" />
