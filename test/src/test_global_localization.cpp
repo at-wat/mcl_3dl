@@ -57,7 +57,7 @@ void generateSamplePointcloud2(
 {
   std::random_device seed;
   std::default_random_engine engine(seed());
-  std::normal_distribution<float> rand(0, 0.05);
+  std::normal_distribution<float> rand(0, 0.01);
 
   cloud.height = 1;
   cloud.is_bigendian = false;
@@ -82,8 +82,8 @@ void generateSamplePointcloud2(
     }
   };
   std::vector<Point> points;
-  const float grid_xy = 0.15;
-  const float grid_z = 0.1;
+  const float grid_xy = 0.05;
+  const float grid_z = 0.05;
   const float floor_size = 7.5;
   // Draw floor
   for (float x = -floor_size; x < floor_size; x += grid_xy)
