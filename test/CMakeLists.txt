@@ -16,6 +16,11 @@ target_link_libraries(test_raycast ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 add_executable(performance_raycast src/performance_raycast.cpp)
 target_link_libraries(performance_raycast ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${PCL_LIBRARIES})
 
+add_rostest_gtest(test_global_localization tests/global_localization_rostest.test
+    src/test_global_localization.cpp)
+target_link_libraries(test_global_localization ${catkin_LIBRARIES})
+add_dependencies(test_global_localization mcl_3dl)
+
 add_rostest_gtest(test_transform_failure tests/transform_rostest.test
     src/test_transform_failure.cpp)
 target_link_libraries(test_transform_failure ${catkin_LIBRARIES})

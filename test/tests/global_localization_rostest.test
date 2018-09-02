@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<launch>
+  <test test-name="test_global_localization" pkg="mcl_3dl" type="test_global_localization" time-limit="90" />
+  
+  <node pkg="mcl_3dl" type="mcl_3dl" name="mcl_3dl" output="screen">
+    <param name="compatible" value="1" />
+    <param name="match_dist_min" value="0.5" />
+    <param name="match_dist_flat" value="0.1" />
+    <param name="lpf_step" value="0" />
+    <param name="clip_near" value="0.0" />
+    <param name="clip_beam_near" value="0.0" />
+    <param name="dist_weight_z" value="1.0" />
+  </node>
+
+  <node pkg="tf" type="static_transform_publisher" name="stf_base_link" args="0 5 0 0 0 0 odom base_link 100" />
+  <node pkg="tf" type="static_transform_publisher" name="stf_laser" args="0 0 0.5 0 0 0 base_link laser 100" />
+</launch>
