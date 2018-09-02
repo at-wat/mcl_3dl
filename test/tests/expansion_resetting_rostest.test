@@ -12,21 +12,21 @@
     <param name="dist_weight_z" value="1.0" />
 
     <!-- Make initial variance smaller to be in local minimum -->
-    <param name="init_var_x" value="0.1" />
-    <param name="init_var_y" value="0.1" />
-    <param name="init_var_z" value="0.02" />
+    <param name="init_var_x" value="0.05" />
+    <param name="init_var_y" value="0.05" />
+    <param name="init_var_z" value="0.05" />
     <param name="init_var_roll" value="0.0" />
     <param name="init_var_pitch" value="0.0" />
-    <param name="init_var_yaw" value="0.01" />
+    <param name="init_var_yaw" value="0.05" />
 
-    <param name="match_ratio_thresh" value="0.5" />
-    <param name="expansion_var_x" value="0.2" />
-    <param name="expansion_var_y" value="0.2" />
+    <param name="match_ratio_thresh" value="0.8" />
+    <param name="expansion_var_x" value="0.4" />
+    <param name="expansion_var_y" value="0.4" />
     <param name="expansion_var_z" value="0.1" />
     <param name="expansion_var_roll" value="0.0" />
     <param name="expansion_var_pitch" value="0.0" />
-    <param name="expansion_var_yaw" value="0.01" />
+    <param name="expansion_var_yaw" value="0.05" />
   </node>
 
-  <node pkg="tf" type="static_transform_publisher" name="stf_base_link" args="2 0 0 0 0 0 odom base_link 100" />
+  <node pkg="tf" type="static_transform_publisher" name="stf_base_link" args="1 0 0 0 0 0 odom base_link 100" />
 </launch>

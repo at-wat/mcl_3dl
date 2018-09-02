@@ -74,12 +74,19 @@ void generateSamplePointcloud2(
     }
   };
   std::vector<Point> points;
-  // Draw sphere
+  // Draw cube
   for (float x = -1; x < 1; x += 0.05)
-    for (float y = -2; y < 2; y += 0.05)
-      for (float z = -2; z < 2; z += 0.05)
-        if (fabs(powf(x, 2) + powf(y / 2, 2) + powf(z / 2, 2) - 1) < 0.05)
-          points.push_back(Point(x + offset_x, y + offset_y, z + offset_z));
+  {
+    for (float y = -1; y < 1; y += 0.05)
+    {
+      points.push_back(Point(x / 2 + offset_x, y + offset_y, 1.0 + offset_z));
+      points.push_back(Point(x / 2 + offset_x, y + offset_y, -1.0 + offset_z));
+      points.push_back(Point(1.0 / 2 + offset_x, y + offset_y, x + offset_z));
+      points.push_back(Point(-1.0 / 2 + offset_x, y + offset_y, x + offset_z));
+      points.push_back(Point(x / 2 + offset_x, 1.0 + offset_y, y + offset_z));
+      points.push_back(Point(x / 2 + offset_x, -1.0 + offset_y, y + offset_z));
+    }
+  }
 
   modifier.resize(points.size());
   cloud.width = points.size();
@@ -130,7 +137,7 @@ inline nav_msgs::Odometry generateOdomMsg()
   nav_msgs::Odometry odom;
   odom.header.frame_id = "odom";
   odom.header.stamp = ros::Time::now();
-  odom.pose.pose.position.x = 2;
+  odom.pose.pose.position.x = 1;
   odom.pose.pose.orientation.w = 1;
   return odom;
 }
@@ -172,37 +179,13 @@ TEST(ExpansionResetting, ExpandAndResume)
 
   ros::Duration(1.0).sleep();
   ros::Rate rate(10);
-  // Wait until starting expansion resetting
-  while (ros::ok())
-  {
-    rate.sleep();
-    ros::spinOnce();
-    if (status && status->status == mcl_3dl_msgs::Status::EXPANSION_RESETTING)
-      break;
-    pub_cloud.publish(generateCloudMsg());
-    pub_imu.publish(generateImuMsg());
-    pub_odom.publish(generateOdomMsg());
-  }
-  ASSERT_TRUE(ros::ok());
-
-  // Wait until finishing global localization
-  while (ros::ok())
-  {
-    rate.sleep();
-    ros::spinOnce();
-    if (status && status->status == mcl_3dl_msgs::Status::NORMAL)
-      break;
-    pub_cloud.publish(generateCloudMsg());
-    pub_imu.publish(generateImuMsg());
-    pub_odom.publish(generateOdomMsg());
-  }
-  ASSERT_TRUE(ros::ok());
-
-  // Wait to improve accuracy
+  // Wait until finishing expansion resetting
   for (int i = 0; i < 40; ++i)
   {
     rate.sleep();
     ros::spinOnce();
+    if (status && status->status == mcl_3dl_msgs::Status::EXPANSION_RESETTING)
+      i = 0;
     pub_cloud.publish(generateCloudMsg());
     pub_imu.publish(generateImuMsg());
     pub_odom.publish(generateOdomMsg());
