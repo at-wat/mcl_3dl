@@ -172,7 +172,7 @@ TEST(ExpansionResetting, ExpandAndResume)
   ros::Publisher pub_imu = nh.advertise<sensor_msgs::Imu>("imu/data", 1);
   ros::Publisher pub_odom = nh.advertise<nav_msgs::Odometry>("odom", 1);
 
-  const float offset_x = 2;
+  const float offset_x = 1;
   const float offset_y = 0;
   const float offset_z = 0;
   pub_mapcloud.publish(generateMapMsg(offset_x, offset_y, offset_z));
