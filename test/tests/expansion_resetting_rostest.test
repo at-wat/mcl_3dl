@@ -11,7 +11,7 @@
     <param name="clip_beam_near" value="0.0" />
     <param name="dist_weight_z" value="1.0" />
 
-    <!-- Make initial variance smaller to be in local minimum -->
+    <!-- Make initial variance smaller to trap particles in local minimum -->
     <param name="init_var_x" value="0.05" />
     <param name="init_var_y" value="0.05" />
     <param name="init_var_z" value="0.05" />
