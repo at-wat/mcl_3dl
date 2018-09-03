@@ -41,7 +41,7 @@ Copied particles is spread by the Gaussian noise.
 ### Expansion resetting
 
 *mcl_3dl* has an ad-hoc implementation of the expansion resetting method.
-(More theoretical method and its implementation were proposed in [Ueda 2004](https://ieeexplore.ieee.org/document/1389781/).)
+(More theoretical method and its implementation were proposed in [[Ueda 2004]](https://ieeexplore.ieee.org/document/1389781/).)
 
 The node spreads particle distribution by given Gaussian noise if the ratio of the measured points which have corresponding map points is smaller than the threshold.
 By using the expansion resetting, the particle distribution can recover the true pose even if there are local minimum solutions, as shown on the right side of the figure below.
