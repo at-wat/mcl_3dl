@@ -30,6 +30,8 @@
 #ifndef MCL_3DL_STATE_6DOF_H
 #define MCL_3DL_STATE_6DOF_H
 
+#include <algorithm>
+
 #include <mcl_3dl/pf.h>
 #include <mcl_3dl/quat.h>
 #include <mcl_3dl/vec3.h>

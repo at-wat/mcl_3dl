@@ -30,6 +30,9 @@
 #ifndef MCL_3DL_LIDAR_MEASUREMENT_MODEL_BASE_H
 #define MCL_3DL_LIDAR_MEASUREMENT_MODEL_BASE_H
 
+#include <string>
+#include <utility>
+
 #include <ros/ros.h>
 
 #include <pcl/point_types.h>

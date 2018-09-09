@@ -27,6 +27,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <boost/chrono.hpp>
+#include <boost/shared_ptr.hpp>
+#include <algorithm>
+#include <string>
+#include <map>
+#include <vector>
+#include <utility>
+
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud.h>
 #include <sensor_msgs/PointCloud2.h>
@@ -54,13 +62,6 @@
 #include <pcl/kdtree/kdtree_flann.h>
 
 #include <Eigen/Core>
-
-#include <boost/chrono.hpp>
-#include <boost/shared_ptr.hpp>
-#include <algorithm>
-#include <string>
-#include <map>
-#include <vector>
 
 #include <mcl_3dl/chunked_kdtree.h>
 #include <mcl_3dl/filter.h>
