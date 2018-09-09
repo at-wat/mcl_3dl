@@ -435,6 +435,7 @@ protected:
 
       return output;
     };
+
     std::map<std::string, pcl::PointCloud<pcl::PointXYZI>::Ptr> pc_locals;
     for (auto &lm : lidar_measurements_)
     {
@@ -479,18 +480,11 @@ protected:
 
     pcl::PointCloud<pcl::PointXYZI>::Ptr pc_particle_beam(new pcl::PointCloud<pcl::PointXYZI>);
 
-    std::vector<int> id(1);
-    std::vector<float> sqdist(1);
-
     float match_ratio_min = 1.0;
     float match_ratio_max = 0.0;
-    const float match_dist_min = params_.match_dist_min;
-    const float match_dist_flat = params_.match_dist_flat;
-    const float match_weight = params_.match_weight;
     NormalLikelihood<float> odom_error_lin_nd(params_.odom_err_integ_lin_sigma);
     NormalLikelihood<float> odom_error_ang_nd(params_.odom_err_integ_ang_sigma);
-    auto measure_func = [this, &match_dist_min, &match_dist_flat, &match_weight,
-                         &id, &sqdist, &pc_locals,
+    auto measure_func = [this, &pc_locals,
                          &pc_particle_beam, &pc_local_beam, &origins,
                          &odom_error_lin_nd,
                          &match_ratio_min, &match_ratio_max](const State6DOF &s) -> float
@@ -506,7 +500,7 @@ protected:
       }
       if (match_ratio_min > qualities["likelihood"])
         match_ratio_min = qualities["likelihood"];
-      else if (match_ratio_max < qualities["likelihood"])
+      if (match_ratio_max < qualities["likelihood"])
         match_ratio_max = qualities["likelihood"];
 
       // approximative beam model
@@ -819,12 +813,14 @@ protected:
       if (fix)
         ROS_DEBUG("Localization fixed");
     }
-    pcl::PointCloud<pcl::PointXYZI>::Ptr pc_particle(new pcl::PointCloud<pcl::PointXYZI>);
-    *pc_particle = *pc_locals["likelihood"];
-    e.transform(*pc_particle);
 
     if (output_pcd_)
+    {
+      pcl::PointCloud<pcl::PointXYZI>::Ptr pc_particle(new pcl::PointCloud<pcl::PointXYZI>);
+      *pc_particle = *pc_locals["likelihood"];
+      e.transform(*pc_particle);
       *pc_all_accum_ += *pc_particle;
+    }
 
     if ((msg->header.stamp - match_output_last_ > *params_.match_output_interval ||
          msg->header.stamp < match_output_last_ - ros::Duration(1.0)) &&
@@ -839,10 +835,15 @@ protected:
       pc_unmatch.header.stamp = msg->header.stamp;
       pc_unmatch.header.frame_id = frame_ids_["map"];
 
-      e.transform(*pc_local_full);
+      pcl::PointCloud<pcl::PointXYZI>::Ptr pc_local(new pcl::PointCloud<pcl::PointXYZI>);
+      *pc_local = *pc_local_full;
 
+      e.transform(*pc_local);
+
+      std::vector<int> id(1);
+      std::vector<float> sqdist(1);
       const double match_dist_sq = params_.match_output_dist * params_.match_output_dist;
-      for (auto &p : pc_local_full->points)
+      for (auto &p : pc_local->points)
       {
         geometry_msgs::Point32 pp;
         pp.x = p.x;
@@ -1398,7 +1399,7 @@ public:
 
     for (auto &lm : lidar_measurements_)
     {
-      lm.second->loadConfig(nh_, lm.first);
+      lm.second->loadConfig(pnh_, lm.first);
     }
 
     map_update_timer_ = nh_.createTimer(

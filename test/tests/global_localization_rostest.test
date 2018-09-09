@@ -4,10 +4,10 @@
   
   <node pkg="mcl_3dl" type="mcl_3dl" name="mcl_3dl" output="screen">
     <param name="compatible" value="1" />
-    <param name="match_dist_min" value="0.5" />
-    <param name="match_dist_flat" value="0.1" />
+    <param name="likelihood/match_dist_min" value="0.5" />
+    <param name="likelihood/match_dist_flat" value="0.1" />
+    <param name="likelihood/clip_near" value="0.0" />
     <param name="lpf_step" value="0" />
-    <param name="clip_near" value="0.0" />
     <param name="clip_beam_near" value="0.0" />
     <param name="dist_weight_z" value="1.0" />
   </node>

@@ -93,17 +93,15 @@ public:
     match_dist_flat_ = match_dist_flat;
   }
   void setGlobalLocalizationStatus(
-      size_t num_particles,
-      size_t current_num_particles)
+      const size_t num_particles,
+      const size_t current_num_particles)
   {
     if (current_num_particles <= num_particles)
     {
       num_points_ = num_points_default_;
       return;
     }
-    size_t num = num_points_;
-    if (current_num_particles > num_particles)
-      num = num * num_particles / current_num_particles;
+    size_t num = num_points_default_ * num_particles / current_num_particles;
     if (num < num_points_global_)
       num = num_points_global_;
 
@@ -123,12 +121,14 @@ public:
         return true;
       return false;
     };
-    pc->erase(
-        std::remove_if(pc->begin(), pc->end(), local_points_filter), pc->end());
-    pc->width = 1;
-    pc->height = pc->points.size();
+    pcl::PointCloud<pcl::PointXYZI>::Ptr pc_filtered(new pcl::PointCloud<pcl::PointXYZI>);
+    *pc_filtered = *pc;
+    pc_filtered->erase(
+        std::remove_if(pc_filtered->begin(), pc_filtered->end(), local_points_filter), pc_filtered->end());
+    pc_filtered->width = 1;
+    pc_filtered->height = pc_filtered->points.size();
 
-    return sampler_.sample(pc, num_points_);
+    return sampler_.sample(pc_filtered, num_points_);
   }
 
   std::pair<float, float> measure(
@@ -136,6 +136,10 @@ public:
       const typename pcl::PointCloud<POINT_TYPE>::Ptr &pc,
       const STATE_TYPE &s) const
   {
+    if (!pc)
+      return std::pair<float, float>(1, 0);
+    if (pc->size() == 0)
+      return std::pair<float, float>(1, 0);
     pcl::PointCloud<pcl::PointXYZI>::Ptr pc_particle(new pcl::PointCloud<pcl::PointXYZI>);
     std::vector<int> id(1);
     std::vector<float> sqdist(1);

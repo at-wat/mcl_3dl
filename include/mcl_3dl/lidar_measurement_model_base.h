@@ -53,7 +53,7 @@ public:
       const ros::NodeHandle &nh,
       const std::string &name) = 0;
   virtual void setGlobalLocalizationStatus(
-      size_t, size_t) = 0;
+      const size_t, const size_t) = 0;
 
   virtual typename pcl::PointCloud<POINT_TYPE>::Ptr filter(
       const typename pcl::PointCloud<POINT_TYPE>::Ptr &) const = 0;

@@ -57,7 +57,7 @@ public:
       return typename pcl::PointCloud<POINT_TYPE>::Ptr();
 
     typename pcl::PointCloud<POINT_TYPE>::Ptr output(new pcl::PointCloud<POINT_TYPE>);
-    output->points.resize(num);
+    output->points.reserve(num);
 
     std::uniform_int_distribution<size_t> ud(0, pc->points.size() - 1);
 
