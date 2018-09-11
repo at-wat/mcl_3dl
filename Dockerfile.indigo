@@ -17,6 +17,7 @@ RUN find . -name package.xml | xargs -ISRC cp --parents SRC /repos-manifests/
 FROM ros:indigo-ros-core
 
 RUN apt-get -qq update \
+  && apt-get upgrade -y \
   && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
