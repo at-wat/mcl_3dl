@@ -5,11 +5,10 @@ MCL represents a probabilistic distribution of estimated pose as density and wei
 
 ### Measurement
 
-A main aspect of the node is a combination of *beam_range_finder_model*, *likelihood_field_range_finder_model*. (Each of them is well-described in the book Probabilistic Robotics, by Thrun, Burgard, and Fox.)
-*beam_range_finder_model* can reduce false positive matching of the measured point in the map.
-However, *beam_range_finder_model* is heavier than *likelihood_field_range_finder_model*.
-
 #### LIDAR measurement model
+
+In general, *beam_range_finder_model* can reduce false positive matching of the measured point in the map, but is heavier than *likelihood_field_range_finder_model*.
+(These models are well-described in the book Probabilistic Robotics, by Thrun, Burgard, and Fox.)
 
 *mcl_3dl* node uses both *beam_range_finder_model* and *likelihood_field_range_finder_model* to perform good matching result with light computation power.
 The node calculates a likelihood of each particle by multiplying a likelihood of *likelihood_field_range_finder_model*, by using a larger number of randomly sampled points, and a likelihood of *beam_range_finder_model*, by using only a few randomly sampled points.
