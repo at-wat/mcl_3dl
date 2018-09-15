@@ -20,15 +20,15 @@ The closest point search uses chunked Kd-tree, and the measured point is voxel f
 Likelihood of *beam_range_finder_model* is calculated by ray casting.
 Where `N` is the number of rays of measured point, `n` is the number of the rays which passes through objects described in the map, and *alpha* is a rejection weight, the likelihood is given as `alpha^(n/N)`.
 
-#### Acceleration measurement model
-
-A likelihood of the vehicle posture is calculated by taking a difference between the acceleration vector in IMU data and particle pose.
-
 #### Axis dependent distance weight
 
 In some environments like a floor with a sparse wall, e.g., temporary scaffolds with guard rails, distance in Z-direction must be less cared, since the number of points which can fix estimated Z position is relatively large.
 In *mcl_3dl* node, the weight coefficient of distance calculation is changed by parameters.
 For example in a scaffold based plant, `(dist_weight_x, dist_weight_y, dist_weight_z)=(1.0, 1.0, 5.0)` seems reasonable.
+
+#### Acceleration measurement model
+
+A likelihood of the vehicle posture is calculated by taking a difference between the acceleration vector in IMU data and particle pose.
 
 ### Prediction
 
