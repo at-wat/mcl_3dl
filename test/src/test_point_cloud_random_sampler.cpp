@@ -80,7 +80,7 @@ TEST(PointCloudRandomSampler, Sampling)
 
   // Make sure that the sampler returns 0 point output for 0 point input
   pcl::PointCloud<pcl::PointXYZ>::Ptr pc_output0 = sampler.sample(pc_input, 0);
-  ASSERT_EQ(pc_output0->points.size(), 0);
+  ASSERT_EQ(pc_output0->points.size(), 0u);
 }
 
 int main(int argc, char **argv)
