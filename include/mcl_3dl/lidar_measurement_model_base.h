@@ -59,11 +59,11 @@ public:
       const size_t, const size_t) = 0;
 
   virtual typename pcl::PointCloud<POINT_TYPE>::Ptr filter(
-      const typename pcl::PointCloud<POINT_TYPE>::Ptr &) const = 0;
+      const typename pcl::PointCloud<POINT_TYPE>::ConstPtr &) const = 0;
 
   virtual std::pair<float, float> measure(
       typename mcl_3dl::ChunkedKdtree<POINT_TYPE>::Ptr &,
-      const typename pcl::PointCloud<POINT_TYPE>::Ptr &,
+      const typename pcl::PointCloud<POINT_TYPE>::ConstPtr &,
       const STATE_TYPE &) const = 0;
 };
 }  // namespace mcl_3dl

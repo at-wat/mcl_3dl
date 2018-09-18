@@ -114,7 +114,7 @@ public:
   }
 
   typename pcl::PointCloud<POINT_TYPE>::Ptr filter(
-      const typename pcl::PointCloud<POINT_TYPE>::Ptr &pc) const
+      const typename pcl::PointCloud<POINT_TYPE>::ConstPtr &pc) const
   {
     const auto local_points_filter = [this](const POINT_TYPE &p)
     {
@@ -138,7 +138,7 @@ public:
 
   std::pair<float, float> measure(
       typename mcl_3dl::ChunkedKdtree<POINT_TYPE>::Ptr &kdtree,
-      const typename pcl::PointCloud<POINT_TYPE>::Ptr &pc,
+      const typename pcl::PointCloud<POINT_TYPE>::ConstPtr &pc,
       const STATE_TYPE &s) const
   {
     if (!pc)
