@@ -417,26 +417,6 @@ protected:
     ds.setLeafSize(params_.downsample_x, params_.downsample_y, params_.downsample_z);
     ds.filter(*pc_local_full);
 
-    std::uniform_real_distribution<float> ud(0.0, 1.0);
-    auto random_sample = [this](
-        const pcl::PointCloud<pcl::PointXYZI>::Ptr &pc, const size_t &num)
-        -> pcl::PointCloud<pcl::PointXYZI>::Ptr
-    {
-      pcl::PointCloud<pcl::PointXYZI>::Ptr output(new pcl::PointCloud<pcl::PointXYZI>);
-      std::uniform_int_distribution<size_t> ud(0, pc->points.size() - 1);
-
-      for (size_t i = 0; i < num; i++)
-      {
-        output->points.push_back(pc->points[ud(engine_)]);
-      }
-      output->width = 1;
-      output->height = output->points.size();
-      output->header.frame_id = pc->header.frame_id;
-      output->header.stamp = pc->header.stamp;
-
-      return output;
-    };
-
     std::map<std::string, pcl::PointCloud<pcl::PointXYZI>::Ptr> pc_locals;
     for (auto &lm : lidar_measurements_)
     {
