@@ -27,48 +27,65 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef MCL_3DL_POINT_CLOUD_RANDOM_SAMPLER_H
-#define MCL_3DL_POINT_CLOUD_RANDOM_SAMPLER_H
-
-#include <random>
-
 #include <pcl/point_types.h>
 #include <pcl_ros/point_cloud.h>
 
-namespace mcl_3dl
-{
-template <class POINT_TYPE>
-class PointCloudRandomSampler
-{
-private:
-  std::random_device seed_gen_;
-  std::shared_ptr<std::default_random_engine> engine_;
+#include <mcl_3dl/point_cloud_random_sampler.h>
 
-public:
-  PointCloudRandomSampler()
-    : engine_(new std::default_random_engine(seed_gen_()))
+#include <gtest/gtest.h>
+
+TEST(PointCloudRandomSampler, Sampling)
+{
+  pcl::PointCloud<pcl::PointXYZ>::Ptr pc_input(new pcl::PointCloud<pcl::PointXYZ>);
+  pc_input->width = 1;
+  pc_input->height = 0;
+  pc_input->header.frame_id = "frame0";
+  pc_input->header.stamp = 12345;
+
+  const float points_ref[][3] =
+      {
+        { 10, 11, 12 },
+        { 20, 21, 22 },
+        { 30, 31, 32 }
+      };
+  for (const auto &p_ref : points_ref)
   {
+    pc_input->push_back(pcl::PointXYZ(p_ref[0], p_ref[1], p_ref[2]));
   }
-  typename pcl::PointCloud<POINT_TYPE>::Ptr sample(
-      const typename pcl::PointCloud<POINT_TYPE>::ConstPtr &pc,
-      const size_t num) const
+
+  mcl_3dl::PointCloudRandomSampler<pcl::PointXYZ> sampler;
+
+  for (size_t num = 1; num < 4; num++)
   {
-    typename pcl::PointCloud<POINT_TYPE>::Ptr output(new pcl::PointCloud<POINT_TYPE>);
-    output->header = pc->header;
+    pcl::PointCloud<pcl::PointXYZ>::Ptr pc_output = sampler.sample(pc_input, num);
 
-    if (pc->points.size() == 0)
-      return output;
+    // Check header and number of the points
+    ASSERT_EQ(pc_output->header.frame_id, pc_input->header.frame_id);
+    ASSERT_EQ(pc_output->header.stamp, pc_input->header.stamp);
+    ASSERT_EQ(pc_output->height, 1u);
+    ASSERT_EQ(pc_output->width, num);
 
-    output->points.reserve(num);
-    std::uniform_int_distribution<size_t> ud(0, pc->points.size() - 1);
-    for (size_t i = 0; i < num; i++)
+    // Check that the all sampled points are in the original point array
+    for (const pcl::PointXYZ &p : *pc_output)
     {
-      output->push_back(pc->points[ud(*engine_)]);
+      bool found = false;
+      for (const auto &p_ref : points_ref)
+      {
+        if (p_ref[0] == p.x && p_ref[1] == p.y && p_ref[2] == p.z)
+          found = true;
+      }
+      ASSERT_TRUE(found) << "A sampled point is not in the original points array";
     }
-
-    return output;
   }
-};
-}  // namespace mcl_3dl
 
-#endif  // MCL_3DL_POINT_CLOUD_RANDOM_SAMPLER_H
+  // Make sure that the sampler returns 0 point output for 0 point input
+  pcl::PointCloud<pcl::PointXYZ>::Ptr pc_output0 = sampler.sample(pc_input, 0);
+  ASSERT_EQ(pc_output0->points.size(), 0);
+}
+
+int main(int argc, char **argv)
+{
+  testing::InitGoogleTest(&argc, argv);
+
+  return RUN_ALL_TESTS();
+}
