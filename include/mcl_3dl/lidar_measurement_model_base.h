@@ -32,6 +32,7 @@
 
 #include <string>
 #include <utility>
+#include <vector>
 
 #include <ros/ros.h>
 
@@ -39,6 +40,7 @@
 #include <pcl_ros/point_cloud.h>
 
 #include <mcl_3dl/pf.h>
+#include <mcl_3dl/vec3.h>
 
 namespace mcl_3dl
 {
@@ -64,6 +66,7 @@ public:
   virtual std::pair<float, float> measure(
       typename mcl_3dl::ChunkedKdtree<POINT_TYPE>::Ptr &,
       const typename pcl::PointCloud<POINT_TYPE>::ConstPtr &,
+      const std::vector<Vec3> &,
       const STATE_TYPE &) const = 0;
 };
 }  // namespace mcl_3dl

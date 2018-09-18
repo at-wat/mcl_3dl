@@ -27,8 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef MCL_3DL_LIDAR_MEASUREMENT_MODELS_LIDAR_MEASUREMENT_MODEL_LIKELIHOOD_H
-#define MCL_3DL_LIDAR_MEASUREMENT_MODELS_LIDAR_MEASUREMENT_MODEL_LIKELIHOOD_H
+#ifndef MCL_3DL_LIDAR_MEASUREMENT_MODELS_LIDAR_MEASUREMENT_MODEL_BEAM_H
+#define MCL_3DL_LIDAR_MEASUREMENT_MODELS_LIDAR_MEASUREMENT_MODEL_BEAM_H
 
 #include <algorithm>
 #include <string>
@@ -42,13 +42,16 @@
 
 #include <mcl_3dl/pf.h>
 #include <mcl_3dl/point_cloud_random_sampler.h>
+#include <mcl_3dl/raycast.h>
 #include <mcl_3dl/vec3.h>
 
 namespace mcl_3dl
 {
 template <class STATE_TYPE, class POINT_TYPE>
-class LidarMeasurementModelLikelihood : public LidarMeasurementModelBase<STATE_TYPE, POINT_TYPE>
+class LidarMeasurementModelBeam : public LidarMeasurementModelBase<STATE_TYPE, POINT_TYPE>
 {
+  static_assert(std::is_same<pcl::PointXYZI, POINT_TYPE>(), "Supported POINT_TYPE is PointXYZI");
+
 private:
   size_t num_points_;
   size_t num_points_default_;
@@ -57,9 +60,13 @@ private:
   float clip_near_sq_;
   float clip_z_min_;
   float clip_z_max_;
-  float match_weight_;
   float match_dist_min_;
   float match_dist_flat_;
+  float beam_likelihood_min_;
+  float beam_likelihood_;
+  float sin_total_ref_;
+  float map_grid_min_;
+  float map_grid_max_;
 
   PointCloudRandomSampler<POINT_TYPE> sampler_;
 
@@ -71,14 +78,14 @@ public:
     ros::NodeHandle pnh(nh, name);
 
     int num_points, num_points_global;
-    pnh.param("num_points", num_points, 96);
-    pnh.param("num_points_global", num_points_global, 8);
+    pnh.param("num_points", num_points, 3);
+    pnh.param("num_points_global", num_points_global, 0);
     num_points_default_ = num_points_ = num_points;
     num_points_global_ = num_points_global;
 
     double clip_near, clip_far;
     pnh.param("clip_near", clip_near, 0.5);
-    pnh.param("clip_far", clip_far, 10.0);
+    pnh.param("clip_far", clip_far, 4.0);
     clip_near_sq_ = clip_near * clip_near;
     clip_far_sq_ = clip_far * clip_far;
 
@@ -88,15 +95,20 @@ public:
     clip_z_min_ = clip_z_min;
     clip_z_max_ = clip_z_max;
 
-    double match_weight;
-    pnh.param("match_weight", match_weight, 5.0);
-    match_weight_ = match_weight;
-
     double match_dist_min, match_dist_flat;
     pnh.param("match_dist_min", match_dist_min, 0.2);
     pnh.param("match_dist_flat", match_dist_flat, 0.05);
     match_dist_min_ = match_dist_min;
     match_dist_flat_ = match_dist_flat;
+
+    double beam_likelihood_min;
+    pnh.param("beam_likelihood", beam_likelihood_min, 0.2);
+    beam_likelihood_min_ = beam_likelihood_min;
+    beam_likelihood_ = powf(beam_likelihood_min, 1.0 / static_cast<float>(num_points));
+
+    double ang_total_ref;
+    pnh.param("ang_total_ref", ang_total_ref, M_PI / 6.0);
+    sin_total_ref_ = sinf(ang_total_ref);
   }
   void setGlobalLocalizationStatus(
       const size_t num_particles,
@@ -113,6 +125,11 @@ public:
 
     num_points_ = num;
   }
+  LidarMeasurementModelBeam(const float x, const float y, const float z)
+  {
+    map_grid_min_ = std::min(std::min(x, y), z);
+    map_grid_max_ = std::max(std::max(x, y), z);
+  }
 
   typename pcl::PointCloud<POINT_TYPE>::Ptr filter(
       const typename pcl::PointCloud<POINT_TYPE>::ConstPtr &pc) const
@@ -124,6 +141,8 @@ public:
       if (p.x * p.x + p.y * p.y < clip_near_sq_)
         return true;
       if (p.z < clip_z_min_ || clip_z_max_ < p.z)
+        return true;
+      if (p.intensity - roundf(p.intensity) > 0.01)
         return true;
       return false;
     };
@@ -151,27 +170,36 @@ public:
     std::vector<int> id(1);
     std::vector<float> sqdist(1);
 
-    float score_like = 0;
+    float score_beam = 1.0;
     *pc_particle = *pc;
     s.transform(*pc_particle);
-    size_t num = 0;
     for (auto &p : pc_particle->points)
     {
-      if (kdtree->radiusSearch(p, match_dist_min_, id, sqdist, 1))
+      const int beam_header_id = lroundf(p.intensity);
+      Raycast<pcl::PointXYZI> ray(
+          kdtree,
+          s.pos + s.rot * origins[beam_header_id],
+          Vec3(p.x, p.y, p.z),
+          map_grid_min_, map_grid_max_);
+      for (auto point : ray)
       {
-        const float dist = match_dist_min_ - std::max(sqrtf(sqdist[0]), match_dist_flat_);
-        if (dist < 0.0)
-          continue;
-
-        score_like += dist * match_weight_;
-        num++;
+        if (point.collision_)
+        {
+          // reject total reflection
+          if (point.sin_angle_ > sin_total_ref_)
+          {
+            score_beam *= beam_likelihood_;
+          }
+          break;
+        }
       }
     }
-    const float match_ratio = static_cast<float>(num) / pc_particle->points.size();
+    if (score_beam < beam_likelihood_min_)
+      score_beam = beam_likelihood_min_;
 
-    return std::pair<float, float>(score_like, match_ratio);
+    return std::pair<float, float>(score_beam, 1.0);
   }
 };
 }  // namespace mcl_3dl
 
-#endif  // MCL_3DL_LIDAR_MEASUREMENT_MODELS_LIDAR_MEASUREMENT_MODEL_LIKELIHOOD_H
+#endif  // MCL_3DL_LIDAR_MEASUREMENT_MODELS_LIDAR_MEASUREMENT_MODEL_BEAM_H

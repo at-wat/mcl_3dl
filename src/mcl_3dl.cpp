@@ -66,11 +66,11 @@
 #include <mcl_3dl/chunked_kdtree.h>
 #include <mcl_3dl/filter.h>
 #include <mcl_3dl/lidar_measurement_model_base.h>
+#include <mcl_3dl/lidar_measurement_models/lidar_measurement_model_beam.h>
 #include <mcl_3dl/lidar_measurement_models/lidar_measurement_model_likelihood.h>
 #include <mcl_3dl/nd.h>
 #include <mcl_3dl/pf.h>
 #include <mcl_3dl/quat.h>
-#include <mcl_3dl/raycast.h>
 #include <mcl_3dl/state_6dof.h>
 #include <mcl_3dl/vec3.h>
 
@@ -450,43 +450,17 @@ protected:
       ROS_ERROR("All points are filtered out. Failed to localize.");
       return;
     }
-    pcl::PointCloud<pcl::PointXYZI>::Ptr pc_local_beam(new pcl::PointCloud<pcl::PointXYZI>);
-    *pc_local_beam = *pc_local_full;
-    auto local_beam_filter = [this](const pcl::PointXYZI &p)
-    {
-      if (p.x * p.x + p.y * p.y > params_.clip_beam_far_sq)
-        return true;
-      if (p.x * p.x + p.y * p.y < params_.clip_beam_near_sq)
-        return true;
-      if (p.z < params_.clip_beam_z_min || params_.clip_beam_z_max < p.z)
-        return true;
-      if (p.intensity - roundf(p.intensity) > 0.01)
-        return true;
-      return false;
-    };
-    pc_local_beam->erase(
-        std::remove_if(pc_local_beam->begin(), pc_local_beam->end(), local_beam_filter),
-        pc_local_beam->end());
-    if (pc_local_beam->size() == 0)
+    if (pc_locals["beam"] && pc_locals["beam"]->size() == 0)
     {
       ROS_ERROR("All beam points are filtered out. Skipping beam model.");
     }
-    else
-    {
-      size_t num = params_.num_points_beam;
-      if (static_cast<int>(pf_->getParticleSize()) > params_.num_particles)
-        num = num * params_.num_particles / pf_->getParticleSize();
-      pc_local_beam = random_sample(pc_local_beam, num);
-    }
-
-    pcl::PointCloud<pcl::PointXYZI>::Ptr pc_particle_beam(new pcl::PointCloud<pcl::PointXYZI>);
 
     float match_ratio_min = 1.0;
     float match_ratio_max = 0.0;
     NormalLikelihood<float> odom_error_lin_nd(params_.odom_err_integ_lin_sigma);
     NormalLikelihood<float> odom_error_ang_nd(params_.odom_err_integ_ang_sigma);
     auto measure_func = [this, &pc_locals,
-                         &pc_particle_beam, &pc_local_beam, &origins,
+                         &origins,
                          &odom_error_lin_nd,
                          &match_ratio_min, &match_ratio_max](const State6DOF &s) -> float
     {
@@ -495,7 +469,7 @@ protected:
       for (auto &lm : lidar_measurements_)
       {
         const std::pair<float, float> result = lm.second->measure(
-            kdtree_, pc_locals[lm.first], s);
+            kdtree_, pc_locals[lm.first], origins, s);
         likelihood *= result.first;
         qualities[lm.first] = result.second;
       }
@@ -504,38 +478,10 @@ protected:
       if (match_ratio_max < qualities["likelihood"])
         match_ratio_max = qualities["likelihood"];
 
-      // approximative beam model
-      float score_beam = 1.0;
-      *pc_particle_beam = *pc_local_beam;
-      s.transform(*pc_particle_beam);
-      for (auto &p : pc_particle_beam->points)
-      {
-        const int beam_header_id = lroundf(p.intensity);
-        Raycast<pcl::PointXYZI> ray(
-            kdtree_,
-            s.pos + s.rot * origins[beam_header_id],
-            Vec3(p.x, p.y, p.z),
-            params_.map_grid_min, params_.map_grid_max);
-        for (auto point : ray)
-        {
-          if (point.collision_)
-          {
-            // reject total reflection
-            if (point.sin_angle_ > params_.sin_total_ref)
-            {
-              score_beam *= params_.beam_likelihood;
-            }
-            break;
-          }
-        }
-      }
-      if (score_beam < params_.beam_likelihood_min)
-        score_beam = params_.beam_likelihood_min;
-
       // odometry error integration
       const float odom_error =
           odom_error_lin_nd(s.odom_err_integ_lin.norm());
-      return likelihood * score_beam * odom_error;
+      return likelihood * odom_error;
     };
     pf_->measure(measure_func);
 
@@ -578,7 +524,8 @@ protected:
     {
       visualization_msgs::MarkerArray markers;
 
-      *pc_particle_beam = *pc_local_beam;
+      pcl::PointCloud<pcl::PointXYZI>::Ptr pc_particle_beam(new pcl::PointCloud<pcl::PointXYZI>);
+      *pc_particle_beam = *pc_locals["beam"];
       e.transform(*pc_particle_beam);
       for (auto &p : pc_particle_beam->points)
       {
@@ -1397,6 +1344,10 @@ public:
     lidar_measurements_["likelihood"] =
         LidarMeasurementModelBase<State6DOF, pcl::PointXYZI>::Ptr(
             new LidarMeasurementModelLikelihood<State6DOF, pcl::PointXYZI>());
+    lidar_measurements_["beam"] =
+        LidarMeasurementModelBase<State6DOF, pcl::PointXYZI>::Ptr(
+            new LidarMeasurementModelBeam<State6DOF, pcl::PointXYZI>(
+                params_.map_downsample_x, params_.map_downsample_y, params_.map_downsample_z));
 
     for (auto &lm : lidar_measurements_)
     {
