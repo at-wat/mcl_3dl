@@ -53,21 +53,21 @@ public:
       const typename pcl::PointCloud<POINT_TYPE>::Ptr &pc,
       const size_t num) const
   {
-    if (pc->points.size() == 0)
-      return typename pcl::PointCloud<POINT_TYPE>::Ptr();
-
     typename pcl::PointCloud<POINT_TYPE>::Ptr output(new pcl::PointCloud<POINT_TYPE>);
+
+    output->width = 1;
+    output->height = 0;
+    output->header = pc->header;
+
+    if (pc->points.size() == 0)
+      return output;
+
     output->points.reserve(num);
-
     std::uniform_int_distribution<size_t> ud(0, pc->points.size() - 1);
-
     for (size_t i = 0; i < num; i++)
     {
-      output->points.push_back(pc->points[ud(*engine_)]);
+      output->push_back(pc->points[ud(*engine_)]);
     }
-    output->width = 1;
-    output->height = output->points.size();
-    output->header = pc->header;
 
     return output;
   }
