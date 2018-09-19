@@ -61,8 +61,6 @@ private:
   float clip_near_sq_;
   float clip_z_min_;
   float clip_z_max_;
-  float match_dist_min_;
-  float match_dist_flat_;
   float beam_likelihood_min_;
   float beam_likelihood_;
   float sin_total_ref_;
@@ -101,12 +99,6 @@ public:
     pnh.param("clip_z_max", clip_z_max, 2.0);
     clip_z_min_ = clip_z_min;
     clip_z_max_ = clip_z_max;
-
-    double match_dist_min, match_dist_flat;
-    pnh.param("match_dist_min", match_dist_min, 0.2);
-    pnh.param("match_dist_flat", match_dist_flat, 0.05);
-    match_dist_min_ = match_dist_min;
-    match_dist_flat_ = match_dist_flat;
 
     double beam_likelihood_min;
     pnh.param("beam_likelihood", beam_likelihood_min, 0.2);
