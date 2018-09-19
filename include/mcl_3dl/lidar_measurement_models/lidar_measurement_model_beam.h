@@ -50,6 +50,7 @@ namespace mcl_3dl
 template <class STATE_TYPE, class POINT_TYPE>
 class LidarMeasurementModelBeam : public LidarMeasurementModelBase<STATE_TYPE, POINT_TYPE>
 {
+  // POINT_TYPE must have label field (currently using intensity field as a label)
   static_assert(std::is_same<pcl::PointXYZI, POINT_TYPE>(), "Supported POINT_TYPE is PointXYZI");
 
 private:
