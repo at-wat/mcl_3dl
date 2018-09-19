@@ -28,6 +28,10 @@ add_rostest_gtest(test_global_localization tests/global_localization_rostest.tes
 target_link_libraries(test_global_localization ${catkin_LIBRARIES})
 add_dependencies(test_global_localization mcl_3dl)
 
+add_rostest_gtest(test_mcl_3dl_compat tests/mcl_3dl_compat_rostest.test
+    src/test_mcl_3dl_compat.cpp)
+target_link_libraries(test_mcl_3dl_compat ${catkin_LIBRARIES})
+
 add_rostest_gtest(test_transform_failure tests/transform_rostest.test
     src/test_transform_failure.cpp)
 target_link_libraries(test_transform_failure ${catkin_LIBRARIES})
