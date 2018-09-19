@@ -413,7 +413,7 @@ protected:
     }
     if (pc_locals["beam"] && pc_locals["beam"]->size() == 0)
     {
-      ROS_ERROR("All beam points are filtered out. Skipping beam model.");
+      ROS_DEBUG("All beam points are filtered out. Skipping beam model.");
     }
 
     float match_ratio_min = 1.0;
