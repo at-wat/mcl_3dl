@@ -196,7 +196,7 @@ ros::ServiceServer advertiseService(
 }
 
 template <typename T>
-void param_rename(
+void paramRename(
     ros::NodeHandle &nh,
     const std::string &param_name_new,
     const std::string &param_name_old)

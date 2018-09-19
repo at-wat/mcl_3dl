@@ -1140,23 +1140,23 @@ public:
     pnh_.param("odom_frame", frame_ids_["odom"], std::string("odom"));
     pnh_.param("floor_frame", frame_ids_["floor"], std::string("floor"));
 
-    mcl_3dl_compat::param_rename<double>(pnh_, "likelihood/clip_near", "clip_near");
-    mcl_3dl_compat::param_rename<double>(pnh_, "likelihood/clip_far", "clip_far");
-    mcl_3dl_compat::param_rename<double>(pnh_, "likelihood/clip_z_min", "clip_z_min");
-    mcl_3dl_compat::param_rename<double>(pnh_, "likelihood/clip_z_max", "clip_z_max");
-    mcl_3dl_compat::param_rename<double>(pnh_, "likelihood/match_dist_min", "match_dist_min");
-    mcl_3dl_compat::param_rename<double>(pnh_, "likelihood/match_dist_flat", "match_dist_flat");
-    mcl_3dl_compat::param_rename<double>(pnh_, "likelihood/match_weight", "match_weight");
-    mcl_3dl_compat::param_rename<double>(pnh_, "likelihood/num_points", "num_points");
-    mcl_3dl_compat::param_rename<double>(pnh_, "likelihood/num_points_global", "num_points_global");
+    mcl_3dl_compat::paramRename<double>(pnh_, "likelihood/clip_near", "clip_near");
+    mcl_3dl_compat::paramRename<double>(pnh_, "likelihood/clip_far", "clip_far");
+    mcl_3dl_compat::paramRename<double>(pnh_, "likelihood/clip_z_min", "clip_z_min");
+    mcl_3dl_compat::paramRename<double>(pnh_, "likelihood/clip_z_max", "clip_z_max");
+    mcl_3dl_compat::paramRename<double>(pnh_, "likelihood/match_dist_min", "match_dist_min");
+    mcl_3dl_compat::paramRename<double>(pnh_, "likelihood/match_dist_flat", "match_dist_flat");
+    mcl_3dl_compat::paramRename<double>(pnh_, "likelihood/match_weight", "match_weight");
+    mcl_3dl_compat::paramRename<double>(pnh_, "likelihood/num_points", "num_points");
+    mcl_3dl_compat::paramRename<double>(pnh_, "likelihood/num_points_global", "num_points_global");
 
-    mcl_3dl_compat::param_rename<double>(pnh_, "beam/clip_near", "clip_beam_near");
-    mcl_3dl_compat::param_rename<double>(pnh_, "beam/clip_far", "clip_beam_far");
-    mcl_3dl_compat::param_rename<double>(pnh_, "beam/clip_z_min", "clip_beam_z_min");
-    mcl_3dl_compat::param_rename<double>(pnh_, "beam/clip_z_max", "clip_beam_z_max");
-    mcl_3dl_compat::param_rename<double>(pnh_, "beam/num_points", "num_points_beam");
-    mcl_3dl_compat::param_rename<double>(pnh_, "beam/beam_likelihood", "beam_likelihood");
-    mcl_3dl_compat::param_rename<double>(pnh_, "beam/ang_total_ref", "ang_total_ref");
+    mcl_3dl_compat::paramRename<double>(pnh_, "beam/clip_near", "clip_beam_near");
+    mcl_3dl_compat::paramRename<double>(pnh_, "beam/clip_far", "clip_beam_far");
+    mcl_3dl_compat::paramRename<double>(pnh_, "beam/clip_z_min", "clip_beam_z_min");
+    mcl_3dl_compat::paramRename<double>(pnh_, "beam/clip_z_max", "clip_beam_z_max");
+    mcl_3dl_compat::paramRename<double>(pnh_, "beam/num_points", "num_points_beam");
+    mcl_3dl_compat::paramRename<double>(pnh_, "beam/beam_likelihood", "beam_likelihood");
+    mcl_3dl_compat::paramRename<double>(pnh_, "beam/ang_total_ref", "ang_total_ref");
 
     pnh_.param("map_downsample_x", params_.map_downsample_x, 0.1);
     pnh_.param("map_downsample_y", params_.map_downsample_y, 0.1);
