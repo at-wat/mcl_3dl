@@ -72,6 +72,12 @@ private:
   PointCloudRandomSampler<POINT_TYPE> sampler_;
 
 public:
+  LidarMeasurementModelBeam(const float x, const float y, const float z)
+  {
+    map_grid_min_ = std::min(std::min(x, y), z);
+    map_grid_max_ = std::max(std::max(x, y), z);
+  }
+
   void loadConfig(
       const ros::NodeHandle &nh,
       const std::string &name)
@@ -126,10 +132,13 @@ public:
 
     num_points_ = num;
   }
-  LidarMeasurementModelBeam(const float x, const float y, const float z)
+  float getMaxSearchRange() const
   {
-    map_grid_min_ = std::min(std::min(x, y), z);
-    map_grid_max_ = std::max(std::max(x, y), z);
+    return map_grid_max_ * 4;
+  }
+  float getSinTotalRef() const
+  {
+    return sin_total_ref_;
   }
 
   typename pcl::PointCloud<POINT_TYPE>::Ptr filter(

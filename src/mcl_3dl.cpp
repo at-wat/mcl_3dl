@@ -27,13 +27,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <algorithm>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+
 #include <boost/chrono.hpp>
 #include <boost/shared_ptr.hpp>
-#include <algorithm>
-#include <string>
-#include <map>
-#include <vector>
-#include <utility>
 
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud.h>
@@ -84,18 +86,6 @@ protected:
   class Parameters
   {
   public:
-    double clip_near;
-    double clip_far;
-    double clip_near_sq;
-    double clip_far_sq;
-    double clip_z_min;
-    double clip_z_max;
-    double clip_beam_near;
-    double clip_beam_far;
-    double clip_beam_near_sq;
-    double clip_beam_far_sq;
-    double clip_beam_z_min;
-    double clip_beam_z_max;
     double map_downsample_x;
     double map_downsample_y;
     double map_downsample_z;
@@ -122,9 +112,6 @@ protected:
     double expansion_var_pitch;
     double expansion_var_yaw;
     double match_ratio_thresh;
-    double match_dist_min;
-    double match_dist_flat;
-    double match_weight;
     double jump_dist;
     double jump_ang;
     double fix_dist;
@@ -135,18 +122,12 @@ protected:
     double odom_err_ang_ang;
     std::shared_ptr<ros::Duration> map_update_interval;
     int num_particles;
-    int num_points;
-    int num_points_global;
-    int num_points_beam;
     int skip_measure;
     int accum_cloud;
     double match_output_dist;
     double unmatch_output_dist;
     double bias_var_dist;
     double bias_var_ang;
-    float beam_likelihood;
-    double beam_likelihood_min;
-    float sin_total_ref;
     double acc_var;
     double odom_err_integ_lin_tc;
     double odom_err_integ_lin_sigma;
@@ -501,6 +482,7 @@ protected:
 
     e.rot.normalize();
 
+    if (lidar_measurements_["beam"])
     {
       visualization_msgs::MarkerArray markers;
 
@@ -549,6 +531,10 @@ protected:
 
         markers.markers.push_back(marker);
       }
+      const auto beam_model =
+          std::dynamic_pointer_cast<LidarMeasurementModelBeam<State6DOF, pcl::PointXYZI>>(
+              lidar_measurements_["beam"]);
+      const float sin_total_ref = beam_model->getSinTotalRef();
       for (auto &p : pc_particle_beam->points)
       {
         const int beam_header_id = lroundf(p.intensity);
@@ -582,7 +568,7 @@ protected:
             marker.color.r = 1.0;
             marker.color.g = 0.0;
             marker.color.b = 0.0;
-            if (point.sin_angle_ < params_.sin_total_ref)
+            if (point.sin_angle_ < sin_total_ref)
             {
               marker.color.a = 0.2;
             }
@@ -1153,18 +1139,25 @@ public:
     pnh_.param("robot_frame", frame_ids_["base_link"], std::string("base_link"));
     pnh_.param("odom_frame", frame_ids_["odom"], std::string("odom"));
     pnh_.param("floor_frame", frame_ids_["floor"], std::string("floor"));
-    pnh_.param("clip_near", params_.clip_near, 0.5);
-    pnh_.param("clip_far", params_.clip_far, 10.0);
-    params_.clip_near_sq = pow(params_.clip_near, 2.0);
-    params_.clip_far_sq = pow(params_.clip_far, 2.0);
-    pnh_.param("clip_z_min", params_.clip_z_min, -2.0);
-    pnh_.param("clip_z_max", params_.clip_z_max, 2.0);
-    pnh_.param("clip_beam_near", params_.clip_beam_near, 0.5);
-    pnh_.param("clip_beam_far", params_.clip_beam_far, 4.0);
-    params_.clip_beam_near_sq = pow(params_.clip_beam_near, 2.0);
-    params_.clip_beam_far_sq = pow(params_.clip_beam_far, 2.0);
-    pnh_.param("clip_beam_z_min", params_.clip_beam_z_min, -2.0);
-    pnh_.param("clip_beam_z_max", params_.clip_beam_z_max, 2.0);
+
+    mcl_3dl_compat::param_rename<double>(pnh_, "clip_near", "likelihood/clip_near");
+    mcl_3dl_compat::param_rename<double>(pnh_, "clip_far", "likelihood/clip_far");
+    mcl_3dl_compat::param_rename<double>(pnh_, "clip_z_min", "likelihood/clip_z_min");
+    mcl_3dl_compat::param_rename<double>(pnh_, "clip_z_max", "likelihood/clip_z_max");
+    mcl_3dl_compat::param_rename<double>(pnh_, "match_dist_min", "likelihood/match_dist_min");
+    mcl_3dl_compat::param_rename<double>(pnh_, "match_dist_flat", "likelihood/match_dist_flat");
+    mcl_3dl_compat::param_rename<double>(pnh_, "match_weight", "likelihood/match_weight");
+    mcl_3dl_compat::param_rename<double>(pnh_, "num_points", "likelihood/num_points");
+    mcl_3dl_compat::param_rename<double>(pnh_, "num_points_global", "likelihood/num_points_global");
+
+    mcl_3dl_compat::param_rename<double>(pnh_, "clip_beam_near", "beam/clip_near");
+    mcl_3dl_compat::param_rename<double>(pnh_, "clip_beam_far", "beam/clip_far");
+    mcl_3dl_compat::param_rename<double>(pnh_, "clip_beam_z_min", "beam/clip_z_min");
+    mcl_3dl_compat::param_rename<double>(pnh_, "clip_beam_z_max", "beam/clip_z_max");
+    mcl_3dl_compat::param_rename<double>(pnh_, "num_points_beam", "likelihood/num_points");
+    mcl_3dl_compat::param_rename<double>(pnh_, "beam_likelihood", "likelihood/beam_likelihood");
+    mcl_3dl_compat::param_rename<double>(pnh_, "ang_total_ref", "likelihood/ang_total_ref");
+
     pnh_.param("map_downsample_x", params_.map_downsample_x, 0.1);
     pnh_.param("map_downsample_y", params_.map_downsample_y, 0.1);
     pnh_.param("map_downsample_z", params_.map_downsample_z, 0.1);
@@ -1182,10 +1175,6 @@ public:
     pnh_.param("map_update_interval_interval", map_update_interval_t, 2.0);
     params_.map_update_interval.reset(new ros::Duration(map_update_interval_t));
 
-    pnh_.param("match_dist_min", params_.match_dist_min, 0.2);
-    pnh_.param("match_dist_flat", params_.match_dist_flat, 0.05);
-    pnh_.param("match_weight", params_.match_weight, 5.0);
-
     double weight[3];
     float weight_f[4];
     pnh_.param("dist_weight_x", weight[0], 1.0);
@@ -1196,21 +1185,6 @@ public:
     weight_f[3] = 0.0;
     point_rep_.setRescaleValues(weight_f);
 
-    double map_chunk;
-    pnh_.param("map_chunk", map_chunk, 20.0);
-    const double max_search_radius = std::max(
-        params_.unmatch_output_dist,
-        std::max(
-            params_.match_output_dist,
-            std::max(params_.match_dist_min, params_.map_grid_max * 4.0)));
-    ROS_DEBUG("max_search_radius: %0.3f", max_search_radius);
-    kdtree_.reset(new ChunkedKdtree<pcl::PointXYZI>(map_chunk, max_search_radius));
-    kdtree_->setEpsilon(params_.map_grid_min / 16);
-    kdtree_->setPointRepresentation(
-        boost::dynamic_pointer_cast<
-            pcl::PointRepresentation<pcl::PointXYZI>,
-            MyPointRepresentation>(boost::make_shared<MyPointRepresentation>(point_rep_)));
-
     pnh_.param("global_localization_grid_lin", params_.global_localization_grid, 0.3);
     double grid_ang;
     pnh_.param("global_localization_grid_ang", grid_ang, 0.524);
@@ -1218,15 +1192,6 @@ public:
 
     pnh_.param("num_particles", params_.num_particles, 64);
     pf_.reset(new pf::ParticleFilter<State6DOF, float, ParticleWeightedMeanQuat>(params_.num_particles));
-    pnh_.param("num_points", params_.num_points, 96);
-    pnh_.param("num_points_global", params_.num_points_global, 8);
-    pnh_.param("num_points_beam", params_.num_points_beam, 3);
-
-    pnh_.param("beam_likelihood", params_.beam_likelihood_min, 0.2);
-    params_.beam_likelihood = powf(params_.beam_likelihood_min, 1.0 / static_cast<float>(params_.num_points_beam));
-    double ang_total_ref;
-    pnh_.param("ang_total_ref", ang_total_ref, M_PI / 6.0);
-    params_.sin_total_ref = sinf(ang_total_ref);
 
     pnh_.param("resample_var_x", params_.resample_var_x, 0.05);
     pnh_.param("resample_var_y", params_.resample_var_y, 0.05);
@@ -1329,10 +1294,22 @@ public:
             new LidarMeasurementModelBeam<State6DOF, pcl::PointXYZI>(
                 params_.map_downsample_x, params_.map_downsample_y, params_.map_downsample_z));
 
+    float max_search_radius = 0;
     for (auto &lm : lidar_measurements_)
     {
       lm.second->loadConfig(pnh_, lm.first);
+      max_search_radius = std::max(max_search_radius, lm.second->getMaxSearchRange());
     }
+
+    double map_chunk;
+    pnh_.param("map_chunk", map_chunk, 20.0);
+    ROS_DEBUG("max_search_radius: %0.3f", max_search_radius);
+    kdtree_.reset(new ChunkedKdtree<pcl::PointXYZI>(map_chunk, max_search_radius));
+    kdtree_->setEpsilon(params_.map_grid_min / 16);
+    kdtree_->setPointRepresentation(
+        boost::dynamic_pointer_cast<
+            pcl::PointRepresentation<pcl::PointXYZI>,
+            MyPointRepresentation>(boost::make_shared<MyPointRepresentation>(point_rep_)));
 
     map_update_timer_ = nh_.createTimer(
         *params_.map_update_interval,

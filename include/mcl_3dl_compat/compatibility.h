@@ -194,6 +194,32 @@ ros::ServiceServer advertiseService(
     return nh_new.advertiseService(service_new, srv_func, obj);
   }
 }
+
+template <typename T>
+void param_rename(
+    ros::NodeHandle &nh,
+    const std::string &param_name_new,
+    const std::string &param_name_old)
+{
+  if (nh.hasParam(param_name_old))
+  {
+    ROS_ERROR(
+        "Use %s parameter instead of %s",
+        nh.resolveName(param_name_new, false).c_str(),
+        nh.resolveName(param_name_old, false).c_str());
+    if (nh.hasParam(param_name_new))
+    {
+      ROS_ERROR(
+          "%s is also defined. Ignoring %s.",
+          nh.resolveName(param_name_new, false).c_str(),
+          nh.resolveName(param_name_old, false).c_str());
+      return;
+    }
+    T value;
+    nh.getParam(param_name_old, value);
+    nh.setParam(param_name_new, value);
+  }
+}
 }  // namespace mcl_3dl_compat
 
 #endif  // MCL_3DL_COMPAT_COMPATIBILITY_H

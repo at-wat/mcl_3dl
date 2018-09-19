@@ -113,6 +113,10 @@ public:
 
     num_points_ = num;
   }
+  float getMaxSearchRange() const
+  {
+    return match_dist_min_;
+  }
 
   typename pcl::PointCloud<POINT_TYPE>::Ptr filter(
       const typename pcl::PointCloud<POINT_TYPE>::ConstPtr &pc) const

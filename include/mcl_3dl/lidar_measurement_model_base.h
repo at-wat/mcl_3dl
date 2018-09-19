@@ -59,6 +59,7 @@ public:
       const std::string &name) = 0;
   virtual void setGlobalLocalizationStatus(
       const size_t, const size_t) = 0;
+  virtual float getMaxSearchRange() const = 0;
 
   virtual typename pcl::PointCloud<POINT_TYPE>::Ptr filter(
       const typename pcl::PointCloud<POINT_TYPE>::ConstPtr &) const = 0;
