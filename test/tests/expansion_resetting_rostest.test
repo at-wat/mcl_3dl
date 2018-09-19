@@ -7,7 +7,7 @@
     <param name="likelihood/match_dist_min" value="0.3" />
     <param name="likelihood/match_dist_flat" value="0.05" />
     <param name="likelihood/clip_near" value="0.0" />
-    <param name="clip_beam_near" value="0.0" />
+    <param name="beam/clip_near" value="0.0" />
     <param name="lpf_step" value="0" />
     <param name="dist_weight_z" value="1.0" />
 
