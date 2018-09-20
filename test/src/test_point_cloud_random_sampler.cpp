@@ -53,11 +53,11 @@ TEST(PointCloudRandomSampler, Sampling)
     pc_input->push_back(pcl::PointXYZ(p_ref[0], p_ref[1], p_ref[2]));
   }
 
-  mcl_3dl::PointCloudRandomSampler<pcl::PointXYZ> sampler;
+  mcl_3dl::PointCloudRandomSampler sampler;
 
   for (size_t num = 1; num < 4; num++)
   {
-    pcl::PointCloud<pcl::PointXYZ>::Ptr pc_output = sampler.sample(pc_input, num);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr pc_output = sampler.sample<pcl::PointXYZ>(pc_input, num);
 
     // Check header and number of the points
     ASSERT_EQ(pc_output->header.frame_id, pc_input->header.frame_id);
@@ -79,7 +79,7 @@ TEST(PointCloudRandomSampler, Sampling)
   }
 
   // Make sure that the sampler returns 0 point output for 0 point input
-  pcl::PointCloud<pcl::PointXYZ>::Ptr pc_output0 = sampler.sample(pc_input, 0);
+  pcl::PointCloud<pcl::PointXYZ>::Ptr pc_output0 = sampler.sample<pcl::PointXYZ>(pc_input, 0);
   ASSERT_EQ(pc_output0->points.size(), 0u);
 }
 
