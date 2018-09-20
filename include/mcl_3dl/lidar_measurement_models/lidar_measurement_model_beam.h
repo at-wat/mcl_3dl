@@ -67,7 +67,7 @@ private:
   float map_grid_min_;
   float map_grid_max_;
 
-  PointCloudRandomSampler<POINT_TYPE> sampler_;
+  PointCloudRandomSampler sampler_;
 
 public:
   LidarMeasurementModelBeam(const float x, const float y, const float z)
@@ -156,7 +156,7 @@ public:
     pc_filtered->width = 1;
     pc_filtered->height = pc_filtered->points.size();
 
-    return sampler_.sample(pc_filtered, num_points_);
+    return sampler_.sample<POINT_TYPE>(pc_filtered, num_points_);
   }
 
   std::pair<float, float> measure(

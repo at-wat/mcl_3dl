@@ -37,7 +37,6 @@
 
 namespace mcl_3dl
 {
-template <class POINT_TYPE>
 class PointCloudRandomSampler
 {
 private:
@@ -49,6 +48,7 @@ public:
     : engine_(new std::default_random_engine(seed_gen_()))
   {
   }
+  template <class POINT_TYPE>
   typename pcl::PointCloud<POINT_TYPE>::Ptr sample(
       const typename pcl::PointCloud<POINT_TYPE>::ConstPtr &pc,
       const size_t num) const
