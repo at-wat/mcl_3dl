@@ -48,8 +48,9 @@ template <class STATE_TYPE, class POINT_TYPE>
 class LidarMeasurementModelBase
 {
   static_assert(
-      std::is_base_of<pf::ParticleBase<float>, STATE_TYPE>::value,
-      "STATE_TYPE is not based on pf::ParticleBase<float>");
+      std::is_base_of<pf::ParticleBase<float>, STATE_TYPE>::value ||
+          std::is_base_of<pf::ParticleBase<double>, STATE_TYPE>::value,
+      "STATE_TYPE is not based on pf::ParticleBase<float/double>");
 
 public:
   using Ptr = std::shared_ptr<LidarMeasurementModelBase<STATE_TYPE, POINT_TYPE>>;

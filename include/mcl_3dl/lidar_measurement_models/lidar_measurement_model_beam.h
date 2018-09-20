@@ -72,8 +72,9 @@ private:
 public:
   LidarMeasurementModelBeam(const float x, const float y, const float z)
   {
-    map_grid_min_ = std::min(std::min(x, y), z);
-    map_grid_max_ = std::max(std::max(x, y), z);
+    // FIXME(at-wat): remove NOLINT after clang-format or roslint supports it
+    map_grid_min_ = std::min({ x, y, z });  // NOLINT(whitespace/braces)
+    map_grid_max_ = std::max({ x, y, z });  // NOLINT(whitespace/braces)
   }
 
   void loadConfig(
