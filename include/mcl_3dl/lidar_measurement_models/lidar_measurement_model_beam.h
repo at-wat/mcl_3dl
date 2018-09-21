@@ -47,12 +47,8 @@
 
 namespace mcl_3dl
 {
-template <class POINT_TYPE>
-class LidarMeasurementModelBeam : public LidarMeasurementModelBase<POINT_TYPE>
+class LidarMeasurementModelBeam : public LidarMeasurementModelBase
 {
-  // POINT_TYPE must have label field (currently using intensity field as a label)
-  static_assert(std::is_same<pcl::PointXYZI, POINT_TYPE>(), "Supported POINT_TYPE is PointXYZI");
-
 private:
   size_t num_points_;
   size_t num_points_default_;
@@ -134,10 +130,10 @@ public:
     return sin_total_ref_;
   }
 
-  typename pcl::PointCloud<POINT_TYPE>::Ptr filter(
-      const typename pcl::PointCloud<POINT_TYPE>::ConstPtr &pc) const
+  typename pcl::PointCloud<PointType>::Ptr filter(
+      const typename pcl::PointCloud<PointType>::ConstPtr &pc) const
   {
-    const auto local_points_filter = [this](const POINT_TYPE &p)
+    const auto local_points_filter = [this](const PointType &p)
     {
       if (p.x * p.x + p.y * p.y > clip_far_sq_)
         return true;
@@ -156,12 +152,12 @@ public:
     pc_filtered->width = 1;
     pc_filtered->height = pc_filtered->points.size();
 
-    return sampler_.sample<POINT_TYPE>(pc_filtered, num_points_);
+    return sampler_.sample<PointType>(pc_filtered, num_points_);
   }
 
   std::pair<float, float> measure(
-      typename ChunkedKdtree<POINT_TYPE>::Ptr &kdtree,
-      const typename pcl::PointCloud<POINT_TYPE>::ConstPtr &pc,
+      typename ChunkedKdtree<PointType>::Ptr &kdtree,
+      const typename pcl::PointCloud<PointType>::ConstPtr &pc,
       const std::vector<Vec3> &origins,
       const State6DOF &s) const
   {
