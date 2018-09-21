@@ -45,6 +45,18 @@
 
 namespace mcl_3dl
 {
+struct LidarMeasurementResult
+{
+  float likelihood;
+  float quality;
+
+  LidarMeasurementResult(const float likelihood_value, const float quality_value)
+    : likelihood(likelihood_value)
+    , quality(quality_value)
+  {
+  }
+};
+
 class LidarMeasurementModelBase
 {
 public:
@@ -61,7 +73,7 @@ public:
   virtual pcl::PointCloud<PointType>::Ptr filter(
       const pcl::PointCloud<PointType>::ConstPtr &) const = 0;
 
-  virtual std::pair<float, float> measure(
+  virtual LidarMeasurementResult measure(
       ChunkedKdtree<PointType>::Ptr &,
       const pcl::PointCloud<PointType>::ConstPtr &,
       const std::vector<Vec3> &,

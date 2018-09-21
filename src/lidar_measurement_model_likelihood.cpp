@@ -29,7 +29,6 @@
 
 #include <algorithm>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include <ros/ros.h>
@@ -119,16 +118,16 @@ LidarMeasurementModelLikelihood::filter(
   return sampler_.sample<LidarMeasurementModelBase::PointType>(pc_filtered, num_points_);
 }
 
-std::pair<float, float> LidarMeasurementModelLikelihood::measure(
+LidarMeasurementResult LidarMeasurementModelLikelihood::measure(
     typename ChunkedKdtree<LidarMeasurementModelBase::PointType>::Ptr &kdtree,
     const typename pcl::PointCloud<LidarMeasurementModelBase::PointType>::ConstPtr &pc,
     const std::vector<Vec3> &origins,
     const State6DOF &s) const
 {
   if (!pc)
-    return std::pair<float, float>(1, 0);
+    return LidarMeasurementResult(1, 0);
   if (pc->size() == 0)
-    return std::pair<float, float>(1, 0);
+    return LidarMeasurementResult(1, 0);
   pcl::PointCloud<pcl::PointXYZI>::Ptr pc_particle(new pcl::PointCloud<pcl::PointXYZI>);
   std::vector<int> id(1);
   std::vector<float> sqdist(1);
@@ -151,6 +150,6 @@ std::pair<float, float> LidarMeasurementModelLikelihood::measure(
   }
   const float match_ratio = static_cast<float>(num) / pc_particle->points.size();
 
-  return std::pair<float, float>(score_like, match_ratio);
+  return LidarMeasurementResult(score_like, match_ratio);
 }
 }  // namespace mcl_3dl

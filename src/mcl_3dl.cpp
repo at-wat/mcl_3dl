@@ -430,10 +430,10 @@ protected:
       std::map<std::string, float> qualities;
       for (auto &lm : lidar_measurements_)
       {
-        const std::pair<float, float> result = lm.second->measure(
+        const LidarMeasurementResult result = lm.second->measure(
             kdtree_, pc_locals[lm.first], origins, s);
-        likelihood *= result.first;
-        qualities[lm.first] = result.second;
+        likelihood *= result.likelihood;
+        qualities[lm.first] = result.quality;
       }
       if (match_ratio_min > qualities["likelihood"])
         match_ratio_min = qualities["likelihood"];

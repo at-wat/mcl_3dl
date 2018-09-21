@@ -76,7 +76,7 @@ public:
       const size_t current_num_particles);
   pcl::PointCloud<PointType>::Ptr filter(
       const pcl::PointCloud<PointType>::ConstPtr &pc) const;
-  std::pair<float, float> measure(
+  LidarMeasurementResult measure(
       ChunkedKdtree<PointType>::Ptr &kdtree,
       const pcl::PointCloud<PointType>::ConstPtr &pc,
       const std::vector<Vec3> &origins,
