@@ -73,6 +73,7 @@
 #include <mcl_3dl/nd.h>
 #include <mcl_3dl/pf.h>
 #include <mcl_3dl/quat.h>
+#include <mcl_3dl/raycast.h>
 #include <mcl_3dl/state_6dof.h>
 #include <mcl_3dl/vec3.h>
 

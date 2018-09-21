@@ -85,7 +85,11 @@ add_definitions(${PCL_DEFINITIONS})
 # Define PCL_NO_PRECOMPILE to disable using the binary version.
 add_definitions(-DPCL_NO_PRECOMPILE)
 
-add_executable(mcl_3dl src/mcl_3dl.cpp)
+add_executable(mcl_3dl
+  src/lidar_measurement_model_beam.cpp
+  src/lidar_measurement_model_likelihood.cpp
+  src/mcl_3dl.cpp
+)
 target_link_libraries(mcl_3dl ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${PCL_LIBRARIES})
 add_dependencies(mcl_3dl ${catkin_EXPORTED_TARGETS})
 

@@ -39,6 +39,7 @@
 #include <pcl/point_types.h>
 #include <pcl_ros/point_cloud.h>
 
+#include <mcl_3dl/chunked_kdtree.h>
 #include <mcl_3dl/state_6dof.h>
 #include <mcl_3dl/vec3.h>
 
@@ -57,12 +58,12 @@ public:
       const size_t, const size_t) = 0;
   virtual float getMaxSearchRange() const = 0;
 
-  virtual typename pcl::PointCloud<PointType>::Ptr filter(
-      const typename pcl::PointCloud<PointType>::ConstPtr &) const = 0;
+  virtual pcl::PointCloud<PointType>::Ptr filter(
+      const pcl::PointCloud<PointType>::ConstPtr &) const = 0;
 
   virtual std::pair<float, float> measure(
-      typename ChunkedKdtree<PointType>::Ptr &,
-      const typename pcl::PointCloud<PointType>::ConstPtr &,
+      ChunkedKdtree<PointType>::Ptr &,
+      const pcl::PointCloud<PointType>::ConstPtr &,
       const std::vector<Vec3> &,
       const State6DOF &) const = 0;
 };
