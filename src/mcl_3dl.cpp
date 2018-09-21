@@ -532,7 +532,7 @@ protected:
         markers.markers.push_back(marker);
       }
       const auto beam_model =
-          std::dynamic_pointer_cast<LidarMeasurementModelBeam<State6DOF, pcl::PointXYZI>>(
+          std::dynamic_pointer_cast<LidarMeasurementModelBeam<pcl::PointXYZI>>(
               lidar_measurements_["beam"]);
       const float sin_total_ref = beam_model->getSinTotalRef();
       for (auto &p : pc_particle_beam->points)
@@ -1287,11 +1287,11 @@ public:
     localize_rate_.reset(new Filter(Filter::FILTER_LPF, 5.0, 0.0));
 
     lidar_measurements_["likelihood"] =
-        LidarMeasurementModelBase<State6DOF, pcl::PointXYZI>::Ptr(
-            new LidarMeasurementModelLikelihood<State6DOF, pcl::PointXYZI>());
+        LidarMeasurementModelBase<pcl::PointXYZI>::Ptr(
+            new LidarMeasurementModelLikelihood<pcl::PointXYZI>());
     lidar_measurements_["beam"] =
-        LidarMeasurementModelBase<State6DOF, pcl::PointXYZI>::Ptr(
-            new LidarMeasurementModelBeam<State6DOF, pcl::PointXYZI>(
+        LidarMeasurementModelBase<pcl::PointXYZI>::Ptr(
+            new LidarMeasurementModelBeam<pcl::PointXYZI>(
                 params_.map_downsample_x, params_.map_downsample_y, params_.map_downsample_z));
 
     float max_search_radius = 0;
@@ -1421,7 +1421,7 @@ protected:
 
   std::map<
       std::string,
-      LidarMeasurementModelBase<State6DOF, pcl::PointXYZI>::Ptr> lidar_measurements_;
+      LidarMeasurementModelBase<pcl::PointXYZI>::Ptr> lidar_measurements_;
 
   std::random_device seed_gen_;
   std::default_random_engine engine_;

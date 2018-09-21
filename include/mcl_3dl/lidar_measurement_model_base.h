@@ -39,21 +39,16 @@
 #include <pcl/point_types.h>
 #include <pcl_ros/point_cloud.h>
 
-#include <mcl_3dl/pf.h>
+#include <mcl_3dl/state_6dof.h>
 #include <mcl_3dl/vec3.h>
 
 namespace mcl_3dl
 {
-template <class STATE_TYPE, class POINT_TYPE>
+template <class POINT_TYPE>
 class LidarMeasurementModelBase
 {
-  static_assert(
-      std::is_base_of<pf::ParticleBase<float>, STATE_TYPE>::value ||
-          std::is_base_of<pf::ParticleBase<double>, STATE_TYPE>::value,
-      "STATE_TYPE is not based on pf::ParticleBase<float/double>");
-
 public:
-  using Ptr = std::shared_ptr<LidarMeasurementModelBase<STATE_TYPE, POINT_TYPE>>;
+  using Ptr = std::shared_ptr<LidarMeasurementModelBase<POINT_TYPE>>;
 
   virtual void loadConfig(
       const ros::NodeHandle &nh,
@@ -66,10 +61,10 @@ public:
       const typename pcl::PointCloud<POINT_TYPE>::ConstPtr &) const = 0;
 
   virtual std::pair<float, float> measure(
-      typename mcl_3dl::ChunkedKdtree<POINT_TYPE>::Ptr &,
+      typename ChunkedKdtree<POINT_TYPE>::Ptr &,
       const typename pcl::PointCloud<POINT_TYPE>::ConstPtr &,
       const std::vector<Vec3> &,
-      const STATE_TYPE &) const = 0;
+      const State6DOF &) const = 0;
 };
 }  // namespace mcl_3dl
 

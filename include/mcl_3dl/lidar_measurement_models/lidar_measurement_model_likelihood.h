@@ -46,8 +46,8 @@
 
 namespace mcl_3dl
 {
-template <class STATE_TYPE, class POINT_TYPE>
-class LidarMeasurementModelLikelihood : public LidarMeasurementModelBase<STATE_TYPE, POINT_TYPE>
+template <class POINT_TYPE>
+class LidarMeasurementModelLikelihood : public LidarMeasurementModelBase<POINT_TYPE>
 {
 private:
   size_t num_points_;
@@ -142,10 +142,10 @@ public:
   }
 
   std::pair<float, float> measure(
-      typename mcl_3dl::ChunkedKdtree<POINT_TYPE>::Ptr &kdtree,
+      typename ChunkedKdtree<POINT_TYPE>::Ptr &kdtree,
       const typename pcl::PointCloud<POINT_TYPE>::ConstPtr &pc,
       const std::vector<Vec3> &origins,
-      const STATE_TYPE &s) const
+      const State6DOF &s) const
   {
     if (!pc)
       return std::pair<float, float>(1, 0);
