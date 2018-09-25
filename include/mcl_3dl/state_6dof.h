@@ -71,6 +71,7 @@ public:
   RPYVec rpy;
   float &operator[](const size_t i)override
   {
+    assert(i < 13);
     switch (i)
     {
       case 0:
@@ -104,6 +105,7 @@ public:
   }
   float operator[](const size_t i) const
   {
+    assert(i < 13);
     switch (i)
     {
       case 0:
