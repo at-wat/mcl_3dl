@@ -66,6 +66,24 @@ public:
     }
     return x;
   }
+  float operator[](const size_t i) const
+  {
+    switch (i)
+    {
+      case 0:
+        return x;
+        break;
+      case 1:
+        return y;
+        break;
+      case 2:
+        return z;
+        break;
+      default:
+        break;
+    }
+    return x;
+  }
   bool operator==(const Vec3 &q) const
   {
     return x == q.x && y == q.y && z == q.z;

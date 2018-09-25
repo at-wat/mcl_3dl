@@ -102,7 +102,7 @@ public:
     }
     return pos.x;
   }
-  const float &operator[](const size_t i) const
+  float operator[](const size_t i) const
   {
     switch (i)
     {
@@ -168,7 +168,7 @@ public:
     odom_err_integ_ang = mcl_3dl::Vec3(0.0, 0.0, 0.0);
     diff = true;
   }
-  bool isDiff()
+  bool isDiff() const
   {
     return diff;
   }
@@ -185,7 +185,7 @@ public:
   }
   static State6DOF generateNoise(
       std::default_random_engine &engine_,
-      State6DOF mean, State6DOF sigma)
+      const State6DOF &mean, const State6DOF &sigma)
   {
     State6DOF noise;
     if (mean.isDiff() || !sigma.isDiff())
