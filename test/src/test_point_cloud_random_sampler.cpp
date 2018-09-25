@@ -72,7 +72,10 @@ TEST(PointCloudRandomSampler, Sampling)
       for (const auto &p_ref : points_ref)
       {
         if (p_ref[0] == p.x && p_ref[1] == p.y && p_ref[2] == p.z)
+        {
           found = true;
+          break;
+        }
       }
       ASSERT_TRUE(found) << "A sampled point is not in the original points array";
     }

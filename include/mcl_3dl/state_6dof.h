@@ -71,7 +71,6 @@ public:
   RPYVec rpy;
   float &operator[](const size_t i)override
   {
-    assert(i < 13);
     switch (i)
     {
       case 0:
@@ -100,12 +99,12 @@ public:
         return odom_err_integ_ang.y;
       case 12:
         return odom_err_integ_ang.z;
+      default:
+        assert(false);
     }
-    return pos.x;
   }
   float operator[](const size_t i) const
   {
-    assert(i < 13);
     switch (i)
     {
       case 0:
@@ -134,8 +133,9 @@ public:
         return odom_err_integ_ang.y;
       case 12:
         return odom_err_integ_ang.z;
+      default:
+        assert(false);
     }
-    return pos.x;
   }
   size_t size() const override
   {
