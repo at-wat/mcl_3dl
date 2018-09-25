@@ -137,7 +137,7 @@ public:
   }
   size_t size() const override
   {
-    return 10;
+    return 13;
   }
   void normalize() override
   {
