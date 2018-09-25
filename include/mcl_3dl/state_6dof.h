@@ -102,6 +102,7 @@ public:
       default:
         assert(false);
     }
+    return pos.x;
   }
   float operator[](const size_t i) const
   {
@@ -136,6 +137,7 @@ public:
       default:
         assert(false);
     }
+    return 0;
   }
   size_t size() const override
   {
