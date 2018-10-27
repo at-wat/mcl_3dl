@@ -41,31 +41,31 @@ namespace mcl_3dl
 class State6DOF : public mcl_3dl::pf::ParticleBase<float>
 {
 public:
-  mcl_3dl::Vec3 pos;
-  mcl_3dl::Quat rot;
-  bool diff;
+  mcl_3dl::Vec3 pos_;
+  mcl_3dl::Quat rot_;
+  bool diff_;
   float noise_ll_;
   float noise_la_;
   float noise_al_;
   float noise_aa_;
-  mcl_3dl::Vec3 odom_err_integ_lin;
-  mcl_3dl::Vec3 odom_err_integ_ang;
+  mcl_3dl::Vec3 odom_err_integ_lin_;
+  mcl_3dl::Vec3 odom_err_integ_ang_;
   class RPYVec
   {
   public:
-    mcl_3dl::Vec3 v;
+    mcl_3dl::Vec3 v_;
     RPYVec()
     {
     }
     explicit RPYVec(const mcl_3dl::Vec3 &v)
     {
-      this->v = v;
+      v_ = v;
     }
-    RPYVec(const float &r, const float &p, const float y)
+    RPYVec(const float r, const float p, const float y)
     {
-      this->v.x = r;
-      this->v.y = p;
-      this->v.z = y;
+      v_.x_ = r;
+      v_.y_ = p;
+      v_.z_ = y;
     }
   };
   RPYVec rpy;
@@ -74,66 +74,66 @@ public:
     switch (i)
     {
       case 0:
-        return pos.x;
+        return pos_.x_;
       case 1:
-        return pos.y;
+        return pos_.y_;
       case 2:
-        return pos.z;
+        return pos_.z_;
       case 3:
-        return rot.x;
+        return rot_.x_;
       case 4:
-        return rot.y;
+        return rot_.y_;
       case 5:
-        return rot.z;
+        return rot_.z_;
       case 6:
-        return rot.w;
+        return rot_.w_;
       case 7:
-        return odom_err_integ_lin.x;
+        return odom_err_integ_lin_.x_;
       case 8:
-        return odom_err_integ_lin.y;
+        return odom_err_integ_lin_.y_;
       case 9:
-        return odom_err_integ_lin.z;
+        return odom_err_integ_lin_.z_;
       case 10:
-        return odom_err_integ_ang.x;
+        return odom_err_integ_ang_.x_;
       case 11:
-        return odom_err_integ_ang.y;
+        return odom_err_integ_ang_.y_;
       case 12:
-        return odom_err_integ_ang.z;
+        return odom_err_integ_ang_.z_;
       default:
         assert(false);
     }
-    return pos.x;
+    return pos_.x_;
   }
   float operator[](const size_t i) const
   {
     switch (i)
     {
       case 0:
-        return pos.x;
+        return pos_.x_;
       case 1:
-        return pos.y;
+        return pos_.y_;
       case 2:
-        return pos.z;
+        return pos_.z_;
       case 3:
-        return rot.x;
+        return rot_.x_;
       case 4:
-        return rot.y;
+        return rot_.y_;
       case 5:
-        return rot.z;
+        return rot_.z_;
       case 6:
-        return rot.w;
+        return rot_.w_;
       case 7:
-        return odom_err_integ_lin.x;
+        return odom_err_integ_lin_.x_;
       case 8:
-        return odom_err_integ_lin.y;
+        return odom_err_integ_lin_.y_;
       case 9:
-        return odom_err_integ_lin.z;
+        return odom_err_integ_lin_.z_;
       case 10:
-        return odom_err_integ_ang.x;
+        return odom_err_integ_ang_.x_;
       case 11:
-        return odom_err_integ_ang.y;
+        return odom_err_integ_ang_.y_;
       case 12:
-        return odom_err_integ_ang.z;
+        return odom_err_integ_ang_.z_;
       default:
         assert(false);
     }
@@ -145,46 +145,46 @@ public:
   }
   void normalize() override
   {
-    rot.normalize();
+    rot_.normalize();
   }
   State6DOF()
   {
-    diff = false;
+    diff_ = false;
     noise_ll_ = noise_la_ = noise_aa_ = noise_al_ = 0.0;
-    odom_err_integ_lin = mcl_3dl::Vec3(0.0, 0.0, 0.0);
-    odom_err_integ_ang = mcl_3dl::Vec3(0.0, 0.0, 0.0);
+    odom_err_integ_lin_ = mcl_3dl::Vec3(0.0, 0.0, 0.0);
+    odom_err_integ_ang_ = mcl_3dl::Vec3(0.0, 0.0, 0.0);
   }
   State6DOF(const mcl_3dl::Vec3 pos, const mcl_3dl::Quat rot)
   {
-    this->pos = pos;
-    this->rot = rot;
+    pos_ = pos;
+    rot_ = rot;
     noise_ll_ = noise_la_ = noise_aa_ = noise_al_ = 0.0;
-    odom_err_integ_lin = mcl_3dl::Vec3(0.0, 0.0, 0.0);
-    odom_err_integ_ang = mcl_3dl::Vec3(0.0, 0.0, 0.0);
-    diff = false;
+    odom_err_integ_lin_ = mcl_3dl::Vec3(0.0, 0.0, 0.0);
+    odom_err_integ_ang_ = mcl_3dl::Vec3(0.0, 0.0, 0.0);
+    diff_ = false;
   }
   State6DOF(const mcl_3dl::Vec3 pos, const mcl_3dl::Vec3 rpy)
   {
-    this->pos = pos;
+    pos_ = pos;
     this->rpy = RPYVec(rpy);
     noise_ll_ = noise_la_ = noise_aa_ = noise_al_ = 0.0;
-    odom_err_integ_lin = mcl_3dl::Vec3(0.0, 0.0, 0.0);
-    odom_err_integ_ang = mcl_3dl::Vec3(0.0, 0.0, 0.0);
-    diff = true;
+    odom_err_integ_lin_ = mcl_3dl::Vec3(0.0, 0.0, 0.0);
+    odom_err_integ_ang_ = mcl_3dl::Vec3(0.0, 0.0, 0.0);
+    diff_ = true;
   }
   bool isDiff() const
   {
-    return diff;
+    return diff_;
   }
   void transform(pcl::PointCloud<pcl::PointXYZI> &pc) const
   {
-    auto r = rot.normalized();
+    const auto r = rot_.normalized();
     for (auto &p : pc.points)
     {
-      auto t = r * mcl_3dl::Vec3(p.x, p.y, p.z) + pos;
-      p.x = t.x;
-      p.y = t.y;
-      p.z = t.z;
+      const Vec3 t = r * Vec3(p.x, p.y, p.z) + pos_;
+      p.x = t.x_;
+      p.y = t.y_;
+      p.z = t.z_;
     }
   }
   static State6DOF generateNoise(
@@ -204,10 +204,10 @@ public:
     mcl_3dl::Vec3 rpy_noise;
     for (size_t i = 0; i < 3; i++)
     {
-      std::normal_distribution<float> nd(0.0, sigma.rpy.v[i]);
+      std::normal_distribution<float> nd(0.0, sigma.rpy.v_[i]);
       rpy_noise[i] = noise[i + 10] = nd(engine_);
     }
-    noise.rot = mcl_3dl::Quat(rpy_noise) * mean.rot;
+    noise.rot_ = mcl_3dl::Quat(rpy_noise) * mean.rot_;
     return noise;
   }
   State6DOF operator+(const State6DOF &a) const
@@ -220,7 +220,7 @@ public:
         continue;
       ret[i] = (*this)[i] + in[i];
     }
-    ret.rot = a.rot * rot;
+    ret.rot_ = a.rot_ * rot_;
     return ret;
   }
   State6DOF operator-(const State6DOF &a) const
@@ -233,7 +233,7 @@ public:
         continue;
       ret[i] = (*this)[i] - in[i];
     }
-    ret.rot = a.rot * rot.inv();
+    ret.rot_ = a.rot_ * rot_.inv();
     return ret;
   }
 };
@@ -256,10 +256,10 @@ public:
     p_sum_ += prob;
 
     State6DOF e1 = s;
-    e_.pos += e1.pos * prob;
+    e_.pos_ += e1.pos_ * prob;
 
-    const mcl_3dl::Vec3 front = s.rot * mcl_3dl::Vec3(1.0, 0.0, 0.0) * prob;
-    const mcl_3dl::Vec3 up = s.rot * mcl_3dl::Vec3(0.0, 0.0, 1.0) * prob;
+    const mcl_3dl::Vec3 front = s.rot_ * mcl_3dl::Vec3(1.0, 0.0, 0.0) * prob;
+    const mcl_3dl::Vec3 up = s.rot_ * mcl_3dl::Vec3(0.0, 0.0, 1.0) * prob;
 
     front_sum_ += front;
     up_sum_ += up;
@@ -269,7 +269,7 @@ public:
   {
     assert(p_sum_ > 0.0);
 
-    return State6DOF(e_.pos / p_sum_, mcl_3dl::Quat(front_sum_, up_sum_));
+    return State6DOF(e_.pos_ / p_sum_, mcl_3dl::Quat(front_sum_, up_sum_));
   }
 
   float getTotalProbability()

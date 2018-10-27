@@ -42,14 +42,14 @@ TEST(Quat, Constractors)
   const mcl_3dl::Quat a(1.0, 2.0, 3.0, 4.0);
   const mcl_3dl::Quat b(a);
 
-  ASSERT_TRUE(a.x == 1.0);
-  ASSERT_TRUE(a.y == 2.0);
-  ASSERT_TRUE(a.z == 3.0);
-  ASSERT_TRUE(a.w == 4.0);
-  ASSERT_TRUE(b.x == 1.0);
-  ASSERT_TRUE(b.y == 2.0);
-  ASSERT_TRUE(b.z == 3.0);
-  ASSERT_TRUE(b.w == 4.0);
+  ASSERT_TRUE(a.x_ == 1.0);
+  ASSERT_TRUE(a.y_ == 2.0);
+  ASSERT_TRUE(a.z_ == 3.0);
+  ASSERT_TRUE(a.w_ == 4.0);
+  ASSERT_TRUE(b.x_ == 1.0);
+  ASSERT_TRUE(b.y_ == 2.0);
+  ASSERT_TRUE(b.z_ == 3.0);
+  ASSERT_TRUE(b.w_ == 4.0);
 
   // Test RPY and angle-axis style constructor
   for (int i = 0; i < 3; ++i)
@@ -66,29 +66,29 @@ TEST(Quat, Constractors)
     ASSERT_TRUE(c == d);
 
     const mcl_3dl::Quat e(mcl_3dl::Vec3(r, p, y), ang);
-    ASSERT_LT(fabs(c.x - e.x), 1e-6);
-    ASSERT_LT(fabs(c.y - e.y), 1e-6);
-    ASSERT_LT(fabs(c.z - e.z), 1e-6);
-    ASSERT_LT(fabs(c.w - e.w), 1e-6);
+    ASSERT_LT(fabs(c.x_ - e.x_), 1e-6);
+    ASSERT_LT(fabs(c.y_ - e.y_), 1e-6);
+    ASSERT_LT(fabs(c.z_ - e.z_), 1e-6);
+    ASSERT_LT(fabs(c.w_ - e.w_), 1e-6);
 
     // Check elements
-    ASSERT_LT(fabs(c.x - r * sqrtf(2.0) / 2.0), 1e-6);
-    ASSERT_LT(fabs(c.y - p * sqrtf(2.0) / 2.0), 1e-6);
-    ASSERT_LT(fabs(c.z - y * sqrtf(2.0) / 2.0), 1e-6);
-    ASSERT_LT(fabs(c.w - sqrtf(2.0) / 2.0), 1e-6);
+    ASSERT_LT(fabs(c.x_ - r * sqrtf(2.0) / 2.0), 1e-6);
+    ASSERT_LT(fabs(c.y_ - p * sqrtf(2.0) / 2.0), 1e-6);
+    ASSERT_LT(fabs(c.z_ - y * sqrtf(2.0) / 2.0), 1e-6);
+    ASSERT_LT(fabs(c.w_ - sqrtf(2.0) / 2.0), 1e-6);
 
     // Check reverse conversions
     mcl_3dl::Vec3 crpy(c.getRPY());
-    ASSERT_LT(fabs(r * ang - crpy.x), 1e-3);
-    ASSERT_LT(fabs(p * ang - crpy.y), 1e-3);
-    ASSERT_LT(fabs(y * ang - crpy.z), 1e-3);
+    ASSERT_LT(fabs(r * ang - crpy.x_), 1e-3);
+    ASSERT_LT(fabs(p * ang - crpy.y_), 1e-3);
+    ASSERT_LT(fabs(y * ang - crpy.z_), 1e-3);
 
     mcl_3dl::Vec3 axis;
     float angle;
     c.getAxisAng(axis, angle);
-    ASSERT_LT(fabs(r - axis.x), 1e-6);
-    ASSERT_LT(fabs(p - axis.y), 1e-6);
-    ASSERT_LT(fabs(y - axis.z), 1e-6);
+    ASSERT_LT(fabs(r - axis.x_), 1e-6);
+    ASSERT_LT(fabs(p - axis.y_), 1e-6);
+    ASSERT_LT(fabs(y - axis.z_), 1e-6);
     ASSERT_LT(fabs(ang - angle), 1e-6);
   }
 
@@ -109,12 +109,12 @@ TEST(Quat, Constractors)
       const mcl_3dl::Vec3 f = q * mcl_3dl::Vec3(1.0, 0.0, 0.0);
       const mcl_3dl::Vec3 u = q * mcl_3dl::Vec3(0.0, 0.0, 1.0);
 
-      ASSERT_LT(fabs(f.x - fw.x), 1e-6);
-      ASSERT_LT(fabs(f.y - fw.y), 1e-6);
-      ASSERT_LT(fabs(f.z - fw.z), 1e-6);
-      ASSERT_LT(fabs(u.x - up.x), 1e-6);
-      ASSERT_LT(fabs(u.y - up.y), 1e-6);
-      ASSERT_LT(fabs(u.z - up.z), 1e-6);
+      ASSERT_LT(fabs(f.x_ - fw.x_), 1e-6);
+      ASSERT_LT(fabs(f.y_ - fw.y_), 1e-6);
+      ASSERT_LT(fabs(f.z_ - fw.z_), 1e-6);
+      ASSERT_LT(fabs(u.x_ - up.x_), 1e-6);
+      ASSERT_LT(fabs(u.y_ - up.y_), 1e-6);
+      ASSERT_LT(fabs(u.z_ - up.z_), 1e-6);
     }
   }
 }
@@ -196,14 +196,14 @@ TEST(Quat, Products)
     const mcl_3dl::Quat ident0 = inv * samples[i];
     const mcl_3dl::Quat ident1 = samples[i] * inv;
 
-    ASSERT_LT(fabs(ident0.x), 1e-6);
-    ASSERT_LT(fabs(ident0.y), 1e-6);
-    ASSERT_LT(fabs(ident0.z), 1e-6);
-    ASSERT_LT(fabs(ident0.w - 1.0), 1e-6);
-    ASSERT_LT(fabs(ident1.x), 1e-6);
-    ASSERT_LT(fabs(ident1.y), 1e-6);
-    ASSERT_LT(fabs(ident1.z), 1e-6);
-    ASSERT_LT(fabs(ident1.w - 1.0), 1e-6);
+    ASSERT_LT(fabs(ident0.x_), 1e-6);
+    ASSERT_LT(fabs(ident0.y_), 1e-6);
+    ASSERT_LT(fabs(ident0.z_), 1e-6);
+    ASSERT_LT(fabs(ident0.w_ - 1.0), 1e-6);
+    ASSERT_LT(fabs(ident1.x_), 1e-6);
+    ASSERT_LT(fabs(ident1.y_), 1e-6);
+    ASSERT_LT(fabs(ident1.z_), 1e-6);
+    ASSERT_LT(fabs(ident1.w_ - 1.0), 1e-6);
   }
 
   // Check rotate axis
@@ -225,9 +225,9 @@ TEST(Quat, Products)
       float a_ang2;
       a.getAxisAng(a_axis2, a_ang2);
 
-      ASSERT_LT(fabs(a_axis2.x - rotated_axis.x), 1e-6);
-      ASSERT_LT(fabs(a_axis2.y - rotated_axis.y), 1e-6);
-      ASSERT_LT(fabs(a_axis2.z - rotated_axis.z), 1e-6);
+      ASSERT_LT(fabs(a_axis2.x_ - rotated_axis.x_), 1e-6);
+      ASSERT_LT(fabs(a_axis2.y_ - rotated_axis.y_), 1e-6);
+      ASSERT_LT(fabs(a_axis2.z_ - rotated_axis.z_), 1e-6);
       ASSERT_LT(fabs(a_ang - a_ang2), 1e-6);
     }
   }
@@ -264,9 +264,9 @@ TEST(Quat, Products)
     for (int j = 0; j < num_rots; ++j)
     {
       const mcl_3dl::Vec3 result = r[j] * v[i];
-      ASSERT_LT(fabs(result.x - v_ans[j][i].x), 1e-6);
-      ASSERT_LT(fabs(result.y - v_ans[j][i].y), 1e-6);
-      ASSERT_LT(fabs(result.z - v_ans[j][i].z), 1e-6);
+      ASSERT_LT(fabs(result.x_ - v_ans[j][i].x_), 1e-6);
+      ASSERT_LT(fabs(result.y_ - v_ans[j][i].y_), 1e-6);
+      ASSERT_LT(fabs(result.z_ - v_ans[j][i].z_), 1e-6);
     }
   }
 
@@ -284,9 +284,9 @@ TEST(Quat, Products)
       const mcl_3dl::Vec3 v(1.0, 2.0, 3.0);
       const mcl_3dl::Vec3 v1 = (a * b) * v;
       const mcl_3dl::Vec3 v2 = a * (b * v);
-      ASSERT_LT(fabs(v1.x - v2.x), 1e-6);
-      ASSERT_LT(fabs(v1.y - v2.y), 1e-6);
-      ASSERT_LT(fabs(v1.z - v2.z), 1e-6);
+      ASSERT_LT(fabs(v1.x_ - v2.x_), 1e-6);
+      ASSERT_LT(fabs(v1.y_ - v2.y_), 1e-6);
+      ASSERT_LT(fabs(v1.z_ - v2.z_), 1e-6);
     }
   }
 }

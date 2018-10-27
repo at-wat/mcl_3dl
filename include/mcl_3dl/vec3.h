@@ -35,58 +35,58 @@ namespace mcl_3dl
 class Vec3
 {
 public:
-  float x;
-  float y;
-  float z;
+  float x_;
+  float y_;
+  float z_;
   Vec3(const float x, const float y, const float z)
   {
-    this->x = x;
-    this->y = y;
-    this->z = z;
+    x_ = x;
+    y_ = y;
+    z_ = z;
   }
   Vec3()
   {
-    x = y = z = 0.0;
+    x_ = y_ = z_ = 0.0;
   }
   float &operator[](const size_t i)
   {
     switch (i)
     {
       case 0:
-        return x;
+        return x_;
         break;
       case 1:
-        return y;
+        return y_;
         break;
       case 2:
-        return z;
+        return z_;
         break;
       default:
         break;
     }
-    return x;
+    return x_;
   }
   float operator[](const size_t i) const
   {
     switch (i)
     {
       case 0:
-        return x;
+        return x_;
         break;
       case 1:
-        return y;
+        return y_;
         break;
       case 2:
-        return z;
+        return z_;
         break;
       default:
         break;
     }
-    return x;
+    return x_;
   }
   bool operator==(const Vec3 &q) const
   {
-    return x == q.x && y == q.y && z == q.z;
+    return x_ == q.x_ && y_ == q.y_ && z_ == q.z_;
   }
   bool operator!=(const Vec3 &q) const
   {
@@ -94,23 +94,23 @@ public:
   }
   Vec3 operator+(const Vec3 &q) const
   {
-    return Vec3(x + q.x, y + q.y, z + q.z);
+    return Vec3(x_ + q.x_, y_ + q.y_, z_ + q.z_);
   }
   Vec3 operator-(const Vec3 &q) const
   {
-    return Vec3(x - q.x, y - q.y, z - q.z);
+    return Vec3(x_ - q.x_, y_ - q.y_, z_ - q.z_);
   }
   Vec3 operator-() const
   {
-    return Vec3(-x, -y, -z);
+    return Vec3(-x_, -y_, -z_);
   }
   Vec3 operator*(const float &s) const
   {
-    return Vec3(x * s, y * s, z * s);
+    return Vec3(x_ * s, y_ * s, z_ * s);
   }
   Vec3 operator/(const float &s) const
   {
-    return Vec3(x / s, y / s, z / s);
+    return Vec3(x_ / s, y_ / s, z_ / s);
   }
   Vec3 &operator+=(const Vec3 &q)
   {
@@ -134,17 +134,17 @@ public:
   }
   float dot(const Vec3 &q) const
   {
-    return x * q.x + y * q.y + z * q.z;
+    return x_ * q.x_ + y_ * q.y_ + z_ * q.z_;
   }
   Vec3 cross(const Vec3 &q) const
   {
-    return Vec3(y * q.z - z * q.y,
-                z * q.x - x * q.z,
-                x * q.y - y * q.x);
+    return Vec3(y_ * q.z_ - z_ * q.y_,
+                z_ * q.x_ - x_ * q.z_,
+                x_ * q.y_ - y_ * q.x_);
   }
   Vec3 times(const Vec3 &q) const
   {
-    return Vec3(x * q.x, y * q.y, z * q.z);
+    return Vec3(x_ * q.x_, y_ * q.y_, z_ * q.z_);
   }
   float norm() const
   {

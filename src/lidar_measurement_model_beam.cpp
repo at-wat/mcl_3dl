@@ -151,7 +151,7 @@ LidarMeasurementResult LidarMeasurementModelBeam::measure(
     const int beam_header_id = lroundf(p.intensity);
     Raycast<pcl::PointXYZI> ray(
         kdtree,
-        s.pos + s.rot * origins[beam_header_id],
+        s.pos_ + s.rot_ * origins[beam_header_id],
         Vec3(p.x, p.y, p.z),
         map_grid_min_, map_grid_max_);
     for (auto point : ray)

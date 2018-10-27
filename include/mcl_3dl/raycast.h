@@ -94,9 +94,9 @@ public:
       float sin_ang(0.0);
 
       POINT_TYPE center;
-      center.x = pos_.x;
-      center.y = pos_.y;
-      center.z = pos_.z;
+      center.x = pos_.x_;
+      center.y = pos_.y_;
+      center.z = pos_.z_;
       std::vector<int> id(1);
       std::vector<float> sqdist(1);
       if (kdtree_->radiusSearch(
@@ -108,9 +108,9 @@ public:
         const float d0 = sqrtf(sqdist[0]);
         const Vec3 pos_prev = pos_ - (inc_ * 2.0);
         POINT_TYPE center_prev;
-        center_prev.x = pos_prev.x;
-        center_prev.y = pos_prev.y;
-        center_prev.z = pos_prev.z;
+        center_prev.x = pos_prev.x_;
+        center_prev.y = pos_prev.y_;
+        center_prev.z = pos_prev.z_;
         if (kdtree_->radiusSearch(
                 center_prev,
                 grid_min_ * 2 + sqrtf(2.0) * grid_max_ / 2.0, id, sqdist, 1))
