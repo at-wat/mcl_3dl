@@ -178,8 +178,8 @@ protected:
     pc_update_.reset();
     auto integ_reset_func = [](State6DOF &s)
     {
-      s.odom_err_integ_lin = Vec3();
-      s.odom_err_integ_ang = Vec3();
+      s.odom_err_integ_lin_ = Vec3();
+      s.odom_err_integ_ang_ = Vec3();
     };
     pf_->predict(integ_reset_func);
   }
@@ -211,8 +211,8 @@ protected:
     }
     else if (dt > 0.05)
     {
-      const Vec3 v = odom_prev_.rot.inv() * (odom_.pos - odom_prev_.pos);
-      const Quat r = odom_prev_.rot.inv() * odom_.rot;
+      const Vec3 v = odom_prev_.rot_.inv() * (odom_.pos_ - odom_prev_.pos_);
+      const Quat r = odom_prev_.rot_.inv() * odom_.rot_;
       Vec3 axis;
       float ang;
       r.getAxisAng(axis, ang);
@@ -221,14 +221,14 @@ protected:
       auto prediction_func = [this, &v, &r, axis, ang, trans, &dt](State6DOF &s)
       {
         const Vec3 diff = v * (1.0 + s.noise_ll_) + Vec3(s.noise_al_ * ang, 0.0, 0.0);
-        s.odom_err_integ_lin += (diff - v);
-        s.pos += s.rot * diff;
+        s.odom_err_integ_lin_ += (diff - v);
+        s.pos_ += s.rot_ * diff;
         const float yaw_diff = s.noise_la_ * trans + s.noise_aa_ * ang;
-        s.rot = Quat(Vec3(0.0, 0.0, 1.0), yaw_diff) * s.rot * r;
-        s.rot.normalize();
-        s.odom_err_integ_ang += Vec3(0.0, 0.0, yaw_diff);
-        s.odom_err_integ_lin *= (1.0 - dt / params_.odom_err_integ_lin_tc_);
-        s.odom_err_integ_ang *= (1.0 - dt / params_.odom_err_integ_ang_tc_);
+        s.rot_ = Quat(Vec3(0.0, 0.0, 1.0), yaw_diff) * s.rot_ * r;
+        s.rot_.normalize();
+        s.odom_err_integ_ang_ += Vec3(0.0, 0.0, yaw_diff);
+        s.odom_err_integ_lin_ *= (1.0 - dt / params_.odom_err_integ_lin_tc_);
+        s.odom_err_integ_ang_ *= (1.0 - dt / params_.odom_err_integ_ang_tc_);
       };
       pf_->predict(prediction_func);
       odom_last_ = msg->header.stamp;
@@ -388,7 +388,7 @@ protected:
 
       // odometry error integration
       const float odom_error =
-          odom_error_lin_nd(s.odom_err_integ_lin.norm());
+          odom_error_lin_nd(s.odom_err_integ_lin_.norm());
       return likelihood * odom_error;
     };
     pf_->measure(measure_func);
@@ -407,10 +407,10 @@ protected:
       NormalLikelihood<float> nl_ang(params_.bias_var_ang_);
       auto bias_func = [this, &nl_lin, &nl_ang](const State6DOF &s, float &p_bias) -> void
       {
-        const float lin_diff = (s.pos - state_prev_.pos).norm();
+        const float lin_diff = (s.pos_ - state_prev_.pos_).norm();
         Vec3 axis;
         float ang_diff;
-        (s.rot * state_prev_.rot.inv()).getAxisAng(axis, ang_diff);
+        (s.rot_ * state_prev_.rot_.inv()).getAxisAng(axis, ang_diff);
         p_bias = nl_lin(lin_diff) * nl_ang(ang_diff) + 1e-6;
         assert(std::isfinite(p_bias));
       };
@@ -419,15 +419,15 @@ protected:
     auto e = pf_->expectationBiased();
     const auto e_max = pf_->max();
 
-    assert(std::isfinite(e.pos.x));
-    assert(std::isfinite(e.pos.y));
-    assert(std::isfinite(e.pos.z));
-    assert(std::isfinite(e.rot.x));
-    assert(std::isfinite(e.rot.y));
-    assert(std::isfinite(e.rot.z));
-    assert(std::isfinite(e.rot.w));
+    assert(std::isfinite(e.pos_.x));
+    assert(std::isfinite(e.pos_.y));
+    assert(std::isfinite(e.pos_.z));
+    assert(std::isfinite(e.rot_.x));
+    assert(std::isfinite(e.rot_.y));
+    assert(std::isfinite(e.rot_.z));
+    assert(std::isfinite(e.rot_.w));
 
-    e.rot.normalize();
+    e.rot_.normalize();
 
     if (lidar_measurements_["beam"])
     {
@@ -438,9 +438,9 @@ protected:
       e.transform(*pc_particle_beam);
       for (auto &p : pc_particle_beam->points)
       {
-        int beam_header_id = lroundf(p.intensity);
-        Vec3 pos = e.pos + e.rot * origins[beam_header_id];
-        Vec3 end(p.x, p.y, p.z);
+        const int beam_header_id = lroundf(p.intensity);
+        const Vec3 pos = e.pos_ + e.rot_ * origins[beam_header_id];
+        const Vec3 end(p.x, p.y, p.z);
 
         visualization_msgs::Marker marker;
         marker.header.frame_id = frame_ids_["map"];
@@ -487,7 +487,7 @@ protected:
         const int beam_header_id = lroundf(p.intensity);
         Raycast<pcl::PointXYZI> ray(
             kdtree_,
-            e.pos + e.rot * origins[beam_header_id],
+            e.pos_ + e.rot_ * origins[beam_header_id],
             Vec3(p.x, p.y, p.z),
             params_.map_grid_min_, params_.map_grid_max_);
         for (auto point : ray)
@@ -560,8 +560,8 @@ protected:
 
     Vec3 map_pos;
     Quat map_rot;
-    map_pos = e.pos - e.rot * odom_.rot.inv() * odom_.pos;
-    map_rot = e.rot * odom_.rot.inv();
+    map_pos = e.pos_ - e.rot_ * odom_.rot_.inv() * odom_.pos_;
+    map_rot = e.rot_ * odom_.rot_.inv();
 
     bool jump = false;
     if (static_cast<int>(pf_->getParticleSize()) > params_.num_particles_)
@@ -573,8 +573,8 @@ protected:
     {
       Vec3 jump_axis;
       float jump_ang;
-      float jump_dist = (e.pos - state_prev_.pos).norm();
-      (e.rot.inv() * state_prev_.rot).getAxisAng(jump_axis, jump_ang);
+      float jump_dist = (e.pos_ - state_prev_.pos_).norm();
+      (e.rot_.inv() * state_prev_.rot_).getAxisAng(jump_axis, jump_ang);
       if (jump_dist > params_.jump_dist_ ||
           fabs(jump_ang) > params_.jump_ang_)
       {
@@ -583,8 +583,8 @@ protected:
 
         auto integ_reset_func = [](State6DOF &s)
         {
-          s.odom_err_integ_lin = Vec3();
-          s.odom_err_integ_ang = Vec3();
+          s.odom_err_integ_lin_ = Vec3();
+          s.odom_err_integ_ang_ = Vec3();
         };
         pf_->predict(integ_reset_func);
       }
@@ -620,20 +620,20 @@ protected:
     std::vector<tf::StampedTransform> transforms;
     transforms.push_back(trans);
 
-    e.rot = map_rot * odom_.rot;
-    e.pos = map_pos + e.rot * odom_.rot.inv() * odom_.pos;
+    e.rot_ = map_rot * odom_.rot_;
+    e.pos_ = map_pos + e.rot_ * odom_.rot_.inv() * odom_.pos_;
 
-    assert(std::isfinite(e.pos.x));
-    assert(std::isfinite(e.pos.y));
-    assert(std::isfinite(e.pos.z));
-    assert(std::isfinite(e.rot.x));
-    assert(std::isfinite(e.rot.y));
-    assert(std::isfinite(e.rot.z));
-    assert(std::isfinite(e.rot.w));
+    assert(std::isfinite(e.pos_.x));
+    assert(std::isfinite(e.pos_.y));
+    assert(std::isfinite(e.pos_.z));
+    assert(std::isfinite(e.rot_.x));
+    assert(std::isfinite(e.rot_.y));
+    assert(std::isfinite(e.rot_.z));
+    assert(std::isfinite(e.rot_.w));
 
     trans.frame_id_ = frame_ids_["map"];
     trans.child_frame_id_ = frame_ids_["floor"];
-    trans.setOrigin(tf::Vector3(0.0, 0.0, e.pos.z));
+    trans.setOrigin(tf::Vector3(0.0, 0.0, e.pos_.z));
     trans.setRotation(tf::Quaternion(0.0, 0.0, 0.0, 1.0));
 
     transforms.push_back(trans);
@@ -646,13 +646,13 @@ protected:
     geometry_msgs::PoseWithCovarianceStamped pose;
     pose.header.stamp = msg->header.stamp;
     pose.header.frame_id = trans.frame_id_;
-    pose.pose.pose.position.x = e.pos.x;
-    pose.pose.pose.position.y = e.pos.y;
-    pose.pose.pose.position.z = e.pos.z;
-    pose.pose.pose.orientation.x = e.rot.x;
-    pose.pose.pose.orientation.y = e.rot.y;
-    pose.pose.pose.orientation.z = e.rot.z;
-    pose.pose.pose.orientation.w = e.rot.w;
+    pose.pose.pose.position.x = e.pos_.x;
+    pose.pose.pose.position.y = e.pos_.y;
+    pose.pose.pose.position.z = e.pos_.z;
+    pose.pose.pose.orientation.x = e.rot_.x;
+    pose.pose.pose.orientation.y = e.rot_.y;
+    pose.pose.pose.orientation.z = e.rot_.z;
+    pose.pose.pose.orientation.w = e.rot_.w;
     for (size_t i = 0; i < 36; i++)
     {
       pose.pose.covariance[i] = cov[i / 6][i % 6];
@@ -744,14 +744,14 @@ protected:
     {
       geometry_msgs::Pose pm;
       auto p = pf_->getParticle(i);
-      p.rot.normalize();
-      pm.position.x = p.pos.x;
-      pm.position.y = p.pos.y;
-      pm.position.z = p.pos.z;
-      pm.orientation.x = p.rot.x;
-      pm.orientation.y = p.rot.y;
-      pm.orientation.z = p.rot.z;
-      pm.orientation.w = p.rot.w;
+      p.rot_.normalize();
+      pm.position.x = p.pos_.x;
+      pm.position.y = p.pos_.y;
+      pm.position.z = p.pos_.z;
+      pm.orientation.x = p.rot_.x;
+      pm.orientation.y = p.rot_.y;
+      pm.orientation.z = p.rot_.z;
+      pm.orientation.w = p.rot_.w;
       pa.poses.push_back(pm);
     }
     pub_particle_.publish(pa);
@@ -777,29 +777,29 @@ protected:
     const auto tnow = boost::chrono::high_resolution_clock::now();
     ROS_DEBUG("MCL (%0.3f sec.)",
               boost::chrono::duration<float>(tnow - ts).count());
-    const auto err_integ_map = e_max.rot * e_max.odom_err_integ_lin;
+    const auto err_integ_map = e_max.rot_ * e_max.odom_err_integ_lin_;
     ROS_DEBUG("odom error integral lin: %0.3f, %0.3f, %0.3f, "
               "ang: %0.3f, %0.3f, %0.3f, "
               "pos: %0.3f, %0.3f, %0.3f, "
               "err on map: %0.3f, %0.3f, %0.3f",
-              e_max.odom_err_integ_lin.x,
-              e_max.odom_err_integ_lin.y,
-              e_max.odom_err_integ_lin.z,
-              e_max.odom_err_integ_ang.x,
-              e_max.odom_err_integ_ang.y,
-              e_max.odom_err_integ_ang.z,
-              e_max.pos.x,
-              e_max.pos.y,
-              e_max.pos.z,
+              e_max.odom_err_integ_lin_.x,
+              e_max.odom_err_integ_lin_.y,
+              e_max.odom_err_integ_lin_.z,
+              e_max.odom_err_integ_ang_.x,
+              e_max.odom_err_integ_ang_.y,
+              e_max.odom_err_integ_ang_.z,
+              e_max.pos_.x,
+              e_max.pos_.y,
+              e_max.pos_.z,
               err_integ_map.x,
               err_integ_map.y,
               err_integ_map.z);
     ROS_DEBUG("match ratio min: %0.3f, max: %0.3f, pos: %0.3f, %0.3f, %0.3f",
               match_ratio_min,
               match_ratio_max,
-              e.pos.x,
-              e.pos.y,
-              e.pos.z);
+              e.pos_.x,
+              e.pos_.y,
+              e.pos_.z);
     if (match_ratio_max < params_.match_ratio_thresh_)
     {
       ROS_WARN_THROTTLE(3.0, "Low match_ratio. Expansion resetting.");
@@ -865,11 +865,11 @@ protected:
     auto measure_func = [this, &measured, &nd](const State6DOF &s) -> float
     {
       State6DOF diff = s - measured;
-      const Vec3 rot_rpy = diff.rot.getRPY();
+      const Vec3 rot_rpy = diff.rot_.getRPY();
       const Eigen::Matrix<float, 6, 1> diff_vec =
-          (Eigen::MatrixXf(6, 1) << diff.pos.x,
-           diff.pos.y,
-           diff.pos.z,
+          (Eigen::MatrixXf(6, 1) << diff.pos_.x,
+           diff.pos_.y,
+           diff.pos_.z,
            rot_rpy.x,
            rot_rpy.y,
            rot_rpy.z)
@@ -943,7 +943,7 @@ protected:
       NormalLikelihood<float> nd(params_.acc_var_);
       auto imu_measure_func = [this, &nd, &acc_measure, &acc_measure_norm](const State6DOF &s) -> float
       {
-        const Vec3 acc_estim = s.rot.inv() * Vec3(0.0, 0.0, 1.0);
+        const Vec3 acc_estim = s.rot_.inv() * Vec3(0.0, 0.0, 1.0);
         const float diff = acosf(
             acc_estim.dot(acc_measure) / (acc_measure_norm * acc_estim.norm()));
         return nd(diff);
@@ -1018,11 +1018,11 @@ protected:
       assert(pit != points->end());
       particle.probability_ = prob;
       particle.probability_bias_ = 1.0;
-      particle.state_.pos.x = pit->x;
-      particle.state_.pos.y = pit->y;
-      particle.state_.pos.z = pit->z;
-      particle.state_.rot = Quat(Vec3(0.0, 0.0, 2.0 * M_PI * cnt / dir)) * imu_quat_;
-      particle.state_.rot.normalize();
+      particle.state_.pos_.x = pit->x;
+      particle.state_.pos_.y = pit->y;
+      particle.state_.pos_.z = pit->z;
+      particle.state_.rot_ = Quat(Vec3(0.0, 0.0, 2.0 * M_PI * cnt / dir)) * imu_quat_;
+      particle.state_.rot_.normalize();
       if (++cnt >= dir)
       {
         cnt = 0;
