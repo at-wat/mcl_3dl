@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017, the mcl_3dl authors
+ * Copyright (c) 2016-2018, the mcl_3dl authors
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,6 +71,7 @@
 #include <mcl_3dl/lidar_measurement_models/lidar_measurement_model_beam.h>
 #include <mcl_3dl/lidar_measurement_models/lidar_measurement_model_likelihood.h>
 #include <mcl_3dl/nd.h>
+#include <mcl_3dl/parameters.h>
 #include <mcl_3dl/pf.h>
 #include <mcl_3dl/quat.h>
 #include <mcl_3dl/raycast.h>
@@ -84,61 +85,6 @@ namespace mcl_3dl
 class MCL3dlNode
 {
 protected:
-  class Parameters
-  {
-  public:
-    double map_downsample_x;
-    double map_downsample_y;
-    double map_downsample_z;
-    double update_downsample_x;
-    double update_downsample_y;
-    double update_downsample_z;
-    double map_grid_min;
-    double map_grid_max;
-    double global_localization_grid;
-    int global_localization_div_yaw;
-    double downsample_x;
-    double downsample_y;
-    double downsample_z;
-    double resample_var_x;
-    double resample_var_y;
-    double resample_var_z;
-    double resample_var_roll;
-    double resample_var_pitch;
-    double resample_var_yaw;
-    double expansion_var_x;
-    double expansion_var_y;
-    double expansion_var_z;
-    double expansion_var_roll;
-    double expansion_var_pitch;
-    double expansion_var_yaw;
-    double match_ratio_thresh;
-    double jump_dist;
-    double jump_ang;
-    double fix_dist;
-    double fix_ang;
-    double odom_err_lin_lin;
-    double odom_err_lin_ang;
-    double odom_err_ang_lin;
-    double odom_err_ang_ang;
-    std::shared_ptr<ros::Duration> map_update_interval;
-    int num_particles;
-    int skip_measure;
-    int accum_cloud;
-    double match_output_dist;
-    double unmatch_output_dist;
-    double bias_var_dist;
-    double bias_var_ang;
-    double acc_var;
-    double odom_err_integ_lin_tc;
-    double odom_err_integ_lin_sigma;
-    double odom_err_integ_ang_tc;
-    double odom_err_integ_ang_sigma;
-    std::shared_ptr<ros::Duration> match_output_interval;
-    std::shared_ptr<ros::Duration> tf_tolerance;
-    double lpf_step;
-  };
-
   std::shared_ptr<pf::ParticleFilter<State6DOF, float, ParticleWeightedMeanQuat>> pf_;
 
   class MyPointRepresentation : public pcl::PointRepresentation<pcl::PointXYZI>
@@ -176,7 +122,7 @@ protected:
     pc_update_.reset();
     pcl::VoxelGrid<pcl::PointXYZI> ds;
     ds.setInputCloud(pc_tmp.makeShared());
-    ds.setLeafSize(params_.map_downsample_x, params_.map_downsample_y, params_.map_downsample_z);
+    ds.setLeafSize(params_.map_downsample_x_, params_.map_downsample_y_, params_.map_downsample_z_);
     ds.filter(*pc_map_);
     pc_local_accum_.reset(new pcl::PointCloud<pcl::PointXYZI>);
     pc_all_accum_.reset(new pcl::PointCloud<pcl::PointXYZI>);
@@ -197,7 +143,7 @@ protected:
     pc_update_.reset(new pcl::PointCloud<pcl::PointXYZI>);
     pcl::VoxelGrid<pcl::PointXYZI> ds;
     ds.setInputCloud(pc_tmp.makeShared());
-    ds.setLeafSize(params_.update_downsample_x, params_.update_downsample_y, params_.update_downsample_z);
+    ds.setLeafSize(params_.update_downsample_x_, params_.update_downsample_y_, params_.update_downsample_z_);
     ds.filter(*pc_update_);
   }
 
@@ -281,8 +227,8 @@ protected:
         s.rot = Quat(Vec3(0.0, 0.0, 1.0), yaw_diff) * s.rot * r;
         s.rot.normalize();
         s.odom_err_integ_ang += Vec3(0.0, 0.0, yaw_diff);
-        s.odom_err_integ_lin *= (1.0 - dt / params_.odom_err_integ_lin_tc);
-        s.odom_err_integ_ang *= (1.0 - dt / params_.odom_err_integ_ang_tc);
+        s.odom_err_integ_lin *= (1.0 - dt / params_.odom_err_integ_lin_tc_);
+        s.odom_err_integ_ang *= (1.0 - dt / params_.odom_err_integ_ang_tc_);
       };
       pf_->predict(prediction_func);
       odom_last_ = msg->header.stamp;
@@ -341,11 +287,11 @@ protected:
       return;
 
     cnt_accum_++;
-    if (cnt_accum_ % params_.accum_cloud != 0)
+    if (cnt_accum_ % params_.accum_cloud_ != 0)
       return;
 
     cnt_measure_++;
-    if (cnt_measure_ % params_.skip_measure != 0)
+    if (cnt_measure_ % params_.skip_measure_ != 0)
     {
       pc_local_accum_.reset(new pcl::PointCloud<pcl::PointXYZI>);
       pc_accum_header_.clear();
@@ -396,14 +342,14 @@ protected:
     pcl::PointCloud<pcl::PointXYZI>::Ptr pc_local_full(new pcl::PointCloud<pcl::PointXYZI>);
     pcl::VoxelGrid<pcl::PointXYZI> ds;
     ds.setInputCloud(pc_local_accum_);
-    ds.setLeafSize(params_.downsample_x, params_.downsample_y, params_.downsample_z);
+    ds.setLeafSize(params_.downsample_x_, params_.downsample_y_, params_.downsample_z_);
     ds.filter(*pc_local_full);
 
     std::map<std::string, pcl::PointCloud<pcl::PointXYZI>::Ptr> pc_locals;
     for (auto &lm : lidar_measurements_)
     {
       lm.second->setGlobalLocalizationStatus(
-          params_.num_particles, pf_->getParticleSize());
+          params_.num_particles_, pf_->getParticleSize());
       pc_locals[lm.first] = lm.second->filter(pc_local_full);
     }
 
@@ -419,8 +365,8 @@ protected:
 
     float match_ratio_min = 1.0;
     float match_ratio_max = 0.0;
-    NormalLikelihood<float> odom_error_lin_nd(params_.odom_err_integ_lin_sigma);
-    NormalLikelihood<float> odom_error_ang_nd(params_.odom_err_integ_ang_sigma);
+    NormalLikelihood<float> odom_error_lin_nd(params_.odom_err_integ_lin_sigma_);
+    NormalLikelihood<float> odom_error_ang_nd(params_.odom_err_integ_ang_sigma_);
     auto measure_func = [this, &pc_locals,
                          &origins,
                          &odom_error_lin_nd,
@@ -447,7 +393,7 @@ protected:
     };
     pf_->measure(measure_func);
 
-    if (static_cast<int>(pf_->getParticleSize()) > params_.num_particles)
+    if (static_cast<int>(pf_->getParticleSize()) > params_.num_particles_)
     {
       auto bias_func = [](const State6DOF &s, float &p_bias) -> void
       {
@@ -457,8 +403,8 @@ protected:
     }
     else
     {
-      NormalLikelihood<float> nl_lin(params_.bias_var_dist);
-      NormalLikelihood<float> nl_ang(params_.bias_var_ang);
+      NormalLikelihood<float> nl_lin(params_.bias_var_dist_);
+      NormalLikelihood<float> nl_ang(params_.bias_var_ang_);
       auto bias_func = [this, &nl_lin, &nl_ang](const State6DOF &s, float &p_bias) -> void
       {
         const float lin_diff = (s.pos - state_prev_.pos).norm();
@@ -543,7 +489,7 @@ protected:
             kdtree_,
             e.pos + e.rot * origins[beam_header_id],
             Vec3(p.x, p.y, p.z),
-            params_.map_grid_min, params_.map_grid_max);
+            params_.map_grid_min_, params_.map_grid_max_);
         for (auto point : ray)
         {
           if (point.collision_)
@@ -618,7 +564,7 @@ protected:
     map_rot = e.rot * odom_.rot.inv();
 
     bool jump = false;
-    if (static_cast<int>(pf_->getParticleSize()) > params_.num_particles)
+    if (static_cast<int>(pf_->getParticleSize()) > params_.num_particles_)
     {
       jump = true;
       state_prev_ = e;
@@ -629,8 +575,8 @@ protected:
       float jump_ang;
       float jump_dist = (e.pos - state_prev_.pos).norm();
       (e.rot.inv() * state_prev_.rot).getAxisAng(jump_axis, jump_ang);
-      if (jump_dist > params_.jump_dist ||
-          fabs(jump_ang) > params_.jump_ang)
+      if (jump_dist > params_.jump_dist_ ||
+          fabs(jump_ang) > params_.jump_ang_)
       {
         ROS_INFO("Pose jumped pos:%0.3f, ang:%0.3f", jump_dist, jump_ang);
         jump = true;
@@ -646,9 +592,9 @@ protected:
     }
     tf::StampedTransform trans;
     if (has_odom_)
-      trans.stamp_ = odom_last_ + tf_tolerance_base_ + *params_.tf_tolerance;
+      trans.stamp_ = odom_last_ + tf_tolerance_base_ + *params_.tf_tolerance_;
     else
-      trans.stamp_ = ros::Time::now() + tf_tolerance_base_ + *params_.tf_tolerance;
+      trans.stamp_ = ros::Time::now() + tf_tolerance_base_ + *params_.tf_tolerance_;
     trans.frame_id_ = frame_ids_["map"];
     trans.child_frame_id_ = frame_ids_["odom"];
     auto rpy = map_rot.getRPY();
@@ -719,8 +665,8 @@ protected:
       const float fix_ang = sqrtf(cov[3][3] + cov[4][4] + cov[5][5]);
       const float fix_dist = sqrtf(cov[0][0] + cov[1][1] + cov[2][2]);
       ROS_DEBUG("cov: lin %0.3f ang %0.3f", fix_dist, fix_ang);
-      if (fix_dist < params_.fix_dist &&
-          fabs(fix_ang) < params_.fix_ang)
+      if (fix_dist < params_.fix_dist_ &&
+          fabs(fix_ang) < params_.fix_ang_)
       {
         fix = true;
       }
@@ -737,7 +683,7 @@ protected:
       *pc_all_accum_ += *pc_particle;
     }
 
-    if ((msg->header.stamp - match_output_last_ > *params_.match_output_interval ||
+    if ((msg->header.stamp - match_output_last_ > *params_.match_output_interval_ ||
          msg->header.stamp < match_output_last_ - ros::Duration(1.0)) &&
         (pub_matched_.getNumSubscribers() > 0 || pub_unmatched_.getNumSubscribers() > 0))
     {
@@ -757,7 +703,7 @@ protected:
 
       std::vector<int> id(1);
       std::vector<float> sqdist(1);
-      const double match_dist_sq = params_.match_output_dist * params_.match_output_dist;
+      const double match_dist_sq = params_.match_output_dist_ * params_.match_output_dist_;
       for (auto &p : pc_local->points)
       {
         geometry_msgs::Point32 pp;
@@ -765,7 +711,7 @@ protected:
         pp.y = p.y;
         pp.z = p.z;
 
-        if (!kdtree_->radiusSearch(p, params_.unmatch_output_dist, id, sqdist, 1))
+        if (!kdtree_->radiusSearch(p, params_.unmatch_output_dist_, id, sqdist, 1))
         {
           pc_unmatch.points.push_back(pp);
         }
@@ -790,9 +736,9 @@ protected:
 
     geometry_msgs::PoseArray pa;
     if (has_odom_)
-      pa.header.stamp = odom_last_ + tf_tolerance_base_ + *params_.tf_tolerance;
+      pa.header.stamp = odom_last_ + tf_tolerance_base_ + *params_.tf_tolerance_;
     else
-      pa.header.stamp = ros::Time::now() + tf_tolerance_base_ + *params_.tf_tolerance;
+      pa.header.stamp = ros::Time::now() + tf_tolerance_base_ + *params_.tf_tolerance_;
     pa.header.frame_id = frame_ids_["map"];
     for (size_t i = 0; i < pf_->getParticleSize(); i++)
     {
@@ -811,20 +757,20 @@ protected:
     pub_particle_.publish(pa);
 
     pf_->resample(State6DOF(
-        Vec3(params_.resample_var_x,
-             params_.resample_var_y,
-             params_.resample_var_z),
-        Vec3(params_.resample_var_roll,
-             params_.resample_var_pitch,
-             params_.resample_var_yaw)));
+        Vec3(params_.resample_var_x_,
+             params_.resample_var_y_,
+             params_.resample_var_z_),
+        Vec3(params_.resample_var_roll_,
+             params_.resample_var_pitch_,
+             params_.resample_var_yaw_)));
 
     std::normal_distribution<float> noise(0.0, 1.0);
     auto update_noise_func = [this, &noise](State6DOF &s)
     {
-      s.noise_ll_ = noise(engine_) * params_.odom_err_lin_lin;
-      s.noise_la_ = noise(engine_) * params_.odom_err_lin_ang;
-      s.noise_aa_ = noise(engine_) * params_.odom_err_ang_ang;
-      s.noise_al_ = noise(engine_) * params_.odom_err_ang_lin;
+      s.noise_ll_ = noise(engine_) * params_.odom_err_lin_lin_;
+      s.noise_la_ = noise(engine_) * params_.odom_err_lin_ang_;
+      s.noise_aa_ = noise(engine_) * params_.odom_err_ang_ang_;
+      s.noise_al_ = noise(engine_) * params_.odom_err_ang_lin_;
     };
     pf_->predict(update_noise_func);
 
@@ -854,16 +800,16 @@ protected:
               e.pos.x,
               e.pos.y,
               e.pos.z);
-    if (match_ratio_max < params_.match_ratio_thresh)
+    if (match_ratio_max < params_.match_ratio_thresh_)
     {
       ROS_WARN_THROTTLE(3.0, "Low match_ratio. Expansion resetting.");
       pf_->noise(State6DOF(
-          Vec3(params_.expansion_var_x,
-               params_.expansion_var_y,
-               params_.expansion_var_z),
-          Vec3(params_.expansion_var_roll,
-               params_.expansion_var_pitch,
-               params_.expansion_var_yaw)));
+          Vec3(params_.expansion_var_x_,
+               params_.expansion_var_y_,
+               params_.expansion_var_z_),
+          Vec3(params_.expansion_var_roll_,
+               params_.expansion_var_pitch_,
+               params_.expansion_var_yaw_)));
       status.status = mcl_3dl_msgs::Status::EXPANSION_RESETTING;
     }
     pc_local_accum_.reset(new pcl::PointCloud<pcl::PointXYZI>);
@@ -878,19 +824,19 @@ protected:
     tf_tolerance_base_ = ros::Duration(localize_rate_->in(dt));
     localized_last_ = localized_current;
 
-    if (static_cast<int>(pf_->getParticleSize()) > params_.num_particles)
+    if (static_cast<int>(pf_->getParticleSize()) > params_.num_particles_)
     {
       const int reduced = pf_->getParticleSize() * 0.75;
-      if (reduced > params_.num_particles)
+      if (reduced > params_.num_particles_)
       {
         pf_->resizeParticle(reduced);
       }
       else
       {
-        pf_->resizeParticle(params_.num_particles);
+        pf_->resizeParticle(params_.num_particles_);
       }
       // wait 99.7% fix (three-sigma)
-      global_localization_fix_cnt_ = 1 + ceil(params_.lpf_step) * 3.0;
+      global_localization_fix_cnt_ = 1 + ceil(params_.lpf_step_) * 3.0;
     }
     if (global_localization_fix_cnt_)
     {
@@ -994,7 +940,7 @@ protected:
         return;
       }
       const float acc_measure_norm = acc_measure.norm();
-      NormalLikelihood<float> nd(params_.acc_var);
+      NormalLikelihood<float> nd(params_.acc_var_);
       auto imu_measure_func = [this, &nd, &acc_measure, &acc_measure_norm](const State6DOF &s) -> float
       {
         const Vec3 acc_estim = s.rot.inv() * Vec3(0.0, 0.0, 1.0);
@@ -1017,12 +963,12 @@ protected:
                         std_srvs::TriggerResponse &response)
   {
     pf_->noise(State6DOF(
-        Vec3(params_.expansion_var_x,
-             params_.expansion_var_y,
-             params_.expansion_var_z),
-        Vec3(params_.expansion_var_roll,
-             params_.expansion_var_pitch,
-             params_.expansion_var_yaw)));
+        Vec3(params_.expansion_var_x_,
+             params_.expansion_var_y_,
+             params_.expansion_var_z_),
+        Vec3(params_.expansion_var_roll_,
+             params_.expansion_var_pitch_,
+             params_.expansion_var_yaw_)));
     return true;
   }
   bool cbGlobalLocalization(std_srvs::TriggerRequest &request,
@@ -1039,9 +985,9 @@ protected:
     pcl::VoxelGrid<pcl::PointXYZI> ds;
     ds.setInputCloud(pc_map_);
     ds.setLeafSize(
-        params_.global_localization_grid,
-        params_.global_localization_grid,
-        params_.global_localization_grid);
+        params_.global_localization_grid_,
+        params_.global_localization_grid_,
+        params_.global_localization_grid_);
     ds.filter(*points);
 
     pcl::KdTreeFLANN<pcl::PointXYZI>::Ptr kdtree(new pcl::KdTreeFLANN<pcl::PointXYZI>);
@@ -1052,16 +998,16 @@ protected:
       std::vector<int> id(1);
       std::vector<float> sqdist(1);
       auto p2 = p;
-      p2.z += 0.01 + params_.global_localization_grid;
+      p2.z += 0.01 + params_.global_localization_grid_;
 
       return kdtree->radiusSearch(
-          p2, params_.global_localization_grid, id, sqdist, 1);
+          p2, params_.global_localization_grid_, id, sqdist, 1);
     };
     points->erase(
         std::remove_if(points->begin(), points->end(), pc_filter),
         points->end());
 
-    const int dir = params_.global_localization_div_yaw;
+    const int dir = params_.global_localization_div_yaw_;
     pf_->resizeParticle(points->size() * dir);
     auto pit = points->begin();
 
@@ -1159,22 +1105,22 @@ public:
     mcl_3dl_compat::paramRename<double>(pnh_, "beam/beam_likelihood", "beam_likelihood");
     mcl_3dl_compat::paramRename<double>(pnh_, "beam/ang_total_ref", "ang_total_ref");
 
-    pnh_.param("map_downsample_x", params_.map_downsample_x, 0.1);
-    pnh_.param("map_downsample_y", params_.map_downsample_y, 0.1);
-    pnh_.param("map_downsample_z", params_.map_downsample_z, 0.1);
-    pnh_.param("downsample_x", params_.downsample_x, 0.1);
-    pnh_.param("downsample_y", params_.downsample_y, 0.1);
-    pnh_.param("downsample_z", params_.downsample_z, 0.05);
-    params_.map_grid_min = std::min(std::min(params_.map_downsample_x, params_.map_downsample_y),
-                                    params_.map_downsample_z);
-    params_.map_grid_max = std::max(std::max(params_.map_downsample_x, params_.map_downsample_y),
-                                    params_.map_downsample_z);
-    pnh_.param("update_downsample_x", params_.update_downsample_x, 0.3);
-    pnh_.param("update_downsample_y", params_.update_downsample_y, 0.3);
-    pnh_.param("update_downsample_z", params_.update_downsample_z, 0.3);
+    pnh_.param("map_downsample_x", params_.map_downsample_x_, 0.1);
+    pnh_.param("map_downsample_y", params_.map_downsample_y_, 0.1);
+    pnh_.param("map_downsample_z", params_.map_downsample_z_, 0.1);
+    pnh_.param("downsample_x", params_.downsample_x_, 0.1);
+    pnh_.param("downsample_y", params_.downsample_y_, 0.1);
+    pnh_.param("downsample_z", params_.downsample_z_, 0.05);
+    params_.map_grid_min_ = std::min(std::min(params_.map_downsample_x_, params_.map_downsample_y_),
+                                     params_.map_downsample_z_);
+    params_.map_grid_max_ = std::max(std::max(params_.map_downsample_x_, params_.map_downsample_y_),
+                                     params_.map_downsample_z_);
+    pnh_.param("update_downsample_x", params_.update_downsample_x_, 0.3);
+    pnh_.param("update_downsample_y", params_.update_downsample_y_, 0.3);
+    pnh_.param("update_downsample_z", params_.update_downsample_z_, 0.3);
     double map_update_interval_t;
     pnh_.param("map_update_interval_interval", map_update_interval_t, 2.0);
-    params_.map_update_interval.reset(new ros::Duration(map_update_interval_t));
+    params_.map_update_interval_.reset(new ros::Duration(map_update_interval_t));
 
     double weight[3];
     float weight_f[4];
@@ -1186,37 +1132,37 @@ public:
     weight_f[3] = 0.0;
     point_rep_.setRescaleValues(weight_f);
 
-    pnh_.param("global_localization_grid_lin", params_.global_localization_grid, 0.3);
+    pnh_.param("global_localization_grid_lin", params_.global_localization_grid_, 0.3);
     double grid_ang;
     pnh_.param("global_localization_grid_ang", grid_ang, 0.524);
-    params_.global_localization_div_yaw = lroundf(2 * M_PI / grid_ang);
+    params_.global_localization_div_yaw_ = lroundf(2 * M_PI / grid_ang);
 
-    pnh_.param("num_particles", params_.num_particles, 64);
-    pf_.reset(new pf::ParticleFilter<State6DOF, float, ParticleWeightedMeanQuat>(params_.num_particles));
+    pnh_.param("num_particles", params_.num_particles_, 64);
+    pf_.reset(new pf::ParticleFilter<State6DOF, float, ParticleWeightedMeanQuat>(params_.num_particles_));
 
-    pnh_.param("resample_var_x", params_.resample_var_x, 0.05);
-    pnh_.param("resample_var_y", params_.resample_var_y, 0.05);
-    pnh_.param("resample_var_z", params_.resample_var_z, 0.05);
-    pnh_.param("resample_var_roll", params_.resample_var_roll, 0.05);
-    pnh_.param("resample_var_pitch", params_.resample_var_pitch, 0.05);
-    pnh_.param("resample_var_yaw", params_.resample_var_yaw, 0.05);
-    pnh_.param("expansion_var_x", params_.expansion_var_x, 0.2);
-    pnh_.param("expansion_var_y", params_.expansion_var_y, 0.2);
-    pnh_.param("expansion_var_z", params_.expansion_var_z, 0.2);
-    pnh_.param("expansion_var_roll", params_.expansion_var_roll, 0.05);
-    pnh_.param("expansion_var_pitch", params_.expansion_var_pitch, 0.05);
-    pnh_.param("expansion_var_yaw", params_.expansion_var_yaw, 0.05);
-    pnh_.param("match_ratio_thresh", params_.match_ratio_thresh, 0.0);
+    pnh_.param("resample_var_x", params_.resample_var_x_, 0.05);
+    pnh_.param("resample_var_y", params_.resample_var_y_, 0.05);
+    pnh_.param("resample_var_z", params_.resample_var_z_, 0.05);
+    pnh_.param("resample_var_roll", params_.resample_var_roll_, 0.05);
+    pnh_.param("resample_var_pitch", params_.resample_var_pitch_, 0.05);
+    pnh_.param("resample_var_yaw", params_.resample_var_yaw_, 0.05);
+    pnh_.param("expansion_var_x", params_.expansion_var_x_, 0.2);
+    pnh_.param("expansion_var_y", params_.expansion_var_y_, 0.2);
+    pnh_.param("expansion_var_z", params_.expansion_var_z_, 0.2);
+    pnh_.param("expansion_var_roll", params_.expansion_var_roll_, 0.05);
+    pnh_.param("expansion_var_pitch", params_.expansion_var_pitch_, 0.05);
+    pnh_.param("expansion_var_yaw", params_.expansion_var_yaw_, 0.05);
+    pnh_.param("match_ratio_thresh", params_.match_ratio_thresh_, 0.0);
 
-    pnh_.param("odom_err_lin_lin", params_.odom_err_lin_lin, 0.10);
-    pnh_.param("odom_err_lin_ang", params_.odom_err_lin_ang, 0.05);
-    pnh_.param("odom_err_ang_lin", params_.odom_err_ang_lin, 0.05);
-    pnh_.param("odom_err_ang_ang", params_.odom_err_ang_ang, 0.05);
+    pnh_.param("odom_err_lin_lin", params_.odom_err_lin_lin_, 0.10);
+    pnh_.param("odom_err_lin_ang", params_.odom_err_lin_ang_, 0.05);
+    pnh_.param("odom_err_ang_lin", params_.odom_err_ang_lin_, 0.05);
+    pnh_.param("odom_err_ang_ang", params_.odom_err_ang_ang_, 0.05);
 
-    pnh_.param("odom_err_integ_lin_tc", params_.odom_err_integ_lin_tc, 10.0);
-    pnh_.param("odom_err_integ_lin_sigma", params_.odom_err_integ_lin_sigma, 100.0);
-    pnh_.param("odom_err_integ_ang_tc", params_.odom_err_integ_ang_tc, 10.0);
-    pnh_.param("odom_err_integ_ang_sigma", params_.odom_err_integ_ang_sigma, 100.0);
+    pnh_.param("odom_err_integ_lin_tc", params_.odom_err_integ_lin_tc_, 10.0);
+    pnh_.param("odom_err_integ_lin_sigma", params_.odom_err_integ_lin_sigma_, 100.0);
+    pnh_.param("odom_err_integ_ang_tc", params_.odom_err_integ_ang_tc_, 10.0);
+    pnh_.param("odom_err_integ_ang_sigma", params_.odom_err_integ_ang_sigma_, 100.0);
 
     double x, y, z;
     double roll, pitch, yaw;
@@ -1242,42 +1188,42 @@ public:
             Vec3(v_x, v_y, v_z),
             Vec3(v_roll, v_pitch, v_yaw)));
 
-    pnh_.param("lpf_step", params_.lpf_step, 16.0);
-    f_pos_[0].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step, 0.0));
-    f_pos_[1].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step, 0.0));
-    f_pos_[2].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step, 0.0));
-    f_ang_[0].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step, 0.0, true));
-    f_ang_[1].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step, 0.0, true));
-    f_ang_[2].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step, 0.0, true));
+    pnh_.param("lpf_step", params_.lpf_step_, 16.0);
+    f_pos_[0].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step_, 0.0));
+    f_pos_[1].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step_, 0.0));
+    f_pos_[2].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step_, 0.0));
+    f_ang_[0].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step_, 0.0, true));
+    f_ang_[1].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step_, 0.0, true));
+    f_ang_[2].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step_, 0.0, true));
 
     double acc_lpf_step;
     pnh_.param("acc_lpf_step", acc_lpf_step, 128.0);
     f_acc_[0].reset(new Filter(Filter::FILTER_LPF, acc_lpf_step, 0.0));
     f_acc_[1].reset(new Filter(Filter::FILTER_LPF, acc_lpf_step, 0.0));
     f_acc_[2].reset(new Filter(Filter::FILTER_LPF, acc_lpf_step, 0.0));
-    pnh_.param("acc_var", params_.acc_var, M_PI / 4.0);  // 45 deg
+    pnh_.param("acc_var", params_.acc_var_, M_PI / 4.0);  // 45 deg
 
-    pnh_.param("jump_dist", params_.jump_dist, 1.0);
-    pnh_.param("jump_ang", params_.jump_ang, 1.57);
-    pnh_.param("fix_dist", params_.fix_dist, 0.2);
-    pnh_.param("fix_ang", params_.fix_ang, 0.1);
-    pnh_.param("bias_var_dist", params_.bias_var_dist, 2.0);
-    pnh_.param("bias_var_ang", params_.bias_var_ang, 1.57);
+    pnh_.param("jump_dist", params_.jump_dist_, 1.0);
+    pnh_.param("jump_ang", params_.jump_ang_, 1.57);
+    pnh_.param("fix_dist", params_.fix_dist_, 0.2);
+    pnh_.param("fix_ang", params_.fix_ang_, 0.1);
+    pnh_.param("bias_var_dist", params_.bias_var_dist_, 2.0);
+    pnh_.param("bias_var_ang", params_.bias_var_ang_, 1.57);
 
-    pnh_.param("skip_measure", params_.skip_measure, 1);
+    pnh_.param("skip_measure", params_.skip_measure_, 1);
     cnt_measure_ = 0;
-    pnh_.param("accum_cloud", params_.accum_cloud, 1);
+    pnh_.param("accum_cloud", params_.accum_cloud_, 1);
     cnt_accum_ = 0;
 
-    pnh_.param("match_output_dist", params_.match_output_dist, 0.1);
-    pnh_.param("unmatch_output_dist", params_.unmatch_output_dist, 0.5);
+    pnh_.param("match_output_dist", params_.match_output_dist_, 0.1);
+    pnh_.param("unmatch_output_dist", params_.unmatch_output_dist_, 0.5);
     double match_output_interval_t;
     pnh_.param("match_output_interval_interval", match_output_interval_t, 0.2);
-    params_.match_output_interval.reset(new ros::Duration(match_output_interval_t));
+    params_.match_output_interval_.reset(new ros::Duration(match_output_interval_t));
 
     double tf_tolerance_t;
     pnh_.param("tf_tolerance", tf_tolerance_t, 0.05);
-    params_.tf_tolerance.reset(new ros::Duration(tf_tolerance_t));
+    params_.tf_tolerance_.reset(new ros::Duration(tf_tolerance_t));
 
     pnh_.param("publish_tf", publish_tf_, true);
     pnh_.param("output_pcd", output_pcd_, false);
@@ -1293,7 +1239,7 @@ public:
     lidar_measurements_["beam"] =
         LidarMeasurementModelBase::Ptr(
             new LidarMeasurementModelBeam(
-                params_.map_downsample_x, params_.map_downsample_y, params_.map_downsample_z));
+                params_.map_downsample_x_, params_.map_downsample_y_, params_.map_downsample_z_));
 
     float max_search_radius = 0;
     for (auto &lm : lidar_measurements_)
@@ -1306,14 +1252,14 @@ public:
     pnh_.param("map_chunk", map_chunk, 20.0);
     ROS_DEBUG("max_search_radius: %0.3f", max_search_radius);
     kdtree_.reset(new ChunkedKdtree<pcl::PointXYZI>(map_chunk, max_search_radius));
-    kdtree_->setEpsilon(params_.map_grid_min / 16);
+    kdtree_->setEpsilon(params_.map_grid_min_ / 16);
     kdtree_->setPointRepresentation(
         boost::dynamic_pointer_cast<
             pcl::PointRepresentation<pcl::PointXYZI>,
             MyPointRepresentation>(boost::make_shared<MyPointRepresentation>(point_rep_)));
 
     map_update_timer_ = nh_.createTimer(
-        *params_.map_update_interval,
+        *params_.map_update_interval_,
         &MCL3dlNode::cbMapUpdateTimer, this);
   }
   ~MCL3dlNode()
