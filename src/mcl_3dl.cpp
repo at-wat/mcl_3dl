@@ -325,7 +325,7 @@ protected:
         tfl_.lookupTransform(frame_ids_["base_link"], msg->header.stamp,
                              h.frame_id, h.stamp,
                              frame_ids_["odom"], trans);
-        const auto origin = trans.getOrigin();
+        auto origin = trans.getOrigin();
         origins.push_back(Vec3(origin.x(), origin.y(), origin.z()));
       }
       catch (tf::TransformException &e)
