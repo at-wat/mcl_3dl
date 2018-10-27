@@ -325,7 +325,7 @@ protected:
         tfl_.lookupTransform(frame_ids_["base_link"], msg->header.stamp,
                              h.frame_id, h.stamp,
                              frame_ids_["odom"], trans);
-        auto origin = trans.getOrigin();
+        const auto origin = trans.getOrigin();
         origins.push_back(Vec3(origin.x(), origin.y(), origin.z()));
       }
       catch (tf::TransformException &e)
@@ -419,13 +419,13 @@ protected:
     auto e = pf_->expectationBiased();
     const auto e_max = pf_->max();
 
-    assert(std::isfinite(e.pos_.x));
-    assert(std::isfinite(e.pos_.y));
-    assert(std::isfinite(e.pos_.z));
-    assert(std::isfinite(e.rot_.x));
-    assert(std::isfinite(e.rot_.y));
-    assert(std::isfinite(e.rot_.z));
-    assert(std::isfinite(e.rot_.w));
+    assert(std::isfinite(e.pos_.x_));
+    assert(std::isfinite(e.pos_.y_));
+    assert(std::isfinite(e.pos_.z_));
+    assert(std::isfinite(e.rot_.x_));
+    assert(std::isfinite(e.rot_.y_));
+    assert(std::isfinite(e.rot_.z_));
+    assert(std::isfinite(e.rot_.w_));
 
     e.rot_.normalize();
 
@@ -460,12 +460,12 @@ protected:
         marker.lifetime = ros::Duration(0.2);
         marker.frame_locked = true;
         marker.points.resize(2);
-        marker.points[0].x = pos.x;
-        marker.points[0].y = pos.y;
-        marker.points[0].z = pos.z;
-        marker.points[1].x = end.x;
-        marker.points[1].y = end.y;
-        marker.points[1].z = end.z;
+        marker.points[0].x = pos.x_;
+        marker.points[0].y = pos.y_;
+        marker.points[0].z = pos.z_;
+        marker.points[1].x = end.x_;
+        marker.points[1].y = end.y_;
+        marker.points[1].z = end.z_;
         marker.colors.resize(2);
         marker.colors[0].a = 0.5;
         marker.colors[0].r = 1.0;
@@ -501,9 +501,9 @@ protected:
             marker.id = markers.markers.size();
             marker.type = visualization_msgs::Marker::CUBE;
             marker.action = 0;
-            marker.pose.position.x = point.pos_.x;
-            marker.pose.position.y = point.pos_.y;
-            marker.pose.position.z = point.pos_.z;
+            marker.pose.position.x = point.pos_.x_;
+            marker.pose.position.y = point.pos_.y_;
+            marker.pose.position.z = point.pos_.z_;
             marker.pose.orientation.x = 0.0;
             marker.pose.orientation.y = 0.0;
             marker.pose.orientation.z = 0.0;
@@ -600,22 +600,22 @@ protected:
     auto rpy = map_rot.getRPY();
     if (jump)
     {
-      f_ang_[0]->set(rpy.x);
-      f_ang_[1]->set(rpy.y);
-      f_ang_[2]->set(rpy.z);
-      f_pos_[0]->set(map_pos.x);
-      f_pos_[1]->set(map_pos.y);
-      f_pos_[2]->set(map_pos.z);
+      f_ang_[0]->set(rpy.x_);
+      f_ang_[1]->set(rpy.y_);
+      f_ang_[2]->set(rpy.z_);
+      f_pos_[0]->set(map_pos.x_);
+      f_pos_[1]->set(map_pos.y_);
+      f_pos_[2]->set(map_pos.z_);
     }
-    rpy.x = f_ang_[0]->in(rpy.x);
-    rpy.y = f_ang_[1]->in(rpy.y);
-    rpy.z = f_ang_[2]->in(rpy.z);
+    rpy.x_ = f_ang_[0]->in(rpy.x_);
+    rpy.y_ = f_ang_[1]->in(rpy.y_);
+    rpy.z_ = f_ang_[2]->in(rpy.z_);
     map_rot.setRPY(rpy);
-    map_pos.x = f_pos_[0]->in(map_pos.x);
-    map_pos.y = f_pos_[1]->in(map_pos.y);
-    map_pos.z = f_pos_[2]->in(map_pos.z);
-    trans.setOrigin(tf::Vector3(map_pos.x, map_pos.y, map_pos.z));
-    trans.setRotation(tf::Quaternion(map_rot.x, map_rot.y, map_rot.z, map_rot.w));
+    map_pos.x_ = f_pos_[0]->in(map_pos.x_);
+    map_pos.y_ = f_pos_[1]->in(map_pos.y_);
+    map_pos.z_ = f_pos_[2]->in(map_pos.z_);
+    trans.setOrigin(tf::Vector3(map_pos.x_, map_pos.y_, map_pos.z_));
+    trans.setRotation(tf::Quaternion(map_rot.x_, map_rot.y_, map_rot.z_, map_rot.w_));
 
     std::vector<tf::StampedTransform> transforms;
     transforms.push_back(trans);
@@ -623,17 +623,17 @@ protected:
     e.rot_ = map_rot * odom_.rot_;
     e.pos_ = map_pos + e.rot_ * odom_.rot_.inv() * odom_.pos_;
 
-    assert(std::isfinite(e.pos_.x));
-    assert(std::isfinite(e.pos_.y));
-    assert(std::isfinite(e.pos_.z));
-    assert(std::isfinite(e.rot_.x));
-    assert(std::isfinite(e.rot_.y));
-    assert(std::isfinite(e.rot_.z));
-    assert(std::isfinite(e.rot_.w));
+    assert(std::isfinite(e.pos_.x_));
+    assert(std::isfinite(e.pos_.y_));
+    assert(std::isfinite(e.pos_.z_));
+    assert(std::isfinite(e.rot_.x_));
+    assert(std::isfinite(e.rot_.y_));
+    assert(std::isfinite(e.rot_.z_));
+    assert(std::isfinite(e.rot_.w_));
 
     trans.frame_id_ = frame_ids_["map"];
     trans.child_frame_id_ = frame_ids_["floor"];
-    trans.setOrigin(tf::Vector3(0.0, 0.0, e.pos_.z));
+    trans.setOrigin(tf::Vector3(0.0, 0.0, e.pos_.z_));
     trans.setRotation(tf::Quaternion(0.0, 0.0, 0.0, 1.0));
 
     transforms.push_back(trans);
@@ -646,13 +646,13 @@ protected:
     geometry_msgs::PoseWithCovarianceStamped pose;
     pose.header.stamp = msg->header.stamp;
     pose.header.frame_id = trans.frame_id_;
-    pose.pose.pose.position.x = e.pos_.x;
-    pose.pose.pose.position.y = e.pos_.y;
-    pose.pose.pose.position.z = e.pos_.z;
-    pose.pose.pose.orientation.x = e.rot_.x;
-    pose.pose.pose.orientation.y = e.rot_.y;
-    pose.pose.pose.orientation.z = e.rot_.z;
-    pose.pose.pose.orientation.w = e.rot_.w;
+    pose.pose.pose.position.x = e.pos_.x_;
+    pose.pose.pose.position.y = e.pos_.y_;
+    pose.pose.pose.position.z = e.pos_.z_;
+    pose.pose.pose.orientation.x = e.rot_.x_;
+    pose.pose.pose.orientation.y = e.rot_.y_;
+    pose.pose.pose.orientation.z = e.rot_.z_;
+    pose.pose.pose.orientation.w = e.rot_.w_;
     for (size_t i = 0; i < 36; i++)
     {
       pose.pose.covariance[i] = cov[i / 6][i % 6];
@@ -745,13 +745,13 @@ protected:
       geometry_msgs::Pose pm;
       auto p = pf_->getParticle(i);
       p.rot_.normalize();
-      pm.position.x = p.pos_.x;
-      pm.position.y = p.pos_.y;
-      pm.position.z = p.pos_.z;
-      pm.orientation.x = p.rot_.x;
-      pm.orientation.y = p.rot_.y;
-      pm.orientation.z = p.rot_.z;
-      pm.orientation.w = p.rot_.w;
+      pm.position.x = p.pos_.x_;
+      pm.position.y = p.pos_.y_;
+      pm.position.z = p.pos_.z_;
+      pm.orientation.x = p.rot_.x_;
+      pm.orientation.y = p.rot_.y_;
+      pm.orientation.z = p.rot_.z_;
+      pm.orientation.w = p.rot_.w_;
       pa.poses.push_back(pm);
     }
     pub_particle_.publish(pa);
@@ -782,24 +782,24 @@ protected:
               "ang: %0.3f, %0.3f, %0.3f, "
               "pos: %0.3f, %0.3f, %0.3f, "
               "err on map: %0.3f, %0.3f, %0.3f",
-              e_max.odom_err_integ_lin_.x,
-              e_max.odom_err_integ_lin_.y,
-              e_max.odom_err_integ_lin_.z,
-              e_max.odom_err_integ_ang_.x,
-              e_max.odom_err_integ_ang_.y,
-              e_max.odom_err_integ_ang_.z,
-              e_max.pos_.x,
-              e_max.pos_.y,
-              e_max.pos_.z,
-              err_integ_map.x,
-              err_integ_map.y,
-              err_integ_map.z);
+              e_max.odom_err_integ_lin_.x_,
+              e_max.odom_err_integ_lin_.y_,
+              e_max.odom_err_integ_lin_.z_,
+              e_max.odom_err_integ_ang_.x_,
+              e_max.odom_err_integ_ang_.y_,
+              e_max.odom_err_integ_ang_.z_,
+              e_max.pos_.x_,
+              e_max.pos_.y_,
+              e_max.pos_.z_,
+              err_integ_map.x_,
+              err_integ_map.y_,
+              err_integ_map.z_);
     ROS_DEBUG("match ratio min: %0.3f, max: %0.3f, pos: %0.3f, %0.3f, %0.3f",
               match_ratio_min,
               match_ratio_max,
-              e.pos_.x,
-              e.pos_.y,
-              e.pos_.z);
+              e.pos_.x_,
+              e.pos_.y_,
+              e.pos_.z_);
     if (match_ratio_max < params_.match_ratio_thresh_)
     {
       ROS_WARN_THROTTLE(3.0, "Low match_ratio. Expansion resetting.");
@@ -867,12 +867,12 @@ protected:
       State6DOF diff = s - measured;
       const Vec3 rot_rpy = diff.rot_.getRPY();
       const Eigen::Matrix<float, 6, 1> diff_vec =
-          (Eigen::MatrixXf(6, 1) << diff.pos_.x,
-           diff.pos_.y,
-           diff.pos_.z,
-           rot_rpy.x,
-           rot_rpy.y,
-           rot_rpy.z)
+          (Eigen::MatrixXf(6, 1) << diff.pos_.x_,
+           diff.pos_.y_,
+           diff.pos_.z_,
+           rot_rpy.x_,
+           rot_rpy.y_,
+           rot_rpy.z_)
               .finished();
 
       return nd(diff_vec);
@@ -882,9 +882,9 @@ protected:
   void cbImu(const sensor_msgs::Imu::ConstPtr &msg)
   {
     Vec3 acc;
-    acc.x = f_acc_[0]->in(msg->linear_acceleration.x);
-    acc.y = f_acc_[1]->in(msg->linear_acceleration.y);
-    acc.z = f_acc_[2]->in(msg->linear_acceleration.z);
+    acc.x_ = f_acc_[0]->in(msg->linear_acceleration.x);
+    acc.y_ = f_acc_[1]->in(msg->linear_acceleration.y);
+    acc.z_ = f_acc_[2]->in(msg->linear_acceleration.z);
 
     if (!has_imu_)
     {
@@ -911,9 +911,9 @@ protected:
         tf::Stamped<tf::Vector3> in, out;
         in.frame_id_ = msg->header.frame_id;
         in.stamp_ = msg->header.stamp;
-        in.setX(acc_measure.x);
-        in.setY(acc_measure.y);
-        in.setZ(acc_measure.z);
+        in.setX(acc_measure.x_);
+        in.setY(acc_measure.y_);
+        in.setZ(acc_measure.z_);
         tfl_.transformVector(frame_ids_["base_link"], in, out);
         acc_measure = Vec3(out.x(), out.y(), out.z());
 
@@ -921,10 +921,10 @@ protected:
         // Static transform
         tfl_.lookupTransform(frame_ids_["base_link"], msg->header.frame_id, ros::Time(0), trans);
 
-        imu_quat_.x = msg->orientation.x;
-        imu_quat_.y = msg->orientation.y;
-        imu_quat_.z = msg->orientation.z;
-        imu_quat_.w = msg->orientation.w;
+        imu_quat_.x_ = msg->orientation.x;
+        imu_quat_.y_ = msg->orientation.y;
+        imu_quat_.z_ = msg->orientation.z;
+        imu_quat_.w_ = msg->orientation.w;
         Vec3 axis;
         float angle;
         imu_quat_.getAxisAng(axis, angle);
@@ -1018,9 +1018,9 @@ protected:
       assert(pit != points->end());
       particle.probability_ = prob;
       particle.probability_bias_ = 1.0;
-      particle.state_.pos_.x = pit->x;
-      particle.state_.pos_.y = pit->y;
-      particle.state_.pos_.z = pit->z;
+      particle.state_.pos_.x_ = pit->x;
+      particle.state_.pos_.y_ = pit->y;
+      particle.state_.pos_.z_ = pit->z;
       particle.state_.rot_ = Quat(Vec3(0.0, 0.0, 2.0 * M_PI * cnt / dir)) * imu_quat_;
       particle.state_.rot_.normalize();
       if (++cnt >= dir)

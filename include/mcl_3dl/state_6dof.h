@@ -57,15 +57,15 @@ public:
     RPYVec()
     {
     }
-    explicit RPYVec(const mcl_3dl::Vec3 &v_)
+    explicit RPYVec(const mcl_3dl::Vec3 &v)
     {
-      this->v_ = v_;
+      v_ = v;
     }
-    RPYVec(const float &r, const float &p, const float y)
+    RPYVec(const float r, const float p, const float y)
     {
-      this->v_.x = r;
-      this->v_.y = p;
-      this->v_.z = y;
+      v_.x_ = r;
+      v_.y_ = p;
+      v_.z_ = y;
     }
   };
   RPYVec rpy;
@@ -74,66 +74,66 @@ public:
     switch (i)
     {
       case 0:
-        return pos_.x;
+        return pos_.x_;
       case 1:
-        return pos_.y;
+        return pos_.y_;
       case 2:
-        return pos_.z;
+        return pos_.z_;
       case 3:
-        return rot_.x;
+        return rot_.x_;
       case 4:
-        return rot_.y;
+        return rot_.y_;
       case 5:
-        return rot_.z;
+        return rot_.z_;
       case 6:
-        return rot_.w;
+        return rot_.w_;
       case 7:
-        return odom_err_integ_lin_.x;
+        return odom_err_integ_lin_.x_;
       case 8:
-        return odom_err_integ_lin_.y;
+        return odom_err_integ_lin_.y_;
       case 9:
-        return odom_err_integ_lin_.z;
+        return odom_err_integ_lin_.z_;
       case 10:
-        return odom_err_integ_ang_.x;
+        return odom_err_integ_ang_.x_;
       case 11:
-        return odom_err_integ_ang_.y;
+        return odom_err_integ_ang_.y_;
       case 12:
-        return odom_err_integ_ang_.z;
+        return odom_err_integ_ang_.z_;
       default:
         assert(false);
     }
-    return pos_.x;
+    return pos_.x_;
   }
   float operator[](const size_t i) const
   {
     switch (i)
     {
       case 0:
-        return pos_.x;
+        return pos_.x_;
       case 1:
-        return pos_.y;
+        return pos_.y_;
       case 2:
-        return pos_.z;
+        return pos_.z_;
       case 3:
-        return rot_.x;
+        return rot_.x_;
       case 4:
-        return rot_.y;
+        return rot_.y_;
       case 5:
-        return rot_.z;
+        return rot_.z_;
       case 6:
-        return rot_.w;
+        return rot_.w_;
       case 7:
-        return odom_err_integ_lin_.x;
+        return odom_err_integ_lin_.x_;
       case 8:
-        return odom_err_integ_lin_.y;
+        return odom_err_integ_lin_.y_;
       case 9:
-        return odom_err_integ_lin_.z;
+        return odom_err_integ_lin_.z_;
       case 10:
-        return odom_err_integ_ang_.x;
+        return odom_err_integ_ang_.x_;
       case 11:
-        return odom_err_integ_ang_.y;
+        return odom_err_integ_ang_.y_;
       case 12:
-        return odom_err_integ_ang_.z;
+        return odom_err_integ_ang_.z_;
       default:
         assert(false);
     }
@@ -181,10 +181,10 @@ public:
     const auto r = rot_.normalized();
     for (auto &p : pc.points)
     {
-      const auto t = r * mcl_3dl::Vec3(p.x, p.y, p.z) + pos_;
-      p.x = t.x;
-      p.y = t.y;
-      p.z = t.z;
+      const Vec3 t = r * Vec3(p.x, p.y, p.z) + pos_;
+      p.x = t.x_;
+      p.y = t.y_;
+      p.z = t.z_;
     }
   }
   static State6DOF generateNoise(

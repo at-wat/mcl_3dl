@@ -41,12 +41,12 @@ TEST(Vec3, Constructors)
   const mcl_3dl::Vec3 b(a);
 
   // Test elements
-  ASSERT_TRUE(a.x == 1.0);
-  ASSERT_TRUE(a.y == 2.0);
-  ASSERT_TRUE(a.z == 3.0);
-  ASSERT_TRUE(b.x == 1.0);
-  ASSERT_TRUE(b.y == 2.0);
-  ASSERT_TRUE(b.z == 3.0);
+  ASSERT_TRUE(a.x_ == 1.0);
+  ASSERT_TRUE(a.y_ == 2.0);
+  ASSERT_TRUE(a.z_ == 3.0);
+  ASSERT_TRUE(b.x_ == 1.0);
+  ASSERT_TRUE(b.y_ == 2.0);
+  ASSERT_TRUE(b.z_ == 3.0);
 }
 
 TEST(Vec3, Operators)
