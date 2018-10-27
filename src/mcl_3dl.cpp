@@ -1016,13 +1016,13 @@ protected:
     for (auto &particle : *pf_)
     {
       assert(pit != points->end());
-      particle.probability = prob;
-      particle.probability_bias = 1.0;
-      particle.state.pos.x = pit->x;
-      particle.state.pos.y = pit->y;
-      particle.state.pos.z = pit->z;
-      particle.state.rot = Quat(Vec3(0.0, 0.0, 2.0 * M_PI * cnt / dir)) * imu_quat_;
-      particle.state.rot.normalize();
+      particle.probability_ = prob;
+      particle.probability_bias_ = 1.0;
+      particle.state_.pos.x = pit->x;
+      particle.state_.pos.y = pit->y;
+      particle.state_.pos.z = pit->z;
+      particle.state_.rot = Quat(Vec3(0.0, 0.0, 2.0 * M_PI * cnt / dir)) * imu_quat_;
+      particle.state_.rot.normalize();
       if (++cnt >= dir)
       {
         cnt = 0;
