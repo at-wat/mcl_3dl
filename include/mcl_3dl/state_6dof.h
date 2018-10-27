@@ -33,6 +33,7 @@
 #include <algorithm>
 
 #include <mcl_3dl/pf.h>
+#include <mcl_3dl/point_types.h>
 #include <mcl_3dl/quat.h>
 #include <mcl_3dl/vec3.h>
 
@@ -176,7 +177,7 @@ public:
   {
     return diff_;
   }
-  void transform(pcl::PointCloud<pcl::PointXYZI> &pc) const
+  void transform(pcl::PointCloud<mcl_3dl::PointXYZIL> &pc) const
   {
     const auto r = rot_.normalized();
     for (auto &p : pc.points)

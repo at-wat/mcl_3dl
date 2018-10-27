@@ -38,6 +38,7 @@
 
 #include <mcl_3dl/pf.h>
 #include <mcl_3dl/point_cloud_random_sampler.h>
+#include <mcl_3dl/point_types.h>
 #include <mcl_3dl/vec3.h>
 
 #include <mcl_3dl/lidar_measurement_models/lidar_measurement_model_likelihood.h>
@@ -108,7 +109,7 @@ LidarMeasurementModelLikelihood::filter(
       return true;
     return false;
   };
-  pcl::PointCloud<pcl::PointXYZI>::Ptr pc_filtered(new pcl::PointCloud<pcl::PointXYZI>);
+  pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr pc_filtered(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
   *pc_filtered = *pc;
   pc_filtered->erase(
       std::remove_if(pc_filtered->begin(), pc_filtered->end(), local_points_filter), pc_filtered->end());
@@ -128,7 +129,7 @@ LidarMeasurementResult LidarMeasurementModelLikelihood::measure(
     return LidarMeasurementResult(1, 0);
   if (pc->size() == 0)
     return LidarMeasurementResult(1, 0);
-  pcl::PointCloud<pcl::PointXYZI>::Ptr pc_particle(new pcl::PointCloud<pcl::PointXYZI>);
+  pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr pc_particle(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
   std::vector<int> id(1);
   std::vector<float> sqdist(1);
 

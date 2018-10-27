@@ -27,59 +27,70 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef MCL_3DL_LIDAR_MEASUREMENT_MODEL_BASE_H
-#define MCL_3DL_LIDAR_MEASUREMENT_MODEL_BASE_H
+#include <gtest/gtest.h>
 
-#include <string>
-#include <utility>
-#include <vector>
-
-#include <ros/ros.h>
-
-#include <pcl/point_types.h>
 #include <pcl_ros/point_cloud.h>
+#include <pcl/filters/voxel_grid.h>
 
-#include <mcl_3dl/chunked_kdtree.h>
 #include <mcl_3dl/point_types.h>
-#include <mcl_3dl/state_6dof.h>
-#include <mcl_3dl/vec3.h>
 
-namespace mcl_3dl
+TEST(PointTypes, VoxelGrid)
 {
-struct LidarMeasurementResult
-{
-  float likelihood;
-  float quality;
+  pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr pc(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
+  pc->resize(3);
+  pc->points[0].x = 1.0;
+  pc->points[0].y = 2.0;
+  pc->points[0].z = 3.0;
+  pc->points[0].intensity = 4.0;
+  pc->points[0].label = 1;
+  pc->points[1].x = 1.02;
+  pc->points[1].y = 2.02;
+  pc->points[1].z = 3.02;
+  pc->points[1].intensity = 5.0;
+  pc->points[1].label = 3;
+  pc->points[2].x = -1.0;
+  pc->points[2].y = -2.0;
+  pc->points[2].z = -3.0;
+  pc->points[2].intensity = 6.0;
+  pc->points[2].label = 4;
 
-  LidarMeasurementResult(const float likelihood_value, const float quality_value)
-    : likelihood(likelihood_value)
-    , quality(quality_value)
+  pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr pc2(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
+  pcl::VoxelGrid<mcl_3dl::PointXYZIL> ds;
+  ds.setInputCloud(pc);
+  ds.setLeafSize(0.1, 0.1, 0.1);
+  ds.filter(*pc2);
+
+  ASSERT_EQ(pc2->size(), 2u);
+  bool has_1(false), has_4(false);
+  for (auto &p : *pc2)
   {
+    switch (p.label)
+    {
+      case 1u:
+        ASSERT_FLOAT_EQ(p.x, 1.01);
+        ASSERT_FLOAT_EQ(p.y, 2.01);
+        ASSERT_FLOAT_EQ(p.z, 3.01);
+        ASSERT_FLOAT_EQ(p.intensity, 4.5);
+        has_1 = true;
+        break;
+      case 4u:
+        ASSERT_EQ(p.x, -1.0);
+        ASSERT_EQ(p.y, -2.0);
+        ASSERT_EQ(p.z, -3.0);
+        ASSERT_EQ(p.intensity, 6.0);
+        has_4 = true;
+        break;
+      default:
+        ASSERT_TRUE(false);
+        break;
+    }
   }
-};
+  ASSERT_TRUE(has_1 && has_4);
+}
 
-class LidarMeasurementModelBase
+int main(int argc, char **argv)
 {
-public:
-  using Ptr = std::shared_ptr<LidarMeasurementModelBase>;
-  using PointType = mcl_3dl::PointXYZIL;
+  testing::InitGoogleTest(&argc, argv);
 
-  virtual void loadConfig(
-      const ros::NodeHandle &nh,
-      const std::string &name) = 0;
-  virtual void setGlobalLocalizationStatus(
-      const size_t, const size_t) = 0;
-  virtual float getMaxSearchRange() const = 0;
-
-  virtual pcl::PointCloud<PointType>::Ptr filter(
-      const pcl::PointCloud<PointType>::ConstPtr &) const = 0;
-
-  virtual LidarMeasurementResult measure(
-      ChunkedKdtree<PointType>::Ptr &,
-      const pcl::PointCloud<PointType>::ConstPtr &,
-      const std::vector<Vec3> &,
-      const State6DOF &) const = 0;
-};
-}  // namespace mcl_3dl
-
-#endif  // MCL_3DL_LIDAR_MEASUREMENT_MODEL_BASE_H
+  return RUN_ALL_TESTS();
+}

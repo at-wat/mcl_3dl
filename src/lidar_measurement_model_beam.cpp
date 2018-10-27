@@ -38,6 +38,7 @@
 
 #include <mcl_3dl/pf.h>
 #include <mcl_3dl/point_cloud_random_sampler.h>
+#include <mcl_3dl/point_types.h>
 #include <mcl_3dl/raycast.h>
 #include <mcl_3dl/vec3.h>
 
@@ -115,11 +116,9 @@ LidarMeasurementModelBeam::filter(
       return true;
     if (p.z < clip_z_min_ || clip_z_max_ < p.z)
       return true;
-    if (p.intensity - roundf(p.intensity) > 0.01)
-      return true;
     return false;
   };
-  pcl::PointCloud<pcl::PointXYZI>::Ptr pc_filtered(new pcl::PointCloud<pcl::PointXYZI>);
+  pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr pc_filtered(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
   *pc_filtered = *pc;
   pc_filtered->erase(
       std::remove_if(pc_filtered->begin(), pc_filtered->end(), local_points_filter), pc_filtered->end());
@@ -139,7 +138,7 @@ LidarMeasurementResult LidarMeasurementModelBeam::measure(
     return LidarMeasurementResult(1, 0);
   if (pc->size() == 0)
     return LidarMeasurementResult(1, 0);
-  pcl::PointCloud<pcl::PointXYZI>::Ptr pc_particle(new pcl::PointCloud<pcl::PointXYZI>);
+  pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr pc_particle(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
   std::vector<int> id(1);
   std::vector<float> sqdist(1);
 
@@ -148,8 +147,8 @@ LidarMeasurementResult LidarMeasurementModelBeam::measure(
   s.transform(*pc_particle);
   for (auto &p : pc_particle->points)
   {
-    const int beam_header_id = lroundf(p.intensity);
-    Raycast<pcl::PointXYZI> ray(
+    const int beam_header_id = p.label;
+    Raycast<mcl_3dl::PointXYZIL> ray(
         kdtree,
         s.pos_ + s.rot_ * origins[beam_header_id],
         Vec3(p.x, p.y, p.z),
