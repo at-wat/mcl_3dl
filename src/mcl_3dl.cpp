@@ -1006,6 +1006,10 @@ protected:
     ds.filter(*points);
 
     pcl::KdTreeFLANN<mcl_3dl::PointXYZIL>::Ptr kdtree(new pcl::KdTreeFLANN<mcl_3dl::PointXYZIL>);
+    kdtree->setPointRepresentation(
+        boost::dynamic_pointer_cast<
+            pcl::PointRepresentation<mcl_3dl::PointXYZIL>,
+            MyPointRepresentation>(boost::make_shared<MyPointRepresentation>(point_rep_)));
     kdtree->setInputCloud(points);
 
     auto pc_filter = [this, kdtree](const mcl_3dl::PointXYZIL &p)
