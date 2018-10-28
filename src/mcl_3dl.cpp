@@ -276,7 +276,7 @@ protected:
       return;
     }
     pcl::PointCloud<pcl::PointXYZI>::Ptr pc_tmp_raw(new pcl::PointCloud<pcl::PointXYZI>);
-    pcl::fromROSMsg(*msg, *pc_tmp_raw);
+    pcl::fromROSMsg(pc_bl, *pc_tmp_raw);
     if (pc_tmp_raw->points.size() == 0)
     {
       return;
