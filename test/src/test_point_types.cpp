@@ -61,31 +61,34 @@ TEST(PointTypes, VoxelGrid)
   ds.filter(*pc2);
 
   ASSERT_EQ(pc2->size(), 2u);
-  bool has_1(false), has_4(false);
+  int num_1(0), num_4(0);
   for (auto &p : *pc2)
   {
     switch (p.label)
     {
       case 1u:
+      case 3u:
         ASSERT_FLOAT_EQ(p.x, 1.01);
         ASSERT_FLOAT_EQ(p.y, 2.01);
         ASSERT_FLOAT_EQ(p.z, 3.01);
         ASSERT_FLOAT_EQ(p.intensity, 4.5);
-        has_1 = true;
+        num_1++;
         break;
       case 4u:
         ASSERT_EQ(p.x, -1.0);
         ASSERT_EQ(p.y, -2.0);
         ASSERT_EQ(p.z, -3.0);
         ASSERT_EQ(p.intensity, 6.0);
-        has_4 = true;
+        num_4++;
         break;
       default:
-        ASSERT_TRUE(false);
+        ASSERT_TRUE(false)
+            << "Unexpected point label (" << p.label << "); "
+            << "original labels are [1, 3, 4]";
         break;
     }
   }
-  ASSERT_TRUE(has_1 && has_4);
+  ASSERT_TRUE(num_1 == 1 && num_4 == 1);
 }
 
 int main(int argc, char **argv)
