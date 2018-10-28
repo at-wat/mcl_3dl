@@ -65,6 +65,8 @@
 
 #include <Eigen/Core>
 
+#include <pcl18_backports/voxel_grid.h>
+
 #include <mcl_3dl/chunked_kdtree.h>
 #include <mcl_3dl/filter.h>
 #include <mcl_3dl/lidar_measurement_model_base.h>
@@ -122,7 +124,7 @@ protected:
     pc_map_.reset(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
     pc_map2_.reset();
     pc_update_.reset();
-    pcl::VoxelGrid<mcl_3dl::PointXYZIL> ds;
+    pcl::VoxelGrid18<mcl_3dl::PointXYZIL> ds;
     ds.setInputCloud(pc_tmp);
     ds.setLeafSize(params_.map_downsample_x_, params_.map_downsample_y_, params_.map_downsample_z_);
     ds.filter(*pc_map_);
@@ -149,7 +151,7 @@ protected:
     pcl::copyPointCloud(*pc_tmp_raw, *pc_tmp);
 
     pc_update_.reset(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
-    pcl::VoxelGrid<mcl_3dl::PointXYZIL> ds;
+    pcl::VoxelGrid18<mcl_3dl::PointXYZIL> ds;
     ds.setInputCloud(pc_tmp);
     ds.setLeafSize(params_.update_downsample_x_, params_.update_downsample_y_, params_.update_downsample_z_);
     ds.filter(*pc_update_);
@@ -355,7 +357,7 @@ protected:
     const auto ts = boost::chrono::high_resolution_clock::now();
 
     pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr pc_local_full(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
-    pcl::VoxelGrid<mcl_3dl::PointXYZIL> ds;
+    pcl::VoxelGrid18<mcl_3dl::PointXYZIL> ds;
     ds.setInputCloud(pc_local_accum_);
     ds.setLeafSize(params_.downsample_x_, params_.downsample_y_, params_.downsample_z_);
     ds.filter(*pc_local_full);
@@ -997,7 +999,7 @@ protected:
     }
     pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr points(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
 
-    pcl::VoxelGrid<mcl_3dl::PointXYZIL> ds;
+    pcl::VoxelGrid18<mcl_3dl::PointXYZIL> ds;
     ds.setInputCloud(pc_map_);
     ds.setLeafSize(
         params_.global_localization_grid_,

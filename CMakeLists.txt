@@ -80,6 +80,10 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O1")
 include_directories(${catkin_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${PCL_INCLUDE_DIR} include)
 add_definitions(${PCL_DEFINITIONS})
 
+if(PCL_VERSION VERSION_LESS 1.8.0)
+  add_definitions(-DBACKPORT_PCL_VOXEL_GRID)
+endif()
+
 # Binary installed pcl provided by Linux distro is built with -march=native
 # which causes a lot of compatibility problems.
 # Define PCL_NO_PRECOMPILE to disable using the binary version.

@@ -32,6 +32,8 @@
 #include <pcl_ros/point_cloud.h>
 #include <pcl/filters/voxel_grid.h>
 
+#include <pcl18_backports/voxel_grid.h>
+
 #include <mcl_3dl/point_types.h>
 
 TEST(PointTypes, VoxelGrid)
@@ -55,7 +57,7 @@ TEST(PointTypes, VoxelGrid)
   pc->points[2].label = 4;
 
   pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr pc2(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
-  pcl::VoxelGrid<mcl_3dl::PointXYZIL> ds;
+  pcl::VoxelGrid18<mcl_3dl::PointXYZIL> ds;
   ds.setInputCloud(pc);
   ds.setLeafSize(0.1, 0.1, 0.1);
   ds.filter(*pc2);
