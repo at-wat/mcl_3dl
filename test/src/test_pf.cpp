@@ -199,6 +199,45 @@ TEST(Pf, ResampleFlatLikelihood)
     ASSERT_EQ(pf.getParticle(i)[0], orig[i]);
 }
 
+TEST(Pf, Iterators)
+{
+  mcl_3dl::pf::ParticleFilter<State, float> pf(10);
+  const float val0 = 12.3;
+  const float val1 = 45.6;
+  pf.init(
+      State(val0),
+      State(0.0));
+
+  for (auto it = pf.begin(); it != pf.end(); ++it)
+  {
+    ASSERT_EQ(it->state_[0], val0);
+    it->state_[0] = val1;
+  }
+  for (auto it = pf.begin(); it != pf.end(); ++it)
+    ASSERT_EQ(it->state_[0], val1);
+}
+
+TEST(Pf, AppendParticles)
+{
+  mcl_3dl::pf::ParticleFilter<State, float> pf(10);
+  const float val0 = 12.3;
+  const float val1 = 45.6;
+  pf.init(
+      State(val0),
+      State(0.0));
+  // particles 0-9 has val0
+
+  for (auto it = pf.appendParticle(10); it != pf.end(); ++it)
+    it->state_[0] = val1;
+  // appended particles 10-19 has val1
+
+  ASSERT_EQ(pf.getParticleSize(), 20u);
+  for (size_t i = 0; i < 10; ++i)
+    ASSERT_EQ(pf.getParticle(i)[0], val0);
+  for (size_t i = 10; i < 20; ++i)
+    ASSERT_EQ(pf.getParticle(i)[0], val1);
+}
+
 int main(int argc, char **argv)
 {
   testing::InitGoogleTest(&argc, argv);
