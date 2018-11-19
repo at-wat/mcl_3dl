@@ -392,6 +392,12 @@ public:
       it_prev = it;
     }
   }
+  typename std::vector<Particle<T, FLT_TYPE>>::iterator appendParticle(const size_t num)
+  {
+    const size_t size_orig = particles_.size();
+    particles_.resize(size_orig + num);
+    return begin() + size_orig;
+  }
   typename std::vector<Particle<T, FLT_TYPE>>::iterator begin()
   {
     return particles_.begin();
