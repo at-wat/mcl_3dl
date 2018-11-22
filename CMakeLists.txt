@@ -7,6 +7,8 @@ find_package(catkin REQUIRED
 
     pcl_ros
     tf
+    tf2_geometry_msgs
+    tf2_ros
 
     geometry_msgs
     mcl_3dl_msgs
@@ -24,6 +26,8 @@ catkin_package(
 
     pcl_ros
     tf
+    tf2_geometry_msgs
+    tf2_ros
 
     geometry_msgs
     mcl_3dl_msgs

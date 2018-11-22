@@ -51,8 +51,9 @@
 #include <std_srvs/Trigger.h>
 
 #include <tf/transform_listener.h>
-#include <tf/transform_broadcaster.h>
 #include <tf/transform_datatypes.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_ros/transform_broadcaster.h>
 
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/point_types.h>
@@ -590,13 +591,13 @@ protected:
       }
       state_prev_ = e;
     }
-    tf::StampedTransform trans;
+    geometry_msgs::TransformStamped trans;
     if (has_odom_)
-      trans.stamp_ = odom_last_ + tf_tolerance_base_ + *params_.tf_tolerance_;
+      trans.header.stamp = odom_last_ + tf_tolerance_base_ + *params_.tf_tolerance_;
     else
-      trans.stamp_ = ros::Time::now() + tf_tolerance_base_ + *params_.tf_tolerance_;
-    trans.frame_id_ = frame_ids_["map"];
-    trans.child_frame_id_ = frame_ids_["odom"];
+      trans.header.stamp = ros::Time::now() + tf_tolerance_base_ + *params_.tf_tolerance_;
+    trans.header.frame_id = frame_ids_["map"];
+    trans.child_frame_id = frame_ids_["odom"];
     auto rpy = map_rot.getRPY();
     if (jump)
     {
@@ -614,10 +615,10 @@ protected:
     map_pos.x_ = f_pos_[0]->in(map_pos.x_);
     map_pos.y_ = f_pos_[1]->in(map_pos.y_);
     map_pos.z_ = f_pos_[2]->in(map_pos.z_);
-    trans.setOrigin(tf::Vector3(map_pos.x_, map_pos.y_, map_pos.z_));
-    trans.setRotation(tf::Quaternion(map_rot.x_, map_rot.y_, map_rot.z_, map_rot.w_));
+    tf::vector3TFToMsg(tf::Vector3(map_pos.x_, map_pos.y_, map_pos.z_), trans.transform.translation);
+    tf::quaternionTFToMsg(tf::Quaternion(map_rot.x_, map_rot.y_, map_rot.z_, map_rot.w_), trans.transform.rotation);
 
-    std::vector<tf::StampedTransform> transforms;
+    std::vector<geometry_msgs::TransformStamped> transforms;
     transforms.push_back(trans);
 
     e.rot_ = map_rot * odom_.rot_;
@@ -631,10 +632,10 @@ protected:
     assert(std::isfinite(e.rot_.z_));
     assert(std::isfinite(e.rot_.w_));
 
-    trans.frame_id_ = frame_ids_["map"];
-    trans.child_frame_id_ = frame_ids_["floor"];
-    trans.setOrigin(tf::Vector3(0.0, 0.0, e.pos_.z_));
-    trans.setRotation(tf::Quaternion(0.0, 0.0, 0.0, 1.0));
+    trans.header.frame_id = frame_ids_["map"];
+    trans.child_frame_id = frame_ids_["floor"];
+    tf::vector3TFToMsg(tf::Vector3(0.0, 0.0, e.pos_.z_), trans.transform.translation);
+    tf::quaternionTFToMsg(tf::Quaternion(0.0, 0.0, 0.0, 1.0), trans.transform.rotation);
 
     transforms.push_back(trans);
 
@@ -645,7 +646,7 @@ protected:
 
     geometry_msgs::PoseWithCovarianceStamped pose;
     pose.header.stamp = msg->header.stamp;
-    pose.header.frame_id = trans.frame_id_;
+    pose.header.frame_id = trans.header.frame_id;
     pose.pose.pose.position.x = e.pos_.x_;
     pose.pose.pose.position.y = e.pos_.y_;
     pose.pose.pose.position.z = e.pos_.z_;
@@ -1325,7 +1326,7 @@ protected:
   ros::ServiceServer srv_expansion_reset_;
 
   tf::TransformListener tfl_;
-  tf::TransformBroadcaster tfb_;
+  tf2_ros::TransformBroadcaster tfb_;
 
   std::shared_ptr<Filter> f_pos_[3];
   std::shared_ptr<Filter> f_ang_[3];

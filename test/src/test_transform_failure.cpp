@@ -32,7 +32,9 @@
 #include <ros/master.h>
 #include <sensor_msgs/point_cloud2_iterator.h>
 #include <sensor_msgs/PointCloud2.h>
-#include <tf/transform_broadcaster.h>
+#include <tf/transform_datatypes.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_ros/transform_broadcaster.h>
 
 #include <string>
 
@@ -75,7 +77,7 @@ void publishSinglePointPointcloud2(
 TEST(TransformFailure, NoDeadAgainstTransformFailure)
 {
   ros::NodeHandle nh("");
-  tf::TransformBroadcaster tfb;
+  tf2_ros::TransformBroadcaster tfb;
   ros::Publisher pub_cloud = nh.advertise<sensor_msgs::PointCloud2>("cloud", 1);
   ros::Publisher pub_mapcloud = nh.advertise<sensor_msgs::PointCloud2>("mapcloud", 1, true);
 
@@ -110,27 +112,29 @@ TEST(TransformFailure, NoDeadAgainstTransformFailure)
   while (ros::ok())
   {
     ++cnt;
-    tfb.sendTransform(
-        tf::StampedTransform(
-            tf::Transform(tf::Quaternion(0, 0, 0, 1)),
-            ros::Time::now() + ros::Duration(0.1), "laser_link_base", "laser_link"));
-    tfb.sendTransform(
-        tf::StampedTransform(
-            tf::Transform(tf::Quaternion(0, 0, 0, 1)),
-            ros::Time::now() + ros::Duration(0.1), "map", "odom"));
+    geometry_msgs::TransformStamped trans;
+    trans.header.stamp = ros::Time::now() + ros::Duration(0.1);
+    tf::quaternionTFToMsg(tf::Quaternion(0, 0, 0, 1), trans.transform.rotation);
+
+    trans.header.frame_id = "laser_link_base";
+    trans.child_frame_id = "laser_link";
+    tfb.sendTransform(trans);
+
+    trans.header.frame_id = "map";
+    trans.child_frame_id = "odom";
+    tfb.sendTransform(trans);
+
     if (cnt > 10)
     {
-      tfb.sendTransform(
-          tf::StampedTransform(
-              tf::Transform(tf::Quaternion(0, 0, 0, 1)),
-              ros::Time::now() + ros::Duration(0.1), "base_link", "laser_link_base"));
+      trans.header.frame_id = "base_link";
+      trans.child_frame_id = "laser_link_base";
+      tfb.sendTransform(trans);
     }
     if (cnt > 20)
     {
-      tfb.sendTransform(
-          tf::StampedTransform(
-              tf::Transform(tf::Quaternion(0, 0, 0, 1)),
-              ros::Time::now() + ros::Duration(0.1), "odom", "base_link"));
+      trans.header.frame_id = "odom";
+      trans.child_frame_id = "base_link";
+      tfb.sendTransform(trans);
     }
     if (cnt > 30)
       break;

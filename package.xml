@@ -22,6 +22,8 @@
   <depend>std_msgs</depend>
   <depend>std_srvs</depend>
   <depend>tf</depend>
+  <depend>tf2_geometry_msgs</depend>
+  <depend>tf2_ros</depend>
   <depend>visualization_msgs</depend>
 
   <depend>mcl_3dl_msgs</depend>
