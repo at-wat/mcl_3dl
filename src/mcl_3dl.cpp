@@ -162,7 +162,7 @@ protected:
           tfbuf_.lookupTransform(frame_ids_["map"], pose_in.header.frame_id, pose_in.header.stamp, ros::Duration(1.0));
       tf2::doTransform(pose_in, pose, trans);
     }
-    catch (tf::TransformException &e)
+    catch (tf2::TransformException &e)
     {
       return;
     }
@@ -261,7 +261,7 @@ protected:
           tfbuf_.lookupTransform(frame_ids_["odom"], msg->header.frame_id, ros::Time(0));
       tf2::doTransform(*msg, pc_bl, trans);
     }
-    catch (tf::TransformException &e)
+    catch (tf2::TransformException &e)
     {
       ROS_INFO("Failed to transform pointcloud: %s", e.what());
       pc_local_accum_.reset(new pcl::PointCloud<pcl::PointXYZI>);
@@ -308,7 +308,7 @@ protected:
       tf2::doTransform(pc2_tmp, pc2_tmp, trans);
       pcl::fromROSMsg(pc2_tmp, *pc_local_accum_);
     }
-    catch (tf::TransformException &e)
+    catch (tf2::TransformException &e)
     {
       ROS_INFO("Failed to transform pointcloud: %s", e.what());
       pc_local_accum_.reset(new pcl::PointCloud<pcl::PointXYZI>);
@@ -326,7 +326,7 @@ protected:
                                trans.transform.translation.y,
                                trans.transform.translation.z));
       }
-      catch (tf::TransformException &e)
+      catch (tf2::TransformException &e)
       {
         ROS_INFO("Failed to transform pointcloud: %s", e.what());
         pc_local_accum_.reset(new pcl::PointCloud<pcl::PointXYZI>);
@@ -932,7 +932,7 @@ protected:
                axis;
         imu_quat_.setAxisAng(axis, angle);
       }
-      catch (tf::TransformException &e)
+      catch (tf2::TransformException &e)
       {
         return;
       }

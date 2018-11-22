@@ -62,7 +62,7 @@ TEST(CompareTf, Compare)
           tfbuf.lookupTransform("map", pose_bl.header.frame_id, pose_bl.header.stamp, ros::Duration(0.1));
       tf2::doTransform(pose_bl, pose, trans);
     }
-    catch (tf::TransformException &e)
+    catch (tf2::TransformException &e)
     {
       tf_ex_cnt++;
       return;
