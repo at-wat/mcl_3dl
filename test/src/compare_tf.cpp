@@ -30,14 +30,18 @@
 #include <ros/ros.h>
 #include <nav_msgs/Path.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
-#include <tf/transform_listener.h>
+#include <geometry_msgs/TransformStamped.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_ros/buffer.h>
+#include <tf2_ros/transform_listener.h>
 
 #include <gtest/gtest.h>
 
 TEST(CompareTf, Compare)
 {
   ros::NodeHandle nh("~");
-  tf::TransformListener tfl;
+  tf2_ros::Buffer tfbuf;
+  tf2_ros::TransformListener tfl(tfbuf);
 
   int cnt = 0;
   int cnt_max;
@@ -45,7 +49,7 @@ TEST(CompareTf, Compare)
   size_t tf_ex_cnt = 0;
 
   const boost::function<void(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &)> cb_pose =
-      [&tfl, &cnt, &cnt_max, &tf_ex_cnt](const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg) -> void
+      [&tfbuf, &cnt, &cnt_max, &tf_ex_cnt](const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg) -> void
   {
     geometry_msgs::PoseStamped pose;
     try
@@ -54,9 +58,9 @@ TEST(CompareTf, Compare)
       pose_bl.header.frame_id = "base_link";
       pose_bl.header.stamp = msg->header.stamp;
       pose_bl.pose.orientation.w = 1.0;
-      tfl.waitForTransform("map", pose_bl.header.frame_id,
-                           pose_bl.header.stamp, ros::Duration(0.1));
-      tfl.transformPose("map", pose_bl, pose);
+      geometry_msgs::TransformStamped trans =
+          tfbuf.lookupTransform("map", pose_bl.header.frame_id, pose_bl.header.stamp, ros::Duration(0.1));
+      tf2::doTransform(pose_bl, pose, trans);
     }
     catch (tf::TransformException &e)
     {

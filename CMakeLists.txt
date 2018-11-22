@@ -9,6 +9,7 @@ find_package(catkin REQUIRED
     tf
     tf2_geometry_msgs
     tf2_ros
+    tf2_sensor_msgs
 
     geometry_msgs
     mcl_3dl_msgs
@@ -28,6 +29,7 @@ catkin_package(
     tf
     tf2_geometry_msgs
     tf2_ros
+    tf2_sensor_msgs
 
     geometry_msgs
     mcl_3dl_msgs

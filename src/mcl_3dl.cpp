@@ -45,15 +45,18 @@
 #include <sensor_msgs/Imu.h>
 #include <geometry_msgs/PoseArray.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
+#include <geometry_msgs/TransformStamped.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <mcl_3dl_msgs/ResizeParticle.h>
 #include <mcl_3dl_msgs/Status.h>
 #include <std_srvs/Trigger.h>
 
-#include <tf/transform_listener.h>
 #include <tf/transform_datatypes.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_broadcaster.h>
+#include <tf2_ros/transform_listener.h>
+#include <tf2_sensor_msgs/tf2_sensor_msgs.h>
 
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/point_types.h>
@@ -155,8 +158,9 @@ protected:
     pose_in.pose = msg->pose.pose;
     try
     {
-      tfl_.waitForTransform(frame_ids_["map"], pose_in.header.frame_id, pose_in.header.stamp, ros::Duration(1.0));
-      tfl_.transformPose(frame_ids_["map"], pose_in, pose);
+      geometry_msgs::TransformStamped trans =
+          tfbuf_.lookupTransform(frame_ids_["map"], pose_in.header.frame_id, pose_in.header.stamp, ros::Duration(1.0));
+      tf2::doTransform(pose_in, pose, trans);
     }
     catch (tf::TransformException &e)
     {
@@ -253,13 +257,9 @@ protected:
     sensor_msgs::PointCloud2 pc_bl;
     try
     {
-      if (!pcl_ros::transformPointCloud(frame_ids_["odom"], *msg, pc_bl, tfl_))
-      {
-        ROS_INFO("Failed to transform pointcloud.");
-        pc_local_accum_.reset(new pcl::PointCloud<pcl::PointXYZI>);
-        pc_accum_header_.clear();
-        return;
-      }
+      geometry_msgs::TransformStamped trans =
+          tfbuf_.lookupTransform(frame_ids_["odom"], msg->header.frame_id, ros::Time(0));
+      tf2::doTransform(*msg, pc_bl, trans);
     }
     catch (tf::TransformException &e)
     {
@@ -301,14 +301,12 @@ protected:
 
     try
     {
-      if (!pcl_ros::transformPointCloud(
-              frame_ids_["base_link"], *pc_local_accum_, *pc_local_accum_, tfl_))
-      {
-        ROS_INFO("Failed to transform pointcloud.");
-        pc_local_accum_.reset(new pcl::PointCloud<pcl::PointXYZI>);
-        pc_accum_header_.clear();
-        return;
-      }
+      sensor_msgs::PointCloud2 pc2_tmp;
+      pcl::toROSMsg(*pc_local_accum_, pc2_tmp);
+      geometry_msgs::TransformStamped trans =
+          tfbuf_.lookupTransform(frame_ids_["base_link"], pc_local_accum_->header.frame_id, ros::Time(0));
+      tf2::doTransform(pc2_tmp, pc2_tmp, trans);
+      pcl::fromROSMsg(pc2_tmp, *pc_local_accum_);
     }
     catch (tf::TransformException &e)
     {
@@ -322,12 +320,11 @@ protected:
     {
       try
       {
-        tf::StampedTransform trans;
-        tfl_.lookupTransform(frame_ids_["base_link"], msg->header.stamp,
-                             h.frame_id, h.stamp,
-                             frame_ids_["odom"], trans);
-        auto origin = trans.getOrigin();
-        origins.push_back(Vec3(origin.x(), origin.y(), origin.z()));
+        geometry_msgs::TransformStamped trans = tfbuf_.lookupTransform(
+            frame_ids_["base_link"], msg->header.stamp, h.frame_id, h.stamp, frame_ids_["odom"]);
+        origins.push_back(Vec3(trans.transform.translation.x,
+                               trans.transform.translation.y,
+                               trans.transform.translation.z));
       }
       catch (tf::TransformException &e)
       {
@@ -909,18 +906,17 @@ protected:
       Vec3 acc_measure = acc / acc.norm();
       try
       {
-        tf::Stamped<tf::Vector3> in, out;
-        in.frame_id_ = msg->header.frame_id;
-        in.stamp_ = msg->header.stamp;
-        in.setX(acc_measure.x_);
-        in.setY(acc_measure.y_);
-        in.setZ(acc_measure.z_);
-        tfl_.transformVector(frame_ids_["base_link"], in, out);
-        acc_measure = Vec3(out.x(), out.y(), out.z());
+        geometry_msgs::Vector3 in, out;
+        in.x = acc_measure.x_;
+        in.y = acc_measure.y_;
+        in.z = acc_measure.z_;
+        geometry_msgs::TransformStamped trans =
+            tfbuf_.lookupTransform(frame_ids_["base_link"], msg->header.frame_id, ros::Time(0));
+        tf2::doTransform(in, out, trans);
+        acc_measure = Vec3(out.x, out.y, out.z);
 
-        tf::StampedTransform trans;
         // Static transform
-        tfl_.lookupTransform(frame_ids_["base_link"], msg->header.frame_id, ros::Time(0), trans);
+        trans = tfbuf_.lookupTransform(frame_ids_["base_link"], msg->header.frame_id, ros::Time(0));
 
         imu_quat_.x_ = msg->orientation.x;
         imu_quat_.y_ = msg->orientation.y;
@@ -929,10 +925,10 @@ protected:
         Vec3 axis;
         float angle;
         imu_quat_.getAxisAng(axis, angle);
-        axis = Quat(trans.getRotation().x(),
-                    trans.getRotation().y(),
-                    trans.getRotation().z(),
-                    trans.getRotation().w()) *
+        axis = Quat(trans.transform.rotation.x,
+                    trans.transform.rotation.y,
+                    trans.transform.rotation.z,
+                    trans.transform.rotation.w) *
                axis;
         imu_quat_.setAxisAng(axis, angle);
       }
@@ -1039,6 +1035,7 @@ public:
   MCL3dlNode(int argc, char *argv[])
     : nh_("")
     , pnh_("~")
+    , tfl_(tfbuf_)
     , global_localization_fix_cnt_(0)
     , engine_(seed_gen_())
   {
@@ -1325,7 +1322,8 @@ protected:
   ros::ServiceServer srv_global_localization_;
   ros::ServiceServer srv_expansion_reset_;
 
-  tf::TransformListener tfl_;
+  tf2_ros::Buffer tfbuf_;
+  tf2_ros::TransformListener tfl_;
   tf2_ros::TransformBroadcaster tfb_;
 
   std::shared_ptr<Filter> f_pos_[3];

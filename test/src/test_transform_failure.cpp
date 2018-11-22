@@ -30,6 +30,7 @@
 #include <ros/ros.h>
 
 #include <ros/master.h>
+#include <geometry_msgs/TransformStamped.h>
 #include <sensor_msgs/point_cloud2_iterator.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <tf/transform_datatypes.h>
