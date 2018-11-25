@@ -33,7 +33,6 @@
 #include <geometry_msgs/TransformStamped.h>
 #include <sensor_msgs/point_cloud2_iterator.h>
 #include <sensor_msgs/PointCloud2.h>
-#include <tf/transform_datatypes.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/transform_broadcaster.h>
 
@@ -115,7 +114,7 @@ TEST(TransformFailure, NoDeadAgainstTransformFailure)
     ++cnt;
     geometry_msgs::TransformStamped trans;
     trans.header.stamp = ros::Time::now() + ros::Duration(0.1);
-    tf::quaternionTFToMsg(tf::Quaternion(0, 0, 0, 1), trans.transform.rotation);
+    trans.transform.rotation = tf2::toMsg(tf2::Quaternion(0, 0, 0, 1));
 
     trans.header.frame_id = "laser_link_base";
     trans.child_frame_id = "laser_link";

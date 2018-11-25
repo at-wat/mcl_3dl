@@ -37,6 +37,7 @@
 #include <sensor_msgs/point_cloud2_iterator.h>
 #include <std_srvs/Trigger.h>
 #include <tf/transform_datatypes.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 #include <random>
 #include <vector>
@@ -266,21 +267,21 @@ TEST(GlobalLocalization, Localize)
       ASSERT_TRUE(static_cast<bool>(status));
       ASSERT_TRUE(static_cast<bool>(poses));
 
-      const tf::Transform true_pose(
-          tf::Quaternion(0, 0, sinf(-offset_yaw / 2), cosf(-offset_yaw / 2)),
-          tf::Vector3(
+      const tf2::Transform true_pose(
+          tf2::Quaternion(0, 0, sinf(-offset_yaw / 2), cosf(-offset_yaw / 2)),
+          tf2::Vector3(
               -(offset_x * cos(-offset_yaw) - offset_y * sin(-offset_yaw)),
               -(offset_x * sin(-offset_yaw) + offset_y * cos(-offset_yaw)),
               -offset_z));
       bool found_true_positive(false);
       for (const auto &pose : poses->poses)
       {
-        tf::Transform particle_pose;
-        tf::poseMsgToTF(pose, particle_pose);
+        tf2::Transform particle_pose;
+        tf2::fromMsg(pose, particle_pose);
 
-        const tf::Transform tf_diff = particle_pose.inverse() * true_pose;
+        const tf2::Transform tf_diff = particle_pose.inverse() * true_pose;
         if (tf_diff.getOrigin().length() < 2e-1 &&
-            fabs(tf::getYaw(tf_diff.getRotation())) < 2e-1)
+            fabs(tf::getYaw(tf2::toMsg(tf_diff.getRotation()))) < 2e-1)
           found_true_positive = true;
       }
       ASSERT_TRUE(found_true_positive);

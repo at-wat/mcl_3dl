@@ -51,9 +51,7 @@
 #include <mcl_3dl_msgs/Status.h>
 #include <std_srvs/Trigger.h>
 
-#include <tf/transform_datatypes.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
 #include <tf2_sensor_msgs/tf2_sensor_msgs.h>
@@ -612,8 +610,8 @@ protected:
     map_pos.x_ = f_pos_[0]->in(map_pos.x_);
     map_pos.y_ = f_pos_[1]->in(map_pos.y_);
     map_pos.z_ = f_pos_[2]->in(map_pos.z_);
-    tf::vector3TFToMsg(tf::Vector3(map_pos.x_, map_pos.y_, map_pos.z_), trans.transform.translation);
-    tf::quaternionTFToMsg(tf::Quaternion(map_rot.x_, map_rot.y_, map_rot.z_, map_rot.w_), trans.transform.rotation);
+    trans.transform.translation = tf2::toMsg(tf2::Vector3(map_pos.x_, map_pos.y_, map_pos.z_));
+    trans.transform.rotation = tf2::toMsg(tf2::Quaternion(map_rot.x_, map_rot.y_, map_rot.z_, map_rot.w_));
 
     std::vector<geometry_msgs::TransformStamped> transforms;
     transforms.push_back(trans);
@@ -631,8 +629,8 @@ protected:
 
     trans.header.frame_id = frame_ids_["map"];
     trans.child_frame_id = frame_ids_["floor"];
-    tf::vector3TFToMsg(tf::Vector3(0.0, 0.0, e.pos_.z_), trans.transform.translation);
-    tf::quaternionTFToMsg(tf::Quaternion(0.0, 0.0, 0.0, 1.0), trans.transform.rotation);
+    trans.transform.translation = tf2::toMsg(tf2::Vector3(0.0, 0.0, e.pos_.z_));
+    trans.transform.rotation = tf2::toMsg(tf2::Quaternion(0.0, 0.0, 0.0, 1.0));
 
     transforms.push_back(trans);
 
