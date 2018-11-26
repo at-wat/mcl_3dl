@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
   <test test-name="test_expansion_resetting" pkg="mcl_3dl" type="test_expansion_resetting" time-limit="90" />
-  
+
   <node pkg="mcl_3dl" type="mcl_3dl" name="mcl_3dl" output="screen">
     <param name="compatible" value="1" />
     <param name="likelihood/match_dist_min" value="0.3" />
@@ -28,5 +28,5 @@
     <param name="expansion_var_yaw" value="0.05" />
   </node>
 
-  <node pkg="tf" type="static_transform_publisher" name="stf_base_link" args="1 0 0 0 0 0 odom base_link 100" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="stf_base_link" args="1 0 0 0 0 0 odom base_link" />
 </launch>
