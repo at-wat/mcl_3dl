@@ -6,7 +6,7 @@ find_package(catkin REQUIRED
     roscpp
 
     pcl_ros
-    tf
+    tf2
     tf2_geometry_msgs
     tf2_ros
     tf2_sensor_msgs
@@ -26,7 +26,7 @@ catkin_package(
     roscpp
 
     pcl_ros
-    tf
+    tf2
     tf2_geometry_msgs
     tf2_ros
     tf2_sensor_msgs
