@@ -47,8 +47,8 @@ TEST(CompareTf, Compare)
   nh.param("cnt_max", cnt_max, 10);
   size_t tf_ex_cnt = 0;
 
-  const boost::function<void(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &)> cb_pose =
-      [&tfbuf, &cnt, &cnt_max, &tf_ex_cnt](const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg) -> void
+  const boost::function<void(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr&)> cb_pose =
+      [&tfbuf, &cnt, &cnt_max, &tf_ex_cnt](const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg) -> void
   {
     geometry_msgs::PoseStamped pose;
     try
@@ -61,7 +61,7 @@ TEST(CompareTf, Compare)
           tfbuf.lookupTransform("map", pose_bl.header.frame_id, pose_bl.header.stamp, ros::Duration(0.1));
       tf2::doTransform(pose_bl, pose, trans);
     }
-    catch (tf2::TransformException &e)
+    catch (tf2::TransformException& e)
     {
       tf_ex_cnt++;
       return;
@@ -97,7 +97,7 @@ TEST(CompareTf, Compare)
   fprintf(stderr, "compare_tf finished\n");
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
   ros::init(argc, argv, "compare_tf");

@@ -57,7 +57,7 @@ public:
     RPYVec()
     {
     }
-    explicit RPYVec(const mcl_3dl::Vec3 &v)
+    explicit RPYVec(const mcl_3dl::Vec3& v)
     {
       v_ = v;
     }
@@ -69,7 +69,7 @@ public:
     }
   };
   RPYVec rpy;
-  float &operator[](const size_t i)override
+  float& operator[](const size_t i)override
   {
     switch (i)
     {
@@ -176,10 +176,10 @@ public:
   {
     return diff_;
   }
-  void transform(pcl::PointCloud<pcl::PointXYZI> &pc) const
+  void transform(pcl::PointCloud<pcl::PointXYZI>& pc) const
   {
     const auto r = rot_.normalized();
-    for (auto &p : pc.points)
+    for (auto& p : pc.points)
     {
       const Vec3 t = r * Vec3(p.x, p.y, p.z) + pos_;
       p.x = t.x_;
@@ -188,8 +188,8 @@ public:
     }
   }
   static State6DOF generateNoise(
-      std::default_random_engine &engine_,
-      const State6DOF &mean, const State6DOF &sigma)
+      std::default_random_engine& engine_,
+      const State6DOF& mean, const State6DOF& sigma)
   {
     State6DOF noise;
     if (mean.isDiff() || !sigma.isDiff())
@@ -210,7 +210,7 @@ public:
     noise.rot_ = mcl_3dl::Quat(rpy_noise) * mean.rot_;
     return noise;
   }
-  State6DOF operator+(const State6DOF &a) const
+  State6DOF operator+(const State6DOF& a) const
   {
     State6DOF in = a;
     State6DOF ret;
@@ -223,7 +223,7 @@ public:
     ret.rot_ = a.rot_ * rot_;
     return ret;
   }
-  State6DOF operator-(const State6DOF &a) const
+  State6DOF operator-(const State6DOF& a) const
   {
     State6DOF in = a;
     State6DOF ret;
@@ -251,7 +251,7 @@ public:
   {
   }
 
-  void add(const State6DOF &s, const float &prob)
+  void add(const State6DOF& s, const float& prob)
   {
     p_sum_ += prob;
 

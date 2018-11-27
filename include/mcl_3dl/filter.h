@@ -76,12 +76,12 @@ public:
     }
     out_ = out0;
   }
-  void set(const float &out0)
+  void set(const float& out0)
   {
     x_ = (1 - k_[2]) * out0 / k_[3];
     out_ = out0;
   }
-  float in(const float &i)
+  float in(const float& i)
   {
     float in = i;
     assert(std::isfinite(in));

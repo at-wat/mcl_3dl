@@ -130,8 +130,8 @@ TEST(Vec3, Products)
   {
     for (int j = 0; j < num_samples; ++j)
     {
-      const mcl_3dl::Vec3 &a = samples[i];
-      const mcl_3dl::Vec3 &b = samples[j];
+      const mcl_3dl::Vec3& a = samples[i];
+      const mcl_3dl::Vec3& b = samples[j];
 
       // Check dot products based on the distributive property
       ASSERT_LT((a - b).dot(a - b) - a.dot(a) - b.dot(b) + 2.0 * a.dot(b), 1e-6);
@@ -143,7 +143,7 @@ TEST(Vec3, Products)
   }
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
 

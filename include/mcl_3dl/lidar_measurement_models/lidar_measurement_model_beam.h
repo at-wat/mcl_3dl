@@ -77,18 +77,18 @@ public:
   }
 
   void loadConfig(
-      const ros::NodeHandle &nh,
-      const std::string &name);
+      const ros::NodeHandle& nh,
+      const std::string& name);
   void setGlobalLocalizationStatus(
       const size_t num_particles,
       const size_t current_num_particles);
   pcl::PointCloud<PointType>::Ptr filter(
-      const pcl::PointCloud<PointType>::ConstPtr &pc) const;
+      const pcl::PointCloud<PointType>::ConstPtr& pc) const;
   LidarMeasurementResult measure(
-      ChunkedKdtree<PointType>::Ptr &kdtree,
-      const pcl::PointCloud<PointType>::ConstPtr &pc,
-      const std::vector<Vec3> &origins,
-      const State6DOF &s) const;
+      ChunkedKdtree<PointType>::Ptr& kdtree,
+      const pcl::PointCloud<PointType>::ConstPtr& pc,
+      const std::vector<Vec3>& origins,
+      const State6DOF& s) const;
 };
 }  // namespace mcl_3dl
 

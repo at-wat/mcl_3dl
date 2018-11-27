@@ -82,7 +82,7 @@ public:
       grid_min_ = grid_min;
       grid_max_ = grid_max;
     }
-    Iterator &operator++()
+    Iterator& operator++()
     {
       ++count_;
       pos_ += inc_;
@@ -125,7 +125,7 @@ public:
       }
       return CastResult(pos_, collision, sin_ang);
     }
-    bool operator!=(const Iterator &a) const
+    bool operator!=(const Iterator& a) const
     {
       return count_ != a.count_;
     }
