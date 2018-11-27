@@ -86,7 +86,7 @@ void performanceTestRaycast(const float chunk_size)
   std::cerr << std::endl;
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   performanceTestRaycast(1.0);
   performanceTestRaycast(2.0);

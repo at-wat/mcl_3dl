@@ -77,6 +77,14 @@ MarkerArray shows several *mcl_3dl* internal information.
 
 A [demo without odometry](doc/DemoWithoutOdometry.md) is also available.
 
+## Contributing
+
+*mcl_3dl package* is developed under [GitHub flow](https://guides.github.com/introduction/flow/).
+Feel free to open new Issue and/or Pull Request.
+
+The code in this repository is following [ROS C++ Style Guide](https://wiki.ros.org/CppStyleGuide).
+A configuration file for clang-format is available at https://github.com/seqsense/ros_style/.
+
 ## License
 
 *mcl_3dl* is available under BSD license.

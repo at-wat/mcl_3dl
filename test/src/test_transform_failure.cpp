@@ -43,7 +43,7 @@
 namespace
 {
 void GenerateSinglePointPointcloud2(
-    sensor_msgs::PointCloud2 &cloud,
+    sensor_msgs::PointCloud2& cloud,
     const float x, const float y, const float z)
 {
   cloud.height = 1;
@@ -61,7 +61,7 @@ void GenerateSinglePointPointcloud2(
   *iter_z = z;
 }
 void publishSinglePointPointcloud2(
-    ros::Publisher &pub,
+    ros::Publisher& pub,
     const float x, const float y, const float z,
     const std::string frame_id,
     const ros::Time stamp)
@@ -149,7 +149,7 @@ TEST(TransformFailure, NoDeadAgainstTransformFailure)
   ASSERT_TRUE(ros::ok());
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
   ros::init(argc, argv, "test_transform_failure");

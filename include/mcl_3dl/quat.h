@@ -44,18 +44,18 @@ public:
   float z_;
   float w_;
 
-  Quat(const float &x, const float &y, const float &z, const float &w)
+  Quat(const float& x, const float& y, const float& z, const float& w)
   {
     x_ = x;
     y_ = y;
     z_ = z;
     w_ = w;
   }
-  Quat(const Vec3 &axis, const float &ang)
+  Quat(const Vec3& axis, const float& ang)
   {
     setAxisAng(axis, ang);
   }
-  Quat(const Vec3 &forward, const Vec3 &up_raw)
+  Quat(const Vec3& forward, const Vec3& up_raw)
   {
     const Vec3 xv = forward.normalized();
     const Vec3 yv = up_raw.cross(xv).normalized();
@@ -72,7 +72,7 @@ public:
     if (yv.x_ - xv.y_ > 0)
       z_ = -z_;
   }
-  explicit Quat(const Vec3 &rpy)
+  explicit Quat(const Vec3& rpy)
   {
     setRPY(rpy);
   }
@@ -81,7 +81,7 @@ public:
     w_ = 1.0;
     x_ = y_ = z_ = 0.0;
   }
-  float dot(const Quat &q) const
+  float dot(const Quat& q) const
   {
     return x_ * q.x_ + y_ * q.y_ + z_ * q.z_ + w_ * q.w_;
   }
@@ -89,19 +89,19 @@ public:
   {
     return sqrtf(dot(*this));
   }
-  bool operator==(const Quat &q) const
+  bool operator==(const Quat& q) const
   {
     return x_ == q.x_ && y_ == q.y_ && z_ == q.z_ && w_ == q.w_;
   }
-  bool operator!=(const Quat &q) const
+  bool operator!=(const Quat& q) const
   {
     return !operator==(q);
   }
-  Quat operator+(const Quat &q) const
+  Quat operator+(const Quat& q) const
   {
     return Quat(x_ + q.x_, y_ + q.y_, z_ + q.z_, w_ + q.w_);
   }
-  Quat operator+=(const Quat &q)
+  Quat operator+=(const Quat& q)
   {
     x_ += q.x_;
     y_ += q.y_;
@@ -109,11 +109,11 @@ public:
     w_ += q.w_;
     return *this;
   }
-  Quat operator-(const Quat &q) const
+  Quat operator-(const Quat& q) const
   {
     return Quat(x_ - q.x_, y_ - q.y_, z_ - q.z_, w_ - q.w_);
   }
-  Quat operator-=(const Quat &q)
+  Quat operator-=(const Quat& q)
   {
     x_ -= q.x_;
     y_ -= q.y_;
@@ -125,7 +125,7 @@ public:
   {
     return Quat(-x_, -y_, -z_, -w_);
   }
-  Quat operator*(const Quat &q) const
+  Quat operator*(const Quat& q) const
   {
     return Quat(
         w_ * q.x_ + x_ * q.w_ + y_ * q.z_ - z_ * q.y_,
@@ -133,20 +133,20 @@ public:
         w_ * q.z_ + z_ * q.w_ + x_ * q.y_ - y_ * q.x_,
         w_ * q.w_ - x_ * q.x_ - y_ * q.y_ - z_ * q.z_);
   }
-  Vec3 operator*(const Vec3 &v) const
+  Vec3 operator*(const Vec3& v) const
   {
     const Quat ret = *this * Quat(v.x_, v.y_, v.z_, 0.0) * conj();
     return Vec3(ret.x_, ret.y_, ret.z_);
   }
-  Quat operator*(const float &s) const
+  Quat operator*(const float& s) const
   {
     return Quat(x_ * s, y_ * s, z_ * s, w_ * s);
   }
-  Quat operator/(const float &s) const
+  Quat operator/(const float& s) const
   {
     return operator*(1.0 / s);
   }
-  Quat operator*=(const float &s)
+  Quat operator*=(const float& s)
   {
     x_ *= s;
     y_ *= s;
@@ -154,7 +154,7 @@ public:
     w_ *= s;
     return *this;
   }
-  Quat operator/=(const float &s)
+  Quat operator/=(const float& s)
   {
     x_ /= s;
     y_ /= s;
@@ -162,7 +162,7 @@ public:
     w_ /= s;
     return *this;
   }
-  Quat weighted(const float &s) const
+  Quat weighted(const float& s) const
   {
     Vec3 axis;
     float ang;
@@ -207,7 +207,7 @@ public:
 
     return Vec3(std::atan2(t3, t4), std::asin(t2), std::atan2(t1, t0));
   }
-  void setRPY(const Vec3 &rpy)
+  void setRPY(const Vec3& rpy)
   {
     const float t2 = cos(rpy.x_ * 0.5);
     const float t3 = sin(rpy.x_ * 0.5);
@@ -221,7 +221,7 @@ public:
     z_ = t1 * t2 * t4 - t0 * t3 * t5;
     w_ = t0 * t2 * t4 + t1 * t3 * t5;
   }
-  void setAxisAng(const Vec3 &axis, const float &ang)
+  void setAxisAng(const Vec3& axis, const float& ang)
   {
     const Vec3 a = axis / axis.norm();
     const float s = sinf(ang / 2.0);
@@ -231,7 +231,7 @@ public:
     w_ = cosf(ang / 2.0);
     normalize();
   }
-  void getAxisAng(Vec3 &axis, float &ang) const
+  void getAxisAng(Vec3& axis, float& ang) const
   {
     if (fabs(w_) >= 1.0 - 0.000001)
     {
@@ -245,7 +245,7 @@ public:
     const float wsq = 1.0 - w_ * w_;
     axis = Vec3(x_, y_, z_) / sqrtf(wsq);
   }
-  void rotateAxis(const Quat &r)
+  void rotateAxis(const Quat& r)
   {
     Vec3 axis;
     float ang;

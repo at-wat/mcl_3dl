@@ -47,7 +47,7 @@
 namespace
 {
 void generateSamplePointcloud2(
-    sensor_msgs::PointCloud2 &cloud,
+    sensor_msgs::PointCloud2& cloud,
     const float x0,
     const float y0,
     const float x1,
@@ -114,7 +114,7 @@ void generateSamplePointcloud2(
   sensor_msgs::PointCloud2Iterator<float> iter_y(cloud, "y");
   sensor_msgs::PointCloud2Iterator<float> iter_z(cloud, "z");
 
-  for (const Point &p : points)
+  for (const Point& p : points)
   {
     *iter_x = p.x_ * o_cos - p.y_ * o_sin + offset_x + rand(engine);
     *iter_y = p.x_ * o_sin + p.y_ * o_cos + offset_y + rand(engine);
@@ -171,13 +171,13 @@ TEST(GlobalLocalization, Localize)
   geometry_msgs::PoseArray::ConstPtr poses;
   mcl_3dl_msgs::Status::ConstPtr status;
 
-  const boost::function<void(const geometry_msgs::PoseArray::ConstPtr &)> cb_pose =
-      [&poses](const geometry_msgs::PoseArray::ConstPtr &msg) -> void
+  const boost::function<void(const geometry_msgs::PoseArray::ConstPtr&)> cb_pose =
+      [&poses](const geometry_msgs::PoseArray::ConstPtr& msg) -> void
   {
     poses = msg;
   };
-  const boost::function<void(const mcl_3dl_msgs::Status::ConstPtr &)> cb_status =
-      [&status](const mcl_3dl_msgs::Status::ConstPtr &msg) -> void
+  const boost::function<void(const mcl_3dl_msgs::Status::ConstPtr&)> cb_status =
+      [&status](const mcl_3dl_msgs::Status::ConstPtr& msg) -> void
   {
     status = msg;
   };
@@ -274,7 +274,7 @@ TEST(GlobalLocalization, Localize)
               -(offset_x * sin(-offset_yaw) + offset_y * cos(-offset_yaw)),
               -offset_z));
       bool found_true_positive(false);
-      for (const auto &pose : poses->poses)
+      for (const auto& pose : poses->poses)
       {
         tf2::Transform particle_pose;
         tf2::fromMsg(pose, particle_pose);
@@ -289,7 +289,7 @@ TEST(GlobalLocalization, Localize)
   }
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
   ros::init(argc, argv, "test_global_localization");

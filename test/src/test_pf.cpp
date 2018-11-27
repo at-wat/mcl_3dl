@@ -39,7 +39,7 @@ class State : public mcl_3dl::pf::ParticleBase<float>
 {
 public:
   float x;
-  float &operator[](const size_t i)override
+  float& operator[](const size_t i)override
   {
     switch (i)
     {
@@ -48,7 +48,7 @@ public:
     }
     return x;
   }
-  const float &operator[](const size_t i) const
+  const float& operator[](const size_t i) const
   {
     switch (i)
     {
@@ -97,7 +97,7 @@ TEST(Pf, BayesianEstimation)
       ASSERT_NEAR(center, pf.expectation()[0], abs_error);
       ASSERT_NEAR(sigma, pf.covariance()[0][0], abs_error);
 
-      auto likelihood = [center2, sigma2](const State &s) -> float
+      auto likelihood = [center2, sigma2](const State& s) -> float
       {
         return exp(-powf(s[0] - center2, 2.0) / (2.0 * powf(sigma2, 2.0)));
       };
@@ -199,7 +199,7 @@ TEST(Pf, ResampleFlatLikelihood)
     ASSERT_EQ(pf.getParticle(i)[0], orig[i]);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
 
