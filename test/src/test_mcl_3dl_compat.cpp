@@ -64,7 +64,7 @@ TEST(Mcl3DlCompat, ParamRename)
   ASSERT_EQ(param3, 4.0);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
   ros::init(argc, argv, "test_mcl_3dl_compat");

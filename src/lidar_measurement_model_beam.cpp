@@ -54,8 +54,8 @@ LidarMeasurementModelBeam::LidarMeasurementModelBeam(
 }
 
 void LidarMeasurementModelBeam::loadConfig(
-    const ros::NodeHandle &nh,
-    const std::string &name)
+    const ros::NodeHandle& nh,
+    const std::string& name)
 {
   ros::NodeHandle pnh(nh, name);
 
@@ -105,9 +105,9 @@ void LidarMeasurementModelBeam::setGlobalLocalizationStatus(
 
 typename pcl::PointCloud<LidarMeasurementModelBase::PointType>::Ptr
 LidarMeasurementModelBeam::filter(
-    const typename pcl::PointCloud<LidarMeasurementModelBase::PointType>::ConstPtr &pc) const
+    const typename pcl::PointCloud<LidarMeasurementModelBase::PointType>::ConstPtr& pc) const
 {
-  const auto local_points_filter = [this](const LidarMeasurementModelBase::PointType &p)
+  const auto local_points_filter = [this](const LidarMeasurementModelBase::PointType& p)
   {
     if (p.x * p.x + p.y * p.y > clip_far_sq_)
       return true;
@@ -130,10 +130,10 @@ LidarMeasurementModelBeam::filter(
 }
 
 LidarMeasurementResult LidarMeasurementModelBeam::measure(
-    typename ChunkedKdtree<LidarMeasurementModelBase::PointType>::Ptr &kdtree,
-    const typename pcl::PointCloud<LidarMeasurementModelBase::PointType>::ConstPtr &pc,
-    const std::vector<Vec3> &origins,
-    const State6DOF &s) const
+    typename ChunkedKdtree<LidarMeasurementModelBase::PointType>::Ptr& kdtree,
+    const typename pcl::PointCloud<LidarMeasurementModelBase::PointType>::ConstPtr& pc,
+    const std::vector<Vec3>& origins,
+    const State6DOF& s) const
 {
   if (!pc)
     return LidarMeasurementResult(1, 0);
@@ -146,7 +146,7 @@ LidarMeasurementResult LidarMeasurementModelBeam::measure(
   float score_beam = 1.0;
   *pc_particle = *pc;
   s.transform(*pc_particle);
-  for (auto &p : pc_particle->points)
+  for (auto& p : pc_particle->points)
   {
     const int beam_header_id = lroundf(p.intensity);
     Raycast<pcl::PointXYZI> ray(

@@ -87,7 +87,7 @@ TEST(ChunkedKdtree, RadiusSearch)
   ASSERT_EQ(id[0], 4);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
 
