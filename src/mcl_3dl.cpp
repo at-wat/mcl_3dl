@@ -255,8 +255,8 @@ protected:
     sensor_msgs::PointCloud2 pc_bl;
     try
     {
-      geometry_msgs::TransformStamped trans =
-          tfbuf_.lookupTransform(frame_ids_["odom"], msg->header.frame_id, ros::Time(0));
+      geometry_msgs::TransformStamped trans = tfbuf_.lookupTransform(
+          frame_ids_["odom"], msg->header.frame_id, msg->header.stamp, ros::Duration(0.1));
       tf2::doTransform(*msg, pc_bl, trans);
     }
     catch (tf2::TransformException& e)
@@ -301,8 +301,8 @@ protected:
     {
       sensor_msgs::PointCloud2 pc2_tmp;
       pcl::toROSMsg(*pc_local_accum_, pc2_tmp);
-      geometry_msgs::TransformStamped trans =
-          tfbuf_.lookupTransform(frame_ids_["base_link"], pc_local_accum_->header.frame_id, ros::Time(0));
+      geometry_msgs::TransformStamped trans = tfbuf_.lookupTransform(
+          frame_ids_["base_link"], pc2_tmp.header.frame_id, pc2_tmp.header.stamp, ros::Duration(0.1));
       tf2::doTransform(pc2_tmp, pc2_tmp, trans);
       pcl::fromROSMsg(pc2_tmp, *pc_local_accum_);
     }
@@ -908,8 +908,8 @@ protected:
         in.x = acc_measure.x_;
         in.y = acc_measure.y_;
         in.z = acc_measure.z_;
-        geometry_msgs::TransformStamped trans =
-            tfbuf_.lookupTransform(frame_ids_["base_link"], msg->header.frame_id, ros::Time(0));
+        geometry_msgs::TransformStamped trans = tfbuf_.lookupTransform(
+            frame_ids_["base_link"], msg->header.frame_id, msg->header.stamp, ros::Duration(0.1));
         tf2::doTransform(in, out, trans);
         acc_measure = Vec3(out.x, out.y, out.z);
 
