@@ -2,8 +2,8 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.4 (2018-12-20)
+------------------
 * Fix IO figure (`#212 <https://github.com/at-wat/mcl_3dl/issues/212>`_)
 * Fix tf timestamp (`#214 <https://github.com/at-wat/mcl_3dl/issues/214>`_)
 * Add pf::ParticleFilter::appendParticle (`#207 <https://github.com/at-wat/mcl_3dl/issues/207>`_)
