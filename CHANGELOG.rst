@@ -2,6 +2,41 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix IO figure (`#212 <https://github.com/at-wat/mcl_3dl/issues/212>`_)
+* Fix tf timestamp (`#214 <https://github.com/at-wat/mcl_3dl/issues/214>`_)
+* Add pf::ParticleFilter::appendParticle (`#207 <https://github.com/at-wat/mcl_3dl/issues/207>`_)
+* Fix pointer alignment style (`#210 <https://github.com/at-wat/mcl_3dl/issues/210>`_)
+* Migrate tf to tf2 (`#208 <https://github.com/at-wat/mcl_3dl/issues/208>`_)
+* Fix class member naming style (`#205 <https://github.com/at-wat/mcl_3dl/issues/205>`_)
+* Make lidar measurement model class (`#195 <https://github.com/at-wat/mcl_3dl/issues/195>`_)
+* Add I/O diagram to the document (`#199 <https://github.com/at-wat/mcl_3dl/issues/199>`_)
+* Update Algorithms.md (`#198 <https://github.com/at-wat/mcl_3dl/issues/198>`_)
+* Add apt-get upgrade to test Dockerfiles (`#197 <https://github.com/at-wat/mcl_3dl/issues/197>`_)
+* Add document for expansion resetting (`#193 <https://github.com/at-wat/mcl_3dl/issues/193>`_)
+* Add test for expansion resetting (`#192 <https://github.com/at-wat/mcl_3dl/issues/192>`_)
+* Add test for global localization (`#188 <https://github.com/at-wat/mcl_3dl/issues/188>`_)
+* Refactor likelihood calculation (`#189 <https://github.com/at-wat/mcl_3dl/issues/189>`_)
+* Add a comment to test_transform_failure (`#184 <https://github.com/at-wat/mcl_3dl/issues/184>`_)
+* Build mcl_3dl_msgs from source on CI (`#185 <https://github.com/at-wat/mcl_3dl/issues/185>`_)
+* Fix resampling (`#183 <https://github.com/at-wat/mcl_3dl/issues/183>`_)
+* Fix test failure on ROS buildfarm (`#181 <https://github.com/at-wat/mcl_3dl/issues/181>`_)
+* Fix catkin package definitions (`#180 <https://github.com/at-wat/mcl_3dl/issues/180>`_)
+* Add tf exception handling and change message level (`#177 <https://github.com/at-wat/mcl_3dl/issues/177>`_)
+* Relax codecov patch threshold (`#179 <https://github.com/at-wat/mcl_3dl/issues/179>`_)
+* Allow small coverage drop (`#178 <https://github.com/at-wat/mcl_3dl/issues/178>`_)
+* Fix test names (`#176 <https://github.com/at-wat/mcl_3dl/issues/176>`_)
+* Add build id to CI bot comment (`#174 <https://github.com/at-wat/mcl_3dl/issues/174>`_)
+* Fold CI bot comment (`#173 <https://github.com/at-wat/mcl_3dl/issues/173>`_)
+* Decrease bag playback rate in integration test (`#172 <https://github.com/at-wat/mcl_3dl/issues/172>`_)
+* Add test for NormalLikelihoodNd (`#171 <https://github.com/at-wat/mcl_3dl/issues/171>`_)
+* Report coverage only after successful test (`#170 <https://github.com/at-wat/mcl_3dl/issues/170>`_)
+* Add CI badges (`#169 <https://github.com/at-wat/mcl_3dl/issues/169>`_)
+* Add codecov covarage test (`#168 <https://github.com/at-wat/mcl_3dl/issues/168>`_)
+* Fix bot comment target slug (`#167 <https://github.com/at-wat/mcl_3dl/issues/167>`_)
+* Contributors: Atsushi Watanabe, So Jomura
+
 0.1.3 (2018-06-23)
 ------------------
 * Fix install of demo launch and config (`#164 <https://github.com/at-wat/mcl_3dl/issues/164>`_)
