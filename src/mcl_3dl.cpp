@@ -304,7 +304,7 @@ protected:
           pc_local_accum_->header.frame_id,
           ros::Time().fromNSec(pc_local_accum_->header.stamp * 1000), ros::Duration(0.1));
 
-      Eigen::Affine3f trans_eigen =
+      const Eigen::Affine3f trans_eigen =
           Eigen::Translation3f(
               trans.transform.translation.x,
               trans.transform.translation.y,
