@@ -100,14 +100,14 @@ protected:
       nr_dimensions_ = 3;
     }
 
-    virtual void copyToFloatArray(const mcl_3dl::PointXYZIL &p, float *out) const
+    virtual void copyToFloatArray(const mcl_3dl::PointXYZIL& p, float* out) const
     {
       out[0] = p.x;
       out[1] = p.y;
       out[2] = p.z;
     }
   };
-  void cbMapcloud(const sensor_msgs::PointCloud2::ConstPtr &msg)
+  void cbMapcloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
   {
     ROS_INFO("map received");
     pcl::PointCloud<pcl::PointXYZI>::Ptr pc_tmp_raw(new pcl::PointCloud<pcl::PointXYZI>);
@@ -138,7 +138,7 @@ protected:
 
     cbMapUpdateTimer(ros::TimerEvent());
   }
-  void cbMapcloudUpdate(const sensor_msgs::PointCloud2::ConstPtr &msg)
+  void cbMapcloudUpdate(const sensor_msgs::PointCloud2::ConstPtr& msg)
   {
     ROS_INFO("map_update received");
     pcl::PointCloud<pcl::PointXYZI>::Ptr pc_tmp_raw(new pcl::PointCloud<pcl::PointXYZI>);
@@ -157,7 +157,7 @@ protected:
     ds.filter(*pc_update_);
   }
 
-  void cbPosition(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg)
+  void cbPosition(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg)
   {
     geometry_msgs::PoseStamped pose_in, pose;
     pose_in.header = msg->header;
@@ -167,7 +167,7 @@ protected:
       tfl_.waitForTransform(frame_ids_["map"], pose_in.header.frame_id, pose_in.header.stamp, ros::Duration(1.0));
       tfl_.transformPose(frame_ids_["map"], pose_in, pose);
     }
-    catch (tf::TransformException &e)
+    catch (tf::TransformException& e)
     {
       return;
     }
@@ -186,7 +186,7 @@ protected:
                  msg->pose.covariance[6 * 4 + 4],
                  msg->pose.covariance[6 * 5 + 5])));
     pc_update_.reset();
-    auto integ_reset_func = [](State6DOF &s)
+    auto integ_reset_func = [](State6DOF& s)
     {
       s.odom_err_integ_lin_ = Vec3();
       s.odom_err_integ_ang_ = Vec3();
@@ -194,7 +194,7 @@ protected:
     pf_->predict(integ_reset_func);
   }
 
-  void cbOdom(const nav_msgs::Odometry::ConstPtr &msg)
+  void cbOdom(const nav_msgs::Odometry::ConstPtr& msg)
   {
     odom_ =
         State6DOF(
@@ -228,7 +228,7 @@ protected:
       r.getAxisAng(axis, ang);
 
       const float trans = v.norm();
-      auto prediction_func = [this, &v, &r, axis, ang, trans, &dt](State6DOF &s)
+      auto prediction_func = [this, &v, &r, axis, ang, trans, &dt](State6DOF& s)
       {
         const Vec3 diff = v * (1.0 + s.noise_ll_) + Vec3(s.noise_al_ * ang, 0.0, 0.0);
         s.odom_err_integ_lin_ += (diff - v);
@@ -245,7 +245,7 @@ protected:
       odom_prev_ = odom_;
     }
   }
-  void cbCloud(const sensor_msgs::PointCloud2::ConstPtr &msg)
+  void cbCloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
   {
     mcl_3dl_msgs::Status status;
     status.header.stamp = ros::Time::now();
@@ -270,7 +270,7 @@ protected:
         return;
       }
     }
-    catch (tf::TransformException &e)
+    catch (tf::TransformException& e)
     {
       ROS_INFO("Failed to transform pointcloud: %s", e.what());
       pc_local_accum_.reset(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
@@ -286,7 +286,7 @@ protected:
     pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr pc_tmp(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
     pcl::copyPointCloud(*pc_tmp_raw, *pc_tmp);
 
-    for (auto &p : pc_tmp->points)
+    for (auto& p : pc_tmp->points)
     {
       p.label = pc_accum_header_.size();
     }
@@ -326,7 +326,7 @@ protected:
         return;
       }
     }
-    catch (tf::TransformException &e)
+    catch (tf::TransformException& e)
     {
       ROS_INFO("Failed to transform pointcloud: %s", e.what());
       pc_local_accum_.reset(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
@@ -334,7 +334,7 @@ protected:
       return;
     }
     std::vector<Vec3> origins;
-    for (auto &h : pc_accum_header_)
+    for (auto& h : pc_accum_header_)
     {
       try
       {
@@ -345,7 +345,7 @@ protected:
         auto origin = trans.getOrigin();
         origins.push_back(Vec3(origin.x(), origin.y(), origin.z()));
       }
-      catch (tf::TransformException &e)
+      catch (tf::TransformException& e)
       {
         ROS_INFO("Failed to transform pointcloud: %s", e.what());
         pc_local_accum_.reset(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
@@ -363,7 +363,7 @@ protected:
     ds.filter(*pc_local_full);
 
     std::map<std::string, pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr> pc_locals;
-    for (auto &lm : lidar_measurements_)
+    for (auto& lm : lidar_measurements_)
     {
       lm.second->setGlobalLocalizationStatus(
           params_.num_particles_, pf_->getParticleSize());
@@ -387,11 +387,11 @@ protected:
     auto measure_func = [this, &pc_locals,
                          &origins,
                          &odom_error_lin_nd,
-                         &match_ratio_min, &match_ratio_max](const State6DOF &s) -> float
+                         &match_ratio_min, &match_ratio_max](const State6DOF& s) -> float
     {
       float likelihood = 1;
       std::map<std::string, float> qualities;
-      for (auto &lm : lidar_measurements_)
+      for (auto& lm : lidar_measurements_)
       {
         const LidarMeasurementResult result = lm.second->measure(
             kdtree_, pc_locals[lm.first], origins, s);
@@ -412,7 +412,7 @@ protected:
 
     if (static_cast<int>(pf_->getParticleSize()) > params_.num_particles_)
     {
-      auto bias_func = [](const State6DOF &s, float &p_bias) -> void
+      auto bias_func = [](const State6DOF& s, float& p_bias) -> void
       {
         p_bias = 1.0;
       };
@@ -422,7 +422,7 @@ protected:
     {
       NormalLikelihood<float> nl_lin(params_.bias_var_dist_);
       NormalLikelihood<float> nl_ang(params_.bias_var_ang_);
-      auto bias_func = [this, &nl_lin, &nl_ang](const State6DOF &s, float &p_bias) -> void
+      auto bias_func = [this, &nl_lin, &nl_ang](const State6DOF& s, float& p_bias) -> void
       {
         const float lin_diff = (s.pos_ - state_prev_.pos_).norm();
         Vec3 axis;
@@ -453,7 +453,7 @@ protected:
       pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr pc_particle_beam(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
       *pc_particle_beam = *pc_locals["beam"];
       e.transform(*pc_particle_beam);
-      for (auto &p : pc_particle_beam->points)
+      for (auto& p : pc_particle_beam->points)
       {
         const int beam_header_id = p.label;
         const Vec3 pos = e.pos_ + e.rot_ * origins[beam_header_id];
@@ -499,7 +499,7 @@ protected:
           std::dynamic_pointer_cast<LidarMeasurementModelBeam>(
               lidar_measurements_["beam"]);
       const float sin_total_ref = beam_model->getSinTotalRef();
-      for (auto &p : pc_particle_beam->points)
+      for (auto& p : pc_particle_beam->points)
       {
         const int beam_header_id = p.label;
         Raycast<mcl_3dl::PointXYZIL> ray(
@@ -545,7 +545,7 @@ protected:
       pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr pc_particle(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
       *pc_particle = *pc_locals["likelihood"];
       e.transform(*pc_particle);
-      for (auto &p : pc_particle->points)
+      for (auto& p : pc_particle->points)
       {
         visualization_msgs::Marker marker;
         marker.header.frame_id = frame_ids_["map"];
@@ -598,7 +598,7 @@ protected:
         ROS_INFO("Pose jumped pos:%0.3f, ang:%0.3f", jump_dist, jump_ang);
         jump = true;
 
-        auto integ_reset_func = [](State6DOF &s)
+        auto integ_reset_func = [](State6DOF& s)
         {
           s.odom_err_integ_lin_ = Vec3();
           s.odom_err_integ_ang_ = Vec3();
@@ -721,7 +721,7 @@ protected:
       std::vector<int> id(1);
       std::vector<float> sqdist(1);
       const double match_dist_sq = params_.match_output_dist_ * params_.match_output_dist_;
-      for (auto &p : pc_local->points)
+      for (auto& p : pc_local->points)
       {
         geometry_msgs::Point32 pp;
         pp.x = p.x;
@@ -782,7 +782,7 @@ protected:
              params_.resample_var_yaw_)));
 
     std::normal_distribution<float> noise(0.0, 1.0);
-    auto update_noise_func = [this, &noise](State6DOF &s)
+    auto update_noise_func = [this, &noise](State6DOF& s)
     {
       s.noise_ll_ = noise(engine_) * params_.odom_err_lin_lin_;
       s.noise_la_ = noise(engine_) * params_.odom_err_lin_ang_;
@@ -865,7 +865,7 @@ protected:
     status.particle_size = pf_->getParticleSize();
     pub_status_.publish(status);
   }
-  void cbLandmark(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &msg)
+  void cbLandmark(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg)
   {
     NormalLikelihoodNd<float, 6> nd(
         Eigen::Matrix<double, 6, 6>(
@@ -879,7 +879,7 @@ protected:
              msg->pose.pose.orientation.y,
              msg->pose.pose.orientation.z,
              msg->pose.pose.orientation.w));
-    auto measure_func = [this, &measured, &nd](const State6DOF &s) -> float
+    auto measure_func = [this, &measured, &nd](const State6DOF& s) -> float
     {
       State6DOF diff = s - measured;
       const Vec3 rot_rpy = diff.rot_.getRPY();
@@ -896,7 +896,7 @@ protected:
     };
     pf_->measure(measure_func);
   }
-  void cbImu(const sensor_msgs::Imu::ConstPtr &msg)
+  void cbImu(const sensor_msgs::Imu::ConstPtr& msg)
   {
     Vec3 acc;
     acc.x_ = f_acc_[0]->in(msg->linear_acceleration.x);
@@ -952,13 +952,13 @@ protected:
                axis;
         imu_quat_.setAxisAng(axis, angle);
       }
-      catch (tf::TransformException &e)
+      catch (tf::TransformException& e)
       {
         return;
       }
       const float acc_measure_norm = acc_measure.norm();
       NormalLikelihood<float> nd(params_.acc_var_);
-      auto imu_measure_func = [this, &nd, &acc_measure, &acc_measure_norm](const State6DOF &s) -> float
+      auto imu_measure_func = [this, &nd, &acc_measure, &acc_measure_norm](const State6DOF& s) -> float
       {
         const Vec3 acc_estim = s.rot_.inv() * Vec3(0.0, 0.0, 1.0);
         const float diff = acosf(
@@ -970,14 +970,14 @@ protected:
       imu_last_ = msg->header.stamp;
     }
   }
-  bool cbResizeParticle(mcl_3dl_msgs::ResizeParticleRequest &request,
-                        mcl_3dl_msgs::ResizeParticleResponse &response)
+  bool cbResizeParticle(mcl_3dl_msgs::ResizeParticleRequest& request,
+                        mcl_3dl_msgs::ResizeParticleResponse& response)
   {
     pf_->resizeParticle(request.size);
     return true;
   }
-  bool cbExpansionReset(std_srvs::TriggerRequest &request,
-                        std_srvs::TriggerResponse &response)
+  bool cbExpansionReset(std_srvs::TriggerRequest& request,
+                        std_srvs::TriggerResponse& response)
   {
     pf_->noise(State6DOF(
         Vec3(params_.expansion_var_x_,
@@ -988,8 +988,8 @@ protected:
              params_.expansion_var_yaw_)));
     return true;
   }
-  bool cbGlobalLocalization(std_srvs::TriggerRequest &request,
-                            std_srvs::TriggerResponse &response)
+  bool cbGlobalLocalization(std_srvs::TriggerRequest& request,
+                            std_srvs::TriggerResponse& response)
   {
     if (!has_map_)
     {
@@ -1014,7 +1014,7 @@ protected:
             MyPointRepresentation>(boost::make_shared<MyPointRepresentation>(point_rep_)));
     kdtree->setInputCloud(points);
 
-    auto pc_filter = [this, kdtree](const mcl_3dl::PointXYZIL &p)
+    auto pc_filter = [this, kdtree](const mcl_3dl::PointXYZIL& p)
     {
       std::vector<int> id(1);
       std::vector<float> sqdist(1);
@@ -1034,7 +1034,7 @@ protected:
 
     const float prob = 1.0 / static_cast<float>(points->size());
     int cnt = 0;
-    for (auto &particle : *pf_)
+    for (auto& particle : *pf_)
     {
       assert(pit != points->end());
       particle.probability_ = prob;
@@ -1056,7 +1056,7 @@ protected:
   }
 
 public:
-  MCL3dlNode(int argc, char *argv[])
+  MCL3dlNode(int argc, char* argv[])
     : nh_("")
     , pnh_("~")
     , global_localization_fix_cnt_(0)
@@ -1263,7 +1263,7 @@ public:
                 params_.map_downsample_x_, params_.map_downsample_y_, params_.map_downsample_z_));
 
     float max_search_radius = 0;
-    for (auto &lm : lidar_measurements_)
+    for (auto& lm : lidar_measurements_)
     {
       lm.second->loadConfig(pnh_, lm.first);
       max_search_radius = std::max(max_search_radius, lm.second->getMaxSearchRange());
@@ -1293,7 +1293,7 @@ public:
     }
   }
 
-  void cbMapUpdateTimer(const ros::TimerEvent &event)
+  void cbMapUpdateTimer(const ros::TimerEvent& event)
   {
     if (has_map_)
     {
@@ -1396,7 +1396,7 @@ protected:
 };
 }  // namespace mcl_3dl
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
   ros::init(argc, argv, "mcl_3dl");
 
