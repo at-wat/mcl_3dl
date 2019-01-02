@@ -299,12 +299,22 @@ protected:
 
     try
     {
-      sensor_msgs::PointCloud2 pc2_tmp;
-      pcl::toROSMsg(*pc_local_accum_, pc2_tmp);
-      geometry_msgs::TransformStamped trans = tfbuf_.lookupTransform(
-          frame_ids_["base_link"], pc2_tmp.header.frame_id, pc2_tmp.header.stamp, ros::Duration(0.1));
-      tf2::doTransform(pc2_tmp, pc2_tmp, trans);
-      pcl::fromROSMsg(pc2_tmp, *pc_local_accum_);
+      const geometry_msgs::TransformStamped trans = tfbuf_.lookupTransform(
+          frame_ids_["base_link"],
+          pc_local_accum_->header.frame_id,
+          pcl_conversions::fromPCL(pc_local_accum_->header.stamp), ros::Duration(0.1));
+
+      const Eigen::Affine3f trans_eigen =
+          Eigen::Translation3f(
+              trans.transform.translation.x,
+              trans.transform.translation.y,
+              trans.transform.translation.z) *
+          Eigen::Quaternionf(
+              trans.transform.rotation.w,
+              trans.transform.rotation.x,
+              trans.transform.rotation.y,
+              trans.transform.rotation.z);
+      pcl::transformPointCloud(*pc_local_accum_, *pc_local_accum_, trans_eigen);
     }
     catch (tf2::TransformException& e)
     {
