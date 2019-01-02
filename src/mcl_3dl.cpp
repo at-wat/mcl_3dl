@@ -302,7 +302,7 @@ protected:
       const geometry_msgs::TransformStamped trans = tfbuf_.lookupTransform(
           frame_ids_["base_link"],
           pc_local_accum_->header.frame_id,
-          pcl_conversion::fromPCL(pc_local_accum_->header.stamp), ros::Duration(0.1));
+          pcl_conversions::fromPCL(pc_local_accum_->header.stamp), ros::Duration(0.1));
 
       const Eigen::Affine3f trans_eigen =
           Eigen::Translation3f(
