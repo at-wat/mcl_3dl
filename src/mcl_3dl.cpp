@@ -156,8 +156,8 @@ protected:
     pose_in.pose = msg->pose.pose;
     try
     {
-      const geometry_msgs::TransformStamped trans =
-          tfbuf_.lookupTransform(frame_ids_["map"], pose_in.header.frame_id, pose_in.header.stamp, ros::Duration(1.0));
+      const geometry_msgs::TransformStamped trans = tfbuf_.lookupTransform(
+          frame_ids_["map"], pose_in.header.frame_id, pose_in.header.stamp, ros::Duration(1.0));
       tf2::doTransform(pose_in, pose, trans);
     }
     catch (tf2::TransformException& e)
@@ -919,8 +919,8 @@ protected:
         in.y = acc_measure.y_;
         in.z = acc_measure.z_;
         // assuming imu frame is regit on base_link
-        const geometry_msgs::TransformStamped trans =
-            tfbuf_.lookupTransform(frame_ids_["base_link"], msg->header.frame_id, ros::Time(0));
+        const geometry_msgs::TransformStamped trans = tfbuf_.lookupTransform(
+            frame_ids_["base_link"], msg->header.frame_id, ros::Time(0));
         tf2::doTransform(in, out, trans);
         acc_measure = Vec3(out.x, out.y, out.z);
 
