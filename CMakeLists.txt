@@ -89,6 +89,9 @@ add_definitions(${PCL_DEFINITIONS})
 if(PCL_VERSION VERSION_LESS 1.8.0)
   add_definitions(-DBACKPORT_PCL_VOXEL_GRID)
 endif()
+if(PCL_VERSION VERSION_LESS 1.7.2)
+  add_definitions(-DBACKPORT_PCL_CENTROID)
+endif()
 
 # Binary installed pcl provided by Linux distro is built with -march=native
 # which causes a lot of compatibility problems.

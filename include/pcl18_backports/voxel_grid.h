@@ -61,7 +61,7 @@ using VoxelGrid18 = VoxelGrid<PointT>;
 #include <utility>
 #include <vector>
 
-#include <pcl/common/centroid.h>
+#include <pcl18_backports/centroid.h>
 #include <pcl/filters/boost.h>
 #include <pcl/filters/filter.h>
 
@@ -125,7 +125,7 @@ public:
      * \param[in] leaf_size the voxel grid leaf size
      */
   inline void
-  setLeafSize(const Eigen::Vector4f &leaf_size)
+  setLeafSize(const Eigen::Vector4f& leaf_size)
   {
     leaf_size_ = leaf_size;
     // Avoid division errors
@@ -256,7 +256,7 @@ public:
      * \param[in] p the point to get the index at
      */
   inline int
-  getCentroidIndex(const PointT &p) const
+  getCentroidIndex(const PointT& p) const
   {
     return (leaf_layout_.at((Eigen::Vector4i(static_cast<int>(floor(p.x * inverse_leaf_size_[0])),
                                              static_cast<int>(floor(p.y * inverse_leaf_size_[1])),
@@ -272,7 +272,7 @@ public:
      * \note for efficiency, user must make sure that the saving of the leaf layout is enabled and filtering performed
      */
   inline std::vector<int>
-  getNeighborCentroidIndices(const PointT &reference_point, const Eigen::MatrixXi &relative_coordinates) const
+  getNeighborCentroidIndices(const PointT& reference_point, const Eigen::MatrixXi& relative_coordinates) const
   {
     Eigen::Vector4i ijk(static_cast<int>(floor(reference_point.x * inverse_leaf_size_[0])),
                         static_cast<int>(floor(reference_point.y * inverse_leaf_size_[1])),
@@ -318,7 +318,7 @@ public:
      * \param[in] ijk the coordinates (i,j,k) in the grid (-1 if empty)
      */
   inline int
-  getCentroidIndexAt(const Eigen::Vector3i &ijk) const
+  getCentroidIndexAt(const Eigen::Vector3i& ijk) const
   {
     int idx = ((Eigen::Vector4i() << ijk, 0).finished() - min_b_).dot(divb_mul_);
     if (idx < 0 || idx >= static_cast<int>(leaf_layout_.size()))
@@ -334,7 +334,7 @@ public:
      * \param[in] field_name the name of the field that contains values used for filtering
      */
   inline void
-  setFilterFieldName(const std::string &field_name)
+  setFilterFieldName(const std::string& field_name)
   {
     filter_field_name_ = field_name;
   }
@@ -351,7 +351,7 @@ public:
      * \param[in] limit_max the maximum allowed field value
      */
   inline void
-  setFilterLimits(const double &limit_min, const double &limit_max)
+  setFilterLimits(const double& limit_min, const double& limit_max)
   {
     filter_limit_min_ = limit_min;
     filter_limit_max_ = limit_max;
@@ -362,7 +362,7 @@ public:
      * \param[out] limit_max the maximum allowed field value
      */
   inline void
-  getFilterLimits(double &limit_min, double &limit_max) const
+  getFilterLimits(double& limit_min, double& limit_max) const
   {
     limit_min = filter_limit_min_;
     limit_max = filter_limit_max_;
@@ -382,7 +382,7 @@ public:
      * \param[out] limit_negative true if data \b outside the interval [min; max] is to be returned, false otherwise
      */
   inline void
-  getFilterLimitsNegative(bool &limit_negative) const
+  getFilterLimitsNegative(bool& limit_negative) const
   {
     limit_negative = filter_limit_negative_;
   }
@@ -437,7 +437,7 @@ protected:
      * \param[out] output the resultant point cloud message
      */
   void
-  applyFilter(PointCloud &output)
+  applyFilter(PointCloud& output)
   {
     // Has the input dataset been set already?
     if (!input_)
@@ -517,7 +517,7 @@ protected:
             continue;
 
         // Get the distance value
-        const uint8_t *pt_data = reinterpret_cast<const uint8_t *>(&input_->points[*it]);
+        const uint8_t* pt_data = reinterpret_cast<const uint8_t*>(&input_->points[*it]);
         float distance_value = 0;
         memcpy(&distance_value, pt_data + fields[distance_idx].offset, sizeof(float));
 
@@ -619,12 +619,12 @@ protected:
         }
         leaf_layout_.resize(new_layout_size, -1);
       }
-      catch (std::bad_alloc &)
+      catch (std::bad_alloc&)
       {
         throw PCLException("VoxelGrid bin size is too low; impossible to allocate memory for layout",
                            "voxel_grid.hpp", "applyFilter");
       }
-      catch (std::length_error &)
+      catch (std::length_error&)
       {
         throw PCLException("VoxelGrid bin size is too low; impossible to allocate memory for layout",
                            "voxel_grid.hpp", "applyFilter");
