@@ -46,8 +46,8 @@
 namespace mcl_3dl
 {
 void LidarMeasurementModelLikelihood::loadConfig(
-    const ros::NodeHandle &nh,
-    const std::string &name)
+    const ros::NodeHandle& nh,
+    const std::string& name)
 {
   ros::NodeHandle pnh(nh, name);
 
@@ -97,9 +97,9 @@ void LidarMeasurementModelLikelihood::setGlobalLocalizationStatus(
 
 typename pcl::PointCloud<LidarMeasurementModelBase::PointType>::Ptr
 LidarMeasurementModelLikelihood::filter(
-    const typename pcl::PointCloud<LidarMeasurementModelBase::PointType>::ConstPtr &pc) const
+    const typename pcl::PointCloud<LidarMeasurementModelBase::PointType>::ConstPtr& pc) const
 {
-  const auto local_points_filter = [this](const LidarMeasurementModelBase::PointType &p)
+  const auto local_points_filter = [this](const LidarMeasurementModelBase::PointType& p)
   {
     if (p.x * p.x + p.y * p.y > clip_far_sq_)
       return true;
@@ -120,10 +120,10 @@ LidarMeasurementModelLikelihood::filter(
 }
 
 LidarMeasurementResult LidarMeasurementModelLikelihood::measure(
-    typename ChunkedKdtree<LidarMeasurementModelBase::PointType>::Ptr &kdtree,
-    const typename pcl::PointCloud<LidarMeasurementModelBase::PointType>::ConstPtr &pc,
-    const std::vector<Vec3> &origins,
-    const State6DOF &s) const
+    typename ChunkedKdtree<LidarMeasurementModelBase::PointType>::Ptr& kdtree,
+    const typename pcl::PointCloud<LidarMeasurementModelBase::PointType>::ConstPtr& pc,
+    const std::vector<Vec3>& origins,
+    const State6DOF& s) const
 {
   if (!pc)
     return LidarMeasurementResult(1, 0);
@@ -137,7 +137,7 @@ LidarMeasurementResult LidarMeasurementModelLikelihood::measure(
   *pc_particle = *pc;
   s.transform(*pc_particle);
   size_t num = 0;
-  for (auto &p : pc_particle->points)
+  for (auto& p : pc_particle->points)
   {
     if (kdtree->radiusSearch(p, match_dist_min_, id, sqdist, 1))
     {

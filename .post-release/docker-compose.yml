@@ -1,0 +1,10 @@
+version: '2'
+services:
+  ros-mcl-3dl:
+    image: "mcl-3dl-shadow-fixed:${ROS_DISTRO}"
+    volumes:
+      - "/tmp/.X11-unix:/tmp/.X11-unix"
+    devices:
+      - "/dev/dri:/dev/dri"
+    environment:
+      DISPLAY: ":0"

@@ -48,7 +48,7 @@ public:
   {
     x_ = y_ = z_ = 0.0;
   }
-  float &operator[](const size_t i)
+  float& operator[](const size_t i)
   {
     switch (i)
     {
@@ -84,19 +84,19 @@ public:
     }
     return x_;
   }
-  bool operator==(const Vec3 &q) const
+  bool operator==(const Vec3& q) const
   {
     return x_ == q.x_ && y_ == q.y_ && z_ == q.z_;
   }
-  bool operator!=(const Vec3 &q) const
+  bool operator!=(const Vec3& q) const
   {
     return !operator==(q);
   }
-  Vec3 operator+(const Vec3 &q) const
+  Vec3 operator+(const Vec3& q) const
   {
     return Vec3(x_ + q.x_, y_ + q.y_, z_ + q.z_);
   }
-  Vec3 operator-(const Vec3 &q) const
+  Vec3 operator-(const Vec3& q) const
   {
     return Vec3(x_ - q.x_, y_ - q.y_, z_ - q.z_);
   }
@@ -104,45 +104,45 @@ public:
   {
     return Vec3(-x_, -y_, -z_);
   }
-  Vec3 operator*(const float &s) const
+  Vec3 operator*(const float& s) const
   {
     return Vec3(x_ * s, y_ * s, z_ * s);
   }
-  Vec3 operator/(const float &s) const
+  Vec3 operator/(const float& s) const
   {
     return Vec3(x_ / s, y_ / s, z_ / s);
   }
-  Vec3 &operator+=(const Vec3 &q)
+  Vec3& operator+=(const Vec3& q)
   {
     *this = *this + q;
     return *this;
   }
-  Vec3 &operator-=(const Vec3 &q)
+  Vec3& operator-=(const Vec3& q)
   {
     *this = *this - q;
     return *this;
   }
-  Vec3 &operator*=(const float &s)
+  Vec3& operator*=(const float& s)
   {
     *this = *this * s;
     return *this;
   }
-  Vec3 &operator/=(const float &s)
+  Vec3& operator/=(const float& s)
   {
     *this = *this / s;
     return *this;
   }
-  float dot(const Vec3 &q) const
+  float dot(const Vec3& q) const
   {
     return x_ * q.x_ + y_ * q.y_ + z_ * q.z_;
   }
-  Vec3 cross(const Vec3 &q) const
+  Vec3 cross(const Vec3& q) const
   {
     return Vec3(y_ * q.z_ - z_ * q.y_,
                 z_ * q.x_ - x_ * q.z_,
                 x_ * q.y_ - y_ * q.x_);
   }
-  Vec3 times(const Vec3 &q) const
+  Vec3 times(const Vec3& q) const
   {
     return Vec3(x_ * q.x_, y_ * q.y_, z_ * q.z_);
   }

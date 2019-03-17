@@ -44,11 +44,11 @@ template <typename FLT_TYPE = float>
 class ParticleBase
 {
 public:
-  virtual FLT_TYPE &operator[](const size_t i) = 0;
+  virtual FLT_TYPE& operator[](const size_t i) = 0;
   virtual size_t size() const = 0;
   virtual void normalize() = 0;
   template <typename T>
-  T operator+(const T &a)
+  T operator+(const T& a)
   {
     T in = a;
     T ret;
@@ -60,14 +60,14 @@ public:
   }
   template <typename T>
   FLT_TYPE covElement(
-      const T &e, const size_t &j, const size_t &k)
+      const T& e, const size_t& j, const size_t& k)
   {
     T exp = e;
     return ((*this)[k] - exp[k]) * ((*this)[j] - exp[j]);
   }
   template <typename T>
   static T generateNoise(
-      std::default_random_engine &engine_,
+      std::default_random_engine& engine_,
       T mean, T sigma)
   {
     T noise;
@@ -99,7 +99,7 @@ public:
   FLT_TYPE probability_;
   FLT_TYPE probability_bias_;
   FLT_TYPE accum_probability_;
-  bool operator<(const Particle &p2) const
+  bool operator<(const Particle& p2) const
   {
     return this->accum_probability_ < p2.accum_probability_;
   }
@@ -119,7 +119,7 @@ public:
   {
   }
 
-  void add(const T &s, const FLT_TYPE &prob)
+  void add(const T& s, const FLT_TYPE& prob)
   {
     p_sum_ += prob;
 
@@ -162,7 +162,7 @@ public:
   }
   void init(T mean, T sigma)
   {
-    for (auto &p : particles_)
+    for (auto& p : particles_)
     {
       p.state_ = T::generateNoise(engine_, mean, sigma);
       p.probability_ = 1.0 / particles_.size();
@@ -171,7 +171,7 @@ public:
   void resample(T sigma)
   {
     FLT_TYPE accum = 0;
-    for (auto &p : particles_)
+    for (auto& p : particles_)
     {
       accum += p.probability_;
       p.accum_probability_ = accum;
@@ -186,7 +186,7 @@ public:
     auto it_prev = particles_dup_.begin();
 
     const FLT_TYPE prob = 1.0 / particles_.size();
-    for (auto &p : particles_)
+    for (auto& p : particles_)
     {
       it = std::lower_bound(it, particles_dup_.end(), Particle<T, FLT_TYPE>(pscan));
       pscan += pstep;
@@ -210,37 +210,37 @@ public:
   }
   void noise(T sigma)
   {
-    for (auto &p : particles_)
+    for (auto& p : particles_)
     {
       p.state_ = p.state_ + T::generateNoise(engine_, T(), sigma);
     }
   }
-  void predict(std::function<void(T &)> model)
+  void predict(std::function<void(T&)> model)
   {
-    for (auto &p : particles_)
+    for (auto& p : particles_)
     {
       model(p.state_);
     }
   }
-  void bias(std::function<void(const T &, float &p_bias)> prob)
+  void bias(std::function<void(const T&, float& p_bias)> prob)
   {
-    for (auto &p : particles_)
+    for (auto& p : particles_)
     {
       prob(p.state_, p.probability_bias_);
     }
   }
-  void measure(std::function<FLT_TYPE(const T &)> likelihood)
+  void measure(std::function<FLT_TYPE(const T&)> likelihood)
   {
     auto particles_prev = particles_;  // backup old
     FLT_TYPE sum = 0;
-    for (auto &p : particles_)
+    for (auto& p : particles_)
     {
       p.probability_ *= likelihood(p.state_);
       sum += p.probability_;
     }
     if (sum > 0.0)
     {
-      for (auto &p : particles_)
+      for (auto& p : particles_)
       {
         p.probability_ /= sum;
       }
@@ -257,7 +257,7 @@ public:
 
     if (pass_ratio < 1.0)
       std::sort(particles_.rbegin(), particles_.rend());
-    for (auto &p : particles_)
+    for (auto& p : particles_)
     {
       mean.add(p.state_, p.probability_);
       if (mean.getTotalProbability() > pass_ratio)
@@ -269,7 +269,7 @@ public:
   {
     MEAN mean;
 
-    for (auto &p : particles_)
+    for (auto& p : particles_)
     {
       mean.add(p.state_, p.probability_ * p.probability_bias_);
     }
@@ -283,7 +283,7 @@ public:
     std::vector<T> cov;
     cov.resize(e.size());
 
-    for (auto &p : particles_)
+    for (auto& p : particles_)
     {
       p_num++;
       p_sum += p.probability_;
@@ -291,7 +291,7 @@ public:
         break;
     }
     p_sum = 0;
-    for (auto &p : particles_)
+    for (auto& p : particles_)
     {
       for (size_t j = 0; j < ie_.size(); j++)
       {
@@ -318,9 +318,9 @@ public:
   }
   T max()
   {
-    T *m = &particles_[0].state_;
+    T* m = &particles_[0].state_;
     FLT_TYPE max_probability = particles_[0].probability_;
-    for (auto &p : particles_)
+    for (auto& p : particles_)
     {
       if (max_probability < p.probability_)
       {
@@ -332,10 +332,10 @@ public:
   }
   T maxBiased()
   {
-    T *m = &particles_[0].state_;
+    T* m = &particles_[0].state_;
     FLT_TYPE max_probability =
         particles_[0].probability_ * particles_[0].probability_bias_;
-    for (auto &p : particles_)
+    for (auto& p : particles_)
     {
       const FLT_TYPE prob = p.probability_ * p.probability_bias_;
       if (max_probability < prob)
@@ -357,7 +357,7 @@ public:
   void resizeParticle(const size_t num)
   {
     FLT_TYPE accum = 0;
-    for (auto &p : particles_)
+    for (auto& p : particles_)
     {
       accum += p.probability_;
       p.accum_probability_ = accum;
@@ -374,7 +374,7 @@ public:
     particles_.resize(num);
 
     FLT_TYPE prob = 1.0 / num;
-    for (auto &p : particles_)
+    for (auto& p : particles_)
     {
       pscan += pstep;
       it = std::lower_bound(it, particles_dup_.end(),
@@ -391,6 +391,12 @@ public:
       }
       it_prev = it;
     }
+  }
+  typename std::vector<Particle<T, FLT_TYPE>>::iterator appendParticle(const size_t num)
+  {
+    const size_t size_orig = particles_.size();
+    particles_.resize(size_orig + num);
+    return begin() + size_orig;
   }
   typename std::vector<Particle<T, FLT_TYPE>>::iterator begin()
   {

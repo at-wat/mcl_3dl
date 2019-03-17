@@ -55,23 +55,23 @@ public:
     const int y_;
     const int z_;
 
-    constexpr bool operator==(const ChunkId &a) const
+    constexpr bool operator==(const ChunkId& a) const
     {
       return x_ == a.x_ && y_ == a.y_ && z_ == a.z_;
     }
-    constexpr bool operator!=(const ChunkId &a) const
+    constexpr bool operator!=(const ChunkId& a) const
     {
       return !operator==(a);
     }
-    constexpr ChunkId operator+(const ChunkId &a) const
+    constexpr ChunkId operator+(const ChunkId& a) const
     {
       return ChunkId(x_ + a.x_, y_ + a.y_, z_ + a.z_);
     }
-    size_t operator()(const ChunkId &id) const
+    size_t operator()(const ChunkId& id) const
     {
       return (id.x_) ^ (id.y_ << 11) ^ (id.z_ << 22);
     }
-    ChunkId(const int &x, const int &y, const int &z)
+    ChunkId(const int& x, const int& y, const int& z)
       : x_(x)
       , y_(y)
       , z_(z)
@@ -101,7 +101,7 @@ public:
   {
     epsilon_ = epsilon;
     set_epsilon_ = true;
-    for (auto &chunk : chunks_)
+    for (auto& chunk : chunks_)
     {
       chunk.second.kdtree_->setEpsilon(epsilon_);
     }
@@ -110,7 +110,7 @@ public:
       boost::shared_ptr<pcl::PointRepresentation<POINT_TYPE>> point_rep)
   {
     point_rep_ = point_rep;
-    for (auto &chunk : chunks_)
+    for (auto& chunk : chunks_)
     {
       chunk.second.kdtree_->setPointRepresentation(point_rep_);
     }
@@ -123,7 +123,7 @@ public:
     ChunkOriginalIds ids;
     ChunkCloud clouds;
     size_t i = 0;
-    for (auto &p : *cloud)
+    for (auto& p : *cloud)
     {
       const auto chunk_id = getChunkId(p);
       clouds[chunk_id].push_back(p);
@@ -194,7 +194,7 @@ public:
       }
       ++i;
     }
-    for (auto &cloud : clouds)
+    for (auto& cloud : clouds)
     {
       if (point_rep_)
         chunks_[cloud.first].kdtree_->setPointRepresentation(point_rep_);
@@ -208,11 +208,11 @@ public:
     }
   }
   int radiusSearch(
-      const POINT_TYPE &p,
-      const float &radius,
-      std::vector<int> &id,
-      std::vector<float> &dist_sq,
-      const size_t &num)
+      const POINT_TYPE& p,
+      const float& radius,
+      std::vector<int>& id,
+      std::vector<float>& dist_sq,
+      const size_t& num)
   {
     if (radius > chunk_length_)
       throw std::runtime_error("ChunkedKdtree: radius must be <chunk_length");
@@ -223,7 +223,7 @@ public:
 
     const auto ret = chunks_[chunk_id].kdtree_->radiusSearch(p, radius, id, dist_sq, num);
 
-    for (auto &i : id)
+    for (auto& i : id)
       i = chunks_[chunk_id].original_ids_[i];
 
     return ret;
@@ -232,7 +232,7 @@ public:
   {
     return getChunkKdtree(getChunkId(p));
   }
-  typename pcl::KdTreeFLANN<POINT_TYPE>::Ptr getChunkKdtree(const ChunkId &c)
+  typename pcl::KdTreeFLANN<POINT_TYPE>::Ptr getChunkKdtree(const ChunkId& c)
   {
     if (chunks_.find(c) == chunks_.end())
       return typename pcl::KdTreeFLANN<POINT_TYPE>::Ptr();
@@ -242,7 +242,7 @@ public:
   {
     return getChunkCloud(getChunkId(p));
   }
-  typename pcl::PointCloud<POINT_TYPE>::Ptr getChunkCloud(const ChunkId &c)
+  typename pcl::PointCloud<POINT_TYPE>::Ptr getChunkCloud(const ChunkId& c)
   {
     if (!keep_clouds_ || chunks_.find(c) == chunks_.end())
       return typename pcl::PointCloud<POINT_TYPE>::Ptr();

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>mcl_3dl</name>
-  <version>0.1.3</version>
+  <version>0.1.4</version>
   <description>3-D/6-DOF localization for mobile robots with 3-D LIDAR(s)</description>
 
   <maintainer email="atsushi.w@ieee.org">Atsushi Watanabe</maintainer>
@@ -21,7 +21,10 @@
   <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
   <depend>std_srvs</depend>
-  <depend>tf</depend>
+  <depend>tf2</depend>
+  <depend>tf2_geometry_msgs</depend>
+  <depend>tf2_ros</depend>
+  <depend>tf2_sensor_msgs</depend>
   <depend>visualization_msgs</depend>
 
   <depend>mcl_3dl_msgs</depend>

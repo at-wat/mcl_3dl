@@ -48,7 +48,7 @@ TEST(PointCloudRandomSampler, Sampling)
         { 20, 21, 22 },
         { 30, 31, 32 }
       };
-  for (const auto &p_ref : points_ref)
+  for (const auto& p_ref : points_ref)
   {
     pc_input->push_back(pcl::PointXYZ(p_ref[0], p_ref[1], p_ref[2]));
   }
@@ -66,10 +66,10 @@ TEST(PointCloudRandomSampler, Sampling)
     ASSERT_EQ(pc_output->width, num);
 
     // Check that the all sampled points are in the original point array
-    for (const pcl::PointXYZ &p : *pc_output)
+    for (const pcl::PointXYZ& p : *pc_output)
     {
       bool found = false;
-      for (const auto &p_ref : points_ref)
+      for (const auto& p_ref : points_ref)
       {
         if (p_ref[0] == p.x && p_ref[1] == p.y && p_ref[2] == p.z)
         {
@@ -86,7 +86,7 @@ TEST(PointCloudRandomSampler, Sampling)
   ASSERT_EQ(pc_output0->points.size(), 0u);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
 

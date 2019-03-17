@@ -39,7 +39,7 @@ class State : public mcl_3dl::pf::ParticleBase<float>
 {
 public:
   float x;
-  float &operator[](const size_t i)override
+  float& operator[](const size_t i)override
   {
     switch (i)
     {
@@ -48,7 +48,7 @@ public:
     }
     return x;
   }
-  const float &operator[](const size_t i) const
+  const float& operator[](const size_t i) const
   {
     switch (i)
     {
@@ -97,7 +97,7 @@ TEST(Pf, BayesianEstimation)
       ASSERT_NEAR(center, pf.expectation()[0], abs_error);
       ASSERT_NEAR(sigma, pf.covariance()[0][0], abs_error);
 
-      auto likelihood = [center2, sigma2](const State &s) -> float
+      auto likelihood = [center2, sigma2](const State& s) -> float
       {
         return exp(-powf(s[0] - center2, 2.0) / (2.0 * powf(sigma2, 2.0)));
       };
@@ -199,7 +199,46 @@ TEST(Pf, ResampleFlatLikelihood)
     ASSERT_EQ(pf.getParticle(i)[0], orig[i]);
 }
 
-int main(int argc, char **argv)
+TEST(Pf, Iterators)
+{
+  mcl_3dl::pf::ParticleFilter<State, float> pf(10);
+  const float val0 = 12.3;
+  const float val1 = 45.6;
+  pf.init(
+      State(val0),
+      State(0.0));
+
+  for (auto it = pf.begin(); it != pf.end(); ++it)
+  {
+    ASSERT_EQ(it->state_[0], val0);
+    it->state_[0] = val1;
+  }
+  for (auto it = pf.begin(); it != pf.end(); ++it)
+    ASSERT_EQ(it->state_[0], val1);
+}
+
+TEST(Pf, AppendParticles)
+{
+  mcl_3dl::pf::ParticleFilter<State, float> pf(10);
+  const float val0 = 12.3;
+  const float val1 = 45.6;
+  pf.init(
+      State(val0),
+      State(0.0));
+  // particles 0-9 has val0
+
+  for (auto it = pf.appendParticle(10); it != pf.end(); ++it)
+    it->state_[0] = val1;
+  // appended particles 10-19 has val1
+
+  ASSERT_EQ(pf.getParticleSize(), 20u);
+  for (size_t i = 0; i < 10; ++i)
+    ASSERT_EQ(pf.getParticle(i)[0], val0);
+  for (size_t i = 10; i < 20; ++i)
+    ASSERT_EQ(pf.getParticle(i)[0], val1);
+}
+
+int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
 
