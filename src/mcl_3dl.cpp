@@ -166,8 +166,8 @@ protected:
     pose_in.pose = msg->pose.pose;
     try
     {
-      geometry_msgs::TransformStamped trans =
-          tfbuf_.lookupTransform(frame_ids_["map"], pose_in.header.frame_id, pose_in.header.stamp, ros::Duration(1.0));
+      const geometry_msgs::TransformStamped trans = tfbuf_.lookupTransform(
+          frame_ids_["map"], pose_in.header.frame_id, pose_in.header.stamp, ros::Duration(1.0));
       tf2::doTransform(pose_in, pose, trans);
     }
     catch (tf2::TransformException& e)
@@ -265,7 +265,7 @@ protected:
     sensor_msgs::PointCloud2 pc_bl;
     try
     {
-      geometry_msgs::TransformStamped trans = tfbuf_.lookupTransform(
+      const geometry_msgs::TransformStamped trans = tfbuf_.lookupTransform(
           frame_ids_["odom"], msg->header.frame_id, msg->header.stamp, ros::Duration(0.1));
       tf2::doTransform(*msg, pc_bl, trans);
     }
@@ -345,7 +345,7 @@ protected:
     {
       try
       {
-        geometry_msgs::TransformStamped trans = tfbuf_.lookupTransform(
+        const geometry_msgs::TransformStamped trans = tfbuf_.lookupTransform(
             frame_ids_["base_link"], msg->header.stamp, h.frame_id, h.stamp, frame_ids_["odom"]);
         origins.push_back(Vec3(trans.transform.translation.x,
                                trans.transform.translation.y,
@@ -935,13 +935,11 @@ protected:
         in.x = acc_measure.x_;
         in.y = acc_measure.y_;
         in.z = acc_measure.z_;
-        geometry_msgs::TransformStamped trans = tfbuf_.lookupTransform(
-            frame_ids_["base_link"], msg->header.frame_id, msg->header.stamp, ros::Duration(0.1));
+        // assuming imu frame is regit on base_link
+        const geometry_msgs::TransformStamped trans = tfbuf_.lookupTransform(
+            frame_ids_["base_link"], msg->header.frame_id, ros::Time(0));
         tf2::doTransform(in, out, trans);
         acc_measure = Vec3(out.x, out.y, out.z);
-
-        // Static transform
-        trans = tfbuf_.lookupTransform(frame_ids_["base_link"], msg->header.frame_id, ros::Time(0));
 
         imu_quat_.x_ = msg->orientation.x;
         imu_quat_.y_ = msg->orientation.y;
