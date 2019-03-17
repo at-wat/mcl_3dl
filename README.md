@@ -87,4 +87,5 @@ A configuration file for clang-format is available at https://github.com/seqsens
 
 ## License
 
-*mcl_3dl* is available under BSD license.
+*mcl_3dl* is [provided under the BSD license](LICENSE).
+This repository contains backport of [Point Cloud Library (PCL) 1.8, provided under the BSD license](LICENSE.pcl-backports).
