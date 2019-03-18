@@ -43,6 +43,24 @@
 
 namespace mcl_3dl
 {
+namespace
+{
+template <typename PointTIn, typename PointTOut>
+bool fromROSMsgImpl(
+    const sensor_msgs::PointCloud2& msg, pcl::PointCloud<PointTOut>& pc)
+{
+  typename pcl::PointCloud<PointTIn>::Ptr raw(new typename pcl::PointCloud<PointTIn>);
+  pcl::fromROSMsg(msg, *raw);
+  if (raw->points.size() == 0)
+  {
+    ROS_ERROR("Given PointCloud2 is empty");
+    return false;
+  }
+  pcl::copyPointCloud(*raw, pc);
+  return true;
+}
+}  // namespace
+
 template <typename PointT>
 bool fromROSMsg(
     const sensor_msgs::PointCloud2& msg, pcl::PointCloud<PointT>& pc)
@@ -54,32 +72,13 @@ bool fromROSMsg(
 
   if (x_idx == -1 || y_idx == -1 || z_idx == -1)
   {
-    ROS_ERROR("Given PointCloud2 don't have x, y, z fields");
+    ROS_ERROR("Given PointCloud2 doesn't have x, y, z fields");
     return false;
   }
   if (intensity_idx != -1)
-  {
-    pcl::PointCloud<pcl::PointXYZI>::Ptr raw(new pcl::PointCloud<pcl::PointXYZI>);
-    pcl::fromROSMsg(msg, *raw);
-    if (raw->points.size() == 0)
-    {
-      ROS_ERROR("Given PointCloud2 is empty");
-      return false;
-    }
-    pcl::copyPointCloud(*raw, pc);
-  }
-  else
-  {
-    pcl::PointCloud<pcl::PointXYZ>::Ptr raw(new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::fromROSMsg(msg, *raw);
-    if (raw->points.size() == 0)
-    {
-      ROS_ERROR("Given PointCloud2 is empty");
-      return false;
-    }
-    pcl::copyPointCloud(*raw, pc);
-  }
-  return true;
+    return fromROSMsgImpl<pcl::PointXYZI, PointT>(msg, pc);
+
+  return fromROSMsgImpl<pcl::PointXYZ, PointT>(msg, pc);
 }
 }  // namespace mcl_3dl
 #endif  // MCL_3DL_POINT_CONVERSION_H
