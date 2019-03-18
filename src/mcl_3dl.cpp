@@ -77,6 +77,7 @@
 #include <mcl_3dl/nd.h>
 #include <mcl_3dl/parameters.h>
 #include <mcl_3dl/pf.h>
+#include <mcl_3dl/point_conversion.h>
 #include <mcl_3dl/point_types.h>
 #include <mcl_3dl/quat.h>
 #include <mcl_3dl/raycast.h>
@@ -112,16 +113,12 @@ protected:
   void cbMapcloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
   {
     ROS_INFO("map received");
-    pcl::PointCloud<pcl::PointXYZI>::Ptr pc_tmp_raw(new pcl::PointCloud<pcl::PointXYZI>);
-    pcl::fromROSMsg(*msg, *pc_tmp_raw);
-    if (pc_tmp_raw->points.size() == 0)
+    pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr pc_tmp(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
+    if (!mcl_3dl::fromROSMsg(*msg, *pc_tmp))
     {
-      ROS_ERROR("Empty map received.");
       has_map_ = false;
       return;
     }
-    pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr pc_tmp(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
-    pcl::copyPointCloud(*pc_tmp_raw, *pc_tmp);
 
     pc_map_.reset(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
     pc_map2_.reset();
@@ -143,14 +140,9 @@ protected:
   void cbMapcloudUpdate(const sensor_msgs::PointCloud2::ConstPtr& msg)
   {
     ROS_INFO("map_update received");
-    pcl::PointCloud<pcl::PointXYZI>::Ptr pc_tmp_raw(new pcl::PointCloud<pcl::PointXYZI>);
-    pcl::fromROSMsg(*msg, *pc_tmp_raw);
-    if (pc_tmp_raw->points.size() == 0)
-    {
-      return;
-    }
     pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr pc_tmp(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
-    pcl::copyPointCloud(*pc_tmp_raw, *pc_tmp);
+    if (!mcl_3dl::fromROSMsg(*msg, *pc_tmp))
+      return;
 
     pc_update_.reset(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
     pcl::VoxelGrid18<mcl_3dl::PointXYZIL> ds;
@@ -276,14 +268,9 @@ protected:
       pc_accum_header_.clear();
       return;
     }
-    pcl::PointCloud<pcl::PointXYZI>::Ptr pc_tmp_raw(new pcl::PointCloud<pcl::PointXYZI>);
-    pcl::fromROSMsg(pc_bl, *pc_tmp_raw);
-    if (pc_tmp_raw->points.size() == 0)
-    {
-      return;
-    }
     pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr pc_tmp(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
-    pcl::copyPointCloud(*pc_tmp_raw, *pc_tmp);
+    if (!mcl_3dl::fromROSMsg(pc_bl, *pc_tmp))
+      return;
 
     for (auto& p : pc_tmp->points)
     {
