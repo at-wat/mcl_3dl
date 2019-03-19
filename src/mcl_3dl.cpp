@@ -91,11 +91,12 @@ namespace mcl_3dl
 class MCL3dlNode
 {
 protected:
+  using PointType = mcl_3dl::PointXYZIL;
   std::shared_ptr<pf::ParticleFilter<State6DOF, float, ParticleWeightedMeanQuat>> pf_;
 
-  class MyPointRepresentation : public pcl::PointRepresentation<mcl_3dl::PointXYZIL>
+  class MyPointRepresentation : public pcl::PointRepresentation<PointType>
   {
-    using pcl::PointRepresentation<mcl_3dl::PointXYZIL>::nr_dimensions_;
+    using pcl::PointRepresentation<PointType>::nr_dimensions_;
 
   public:
     MyPointRepresentation()
@@ -103,7 +104,7 @@ protected:
       nr_dimensions_ = 3;
     }
 
-    virtual void copyToFloatArray(const mcl_3dl::PointXYZIL& p, float* out) const
+    virtual void copyToFloatArray(const PointType& p, float* out) const
     {
       out[0] = p.x;
       out[1] = p.y;
@@ -113,22 +114,22 @@ protected:
   void cbMapcloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
   {
     ROS_INFO("map received");
-    pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr pc_tmp(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
+    pcl::PointCloud<PointType>::Ptr pc_tmp(new pcl::PointCloud<PointType>);
     if (!mcl_3dl::fromROSMsg(*msg, *pc_tmp))
     {
       has_map_ = false;
       return;
     }
 
-    pc_map_.reset(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
+    pc_map_.reset(new pcl::PointCloud<PointType>);
     pc_map2_.reset();
     pc_update_.reset();
-    pcl::VoxelGrid18<mcl_3dl::PointXYZIL> ds;
+    pcl::VoxelGrid18<PointType> ds;
     ds.setInputCloud(pc_tmp);
     ds.setLeafSize(params_.map_downsample_x_, params_.map_downsample_y_, params_.map_downsample_z_);
     ds.filter(*pc_map_);
-    pc_local_accum_.reset(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
-    pc_all_accum_.reset(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
+    pc_local_accum_.reset(new pcl::PointCloud<PointType>);
+    pc_all_accum_.reset(new pcl::PointCloud<PointType>);
     frame_num_ = 0;
     has_map_ = true;
 
@@ -140,12 +141,12 @@ protected:
   void cbMapcloudUpdate(const sensor_msgs::PointCloud2::ConstPtr& msg)
   {
     ROS_INFO("map_update received");
-    pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr pc_tmp(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
+    pcl::PointCloud<PointType>::Ptr pc_tmp(new pcl::PointCloud<PointType>);
     if (!mcl_3dl::fromROSMsg(*msg, *pc_tmp))
       return;
 
-    pc_update_.reset(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
-    pcl::VoxelGrid18<mcl_3dl::PointXYZIL> ds;
+    pc_update_.reset(new pcl::PointCloud<PointType>);
+    pcl::VoxelGrid18<PointType> ds;
     ds.setInputCloud(pc_tmp);
     ds.setLeafSize(params_.update_downsample_x_, params_.update_downsample_y_, params_.update_downsample_z_);
     ds.filter(*pc_update_);
@@ -264,11 +265,11 @@ protected:
     catch (tf2::TransformException& e)
     {
       ROS_INFO("Failed to transform pointcloud: %s", e.what());
-      pc_local_accum_.reset(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
+      pc_local_accum_.reset(new pcl::PointCloud<PointType>);
       pc_accum_header_.clear();
       return;
     }
-    pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr pc_tmp(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
+    pcl::PointCloud<PointType>::Ptr pc_tmp(new pcl::PointCloud<PointType>);
     if (!mcl_3dl::fromROSMsg(pc_bl, *pc_tmp))
       return;
 
@@ -296,7 +297,7 @@ protected:
     cnt_measure_++;
     if (cnt_measure_ % params_.skip_measure_ != 0)
     {
-      pc_local_accum_.reset(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
+      pc_local_accum_.reset(new pcl::PointCloud<PointType>);
       pc_accum_header_.clear();
       return;
     }
@@ -323,7 +324,7 @@ protected:
     catch (tf2::TransformException& e)
     {
       ROS_INFO("Failed to transform pointcloud: %s", e.what());
-      pc_local_accum_.reset(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
+      pc_local_accum_.reset(new pcl::PointCloud<PointType>);
       pc_accum_header_.clear();
       return;
     }
@@ -341,7 +342,7 @@ protected:
       catch (tf2::TransformException& e)
       {
         ROS_INFO("Failed to transform pointcloud: %s", e.what());
-        pc_local_accum_.reset(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
+        pc_local_accum_.reset(new pcl::PointCloud<PointType>);
         pc_accum_header_.clear();
         return;
       }
@@ -349,13 +350,13 @@ protected:
 
     const auto ts = boost::chrono::high_resolution_clock::now();
 
-    pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr pc_local_full(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
-    pcl::VoxelGrid18<mcl_3dl::PointXYZIL> ds;
+    pcl::PointCloud<PointType>::Ptr pc_local_full(new pcl::PointCloud<PointType>);
+    pcl::VoxelGrid18<PointType> ds;
     ds.setInputCloud(pc_local_accum_);
     ds.setLeafSize(params_.downsample_x_, params_.downsample_y_, params_.downsample_z_);
     ds.filter(*pc_local_full);
 
-    std::map<std::string, pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr> pc_locals;
+    std::map<std::string, pcl::PointCloud<PointType>::Ptr> pc_locals;
     for (auto& lm : lidar_measurements_)
     {
       lm.second->setGlobalLocalizationStatus(
@@ -443,7 +444,7 @@ protected:
     {
       visualization_msgs::MarkerArray markers;
 
-      pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr pc_particle_beam(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
+      pcl::PointCloud<PointType>::Ptr pc_particle_beam(new pcl::PointCloud<PointType>);
       *pc_particle_beam = *pc_locals["beam"];
       e.transform(*pc_particle_beam);
       for (auto& p : pc_particle_beam->points)
@@ -495,7 +496,7 @@ protected:
       for (auto& p : pc_particle_beam->points)
       {
         const int beam_header_id = p.label;
-        Raycast<mcl_3dl::PointXYZIL> ray(
+        Raycast<PointType> ray(
             kdtree_,
             e.pos_ + e.rot_ * origins[beam_header_id],
             Vec3(p.x, p.y, p.z),
@@ -535,7 +536,7 @@ protected:
         }
       }
 
-      pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr pc_particle(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
+      pcl::PointCloud<PointType>::Ptr pc_particle(new pcl::PointCloud<PointType>);
       *pc_particle = *pc_locals["likelihood"];
       e.transform(*pc_particle);
       for (auto& p : pc_particle->points)
@@ -687,7 +688,7 @@ protected:
 
     if (output_pcd_)
     {
-      pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr pc_particle(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
+      pcl::PointCloud<PointType>::Ptr pc_particle(new pcl::PointCloud<PointType>);
       *pc_particle = *pc_locals["likelihood"];
       e.transform(*pc_particle);
       *pc_all_accum_ += *pc_particle;
@@ -706,7 +707,7 @@ protected:
       pc_unmatch.header.stamp = msg->header.stamp;
       pc_unmatch.header.frame_id = frame_ids_["map"];
 
-      pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr pc_local(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
+      pcl::PointCloud<PointType>::Ptr pc_local(new pcl::PointCloud<PointType>);
       *pc_local = *pc_local_full;
 
       e.transform(*pc_local);
@@ -822,7 +823,7 @@ protected:
                params_.expansion_var_yaw_)));
       status.status = mcl_3dl_msgs::Status::EXPANSION_RESETTING;
     }
-    pc_local_accum_.reset(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
+    pc_local_accum_.reset(new pcl::PointCloud<PointType>);
     pc_accum_header_.clear();
 
     ros::Time localized_current = ros::Time::now();
@@ -987,9 +988,9 @@ protected:
       response.message = "No map received.";
       return true;
     }
-    pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr points(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
+    pcl::PointCloud<PointType>::Ptr points(new pcl::PointCloud<PointType>);
 
-    pcl::VoxelGrid18<mcl_3dl::PointXYZIL> ds;
+    pcl::VoxelGrid18<PointType> ds;
     ds.setInputCloud(pc_map_);
     ds.setLeafSize(
         params_.global_localization_grid_,
@@ -997,14 +998,14 @@ protected:
         params_.global_localization_grid_);
     ds.filter(*points);
 
-    pcl::KdTreeFLANN<mcl_3dl::PointXYZIL>::Ptr kdtree(new pcl::KdTreeFLANN<mcl_3dl::PointXYZIL>);
+    pcl::KdTreeFLANN<PointType>::Ptr kdtree(new pcl::KdTreeFLANN<PointType>);
     kdtree->setPointRepresentation(
         boost::dynamic_pointer_cast<
-            pcl::PointRepresentation<mcl_3dl::PointXYZIL>,
+            pcl::PointRepresentation<PointType>,
             MyPointRepresentation>(boost::make_shared<MyPointRepresentation>(point_rep_)));
     kdtree->setInputCloud(points);
 
-    auto pc_filter = [this, kdtree](const mcl_3dl::PointXYZIL& p)
+    auto pc_filter = [this, kdtree](const PointType& p)
     {
       std::vector<int> id(1);
       std::vector<float> sqdist(1);
@@ -1263,11 +1264,11 @@ public:
     double map_chunk;
     pnh_.param("map_chunk", map_chunk, 20.0);
     ROS_DEBUG("max_search_radius: %0.3f", max_search_radius);
-    kdtree_.reset(new ChunkedKdtree<mcl_3dl::PointXYZIL>(map_chunk, max_search_radius));
+    kdtree_.reset(new ChunkedKdtree<PointType>(map_chunk, max_search_radius));
     kdtree_->setEpsilon(params_.map_grid_min_ / 16);
     kdtree_->setPointRepresentation(
         boost::dynamic_pointer_cast<
-            pcl::PointRepresentation<mcl_3dl::PointXYZIL>,
+            pcl::PointRepresentation<PointType>,
             MyPointRepresentation>(boost::make_shared<MyPointRepresentation>(point_rep_)));
 
     map_update_timer_ = nh_.createTimer(
@@ -1292,7 +1293,7 @@ public:
       if (pc_update_)
       {
         if (!pc_map2_)
-          pc_map2_.reset(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
+          pc_map2_.reset(new pcl::PointCloud<PointType>);
         *pc_map2_ = *pc_map_ + *pc_update_;
         pc_update_.reset();
       }
@@ -1371,12 +1372,12 @@ protected:
 
   MyPointRepresentation point_rep_;
 
-  pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr pc_map_;
-  pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr pc_map2_;
-  pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr pc_update_;
-  pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr pc_all_accum_;
-  pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr pc_local_accum_;
-  ChunkedKdtree<mcl_3dl::PointXYZIL>::Ptr kdtree_;
+  pcl::PointCloud<PointType>::Ptr pc_map_;
+  pcl::PointCloud<PointType>::Ptr pc_map2_;
+  pcl::PointCloud<PointType>::Ptr pc_update_;
+  pcl::PointCloud<PointType>::Ptr pc_all_accum_;
+  pcl::PointCloud<PointType>::Ptr pc_local_accum_;
+  ChunkedKdtree<PointType>::Ptr kdtree_;
   std::vector<std_msgs::Header> pc_accum_header_;
 
   std::map<

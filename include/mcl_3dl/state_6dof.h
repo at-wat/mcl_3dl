@@ -177,7 +177,8 @@ public:
   {
     return diff_;
   }
-  void transform(pcl::PointCloud<mcl_3dl::PointXYZIL>& pc) const
+  template <typename PointType>
+  void transform(pcl::PointCloud<PointType>& pc) const
   {
     const auto r = rot_.normalized();
     for (auto& p : pc.points)

@@ -109,7 +109,8 @@ LidarMeasurementModelLikelihood::filter(
       return true;
     return false;
   };
-  pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr pc_filtered(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
+  pcl::PointCloud<LidarMeasurementModelBase::PointType>::Ptr pc_filtered(
+      new pcl::PointCloud<LidarMeasurementModelBase::PointType>);
   *pc_filtered = *pc;
   pc_filtered->erase(
       std::remove_if(pc_filtered->begin(), pc_filtered->end(), local_points_filter), pc_filtered->end());
@@ -129,7 +130,8 @@ LidarMeasurementResult LidarMeasurementModelLikelihood::measure(
     return LidarMeasurementResult(1, 0);
   if (pc->size() == 0)
     return LidarMeasurementResult(1, 0);
-  pcl::PointCloud<mcl_3dl::PointXYZIL>::Ptr pc_particle(new pcl::PointCloud<mcl_3dl::PointXYZIL>);
+  pcl::PointCloud<LidarMeasurementModelBase::PointType>::Ptr pc_particle(
+      new pcl::PointCloud<LidarMeasurementModelBase::PointType>);
   std::vector<int> id(1);
   std::vector<float> sqdist(1);
 
