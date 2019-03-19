@@ -86,6 +86,13 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O1")
 include_directories(${catkin_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${PCL_INCLUDE_DIR} include)
 add_definitions(${PCL_DEFINITIONS})
 
+if(PCL_VERSION VERSION_LESS 1.8.0)
+  add_definitions(-DBACKPORT_PCL_VOXEL_GRID)
+endif()
+if(PCL_VERSION VERSION_LESS 1.7.2)
+  add_definitions(-DBACKPORT_PCL_CENTROID)
+endif()
+
 # Binary installed pcl provided by Linux distro is built with -march=native
 # which causes a lot of compatibility problems.
 # Define PCL_NO_PRECOMPILE to disable using the binary version.
@@ -95,6 +102,7 @@ add_executable(mcl_3dl
   src/lidar_measurement_model_beam.cpp
   src/lidar_measurement_model_likelihood.cpp
   src/mcl_3dl.cpp
+  src/point_types.cpp
 )
 target_link_libraries(mcl_3dl ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${PCL_LIBRARIES})
 add_dependencies(mcl_3dl ${catkin_EXPORTED_TARGETS})

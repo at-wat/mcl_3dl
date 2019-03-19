@@ -10,8 +10,8 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the copyright holder nor the names of its 
- *       contributors may be used to endorse or promote products derived from 
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -27,59 +27,34 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef MCL_3DL_LIDAR_MEASUREMENT_MODEL_BASE_H
-#define MCL_3DL_LIDAR_MEASUREMENT_MODEL_BASE_H
-
-#include <string>
-#include <utility>
-#include <vector>
-
-#include <ros/ros.h>
+#ifndef MCL_3DL_POINT_TYPES_H
+#define MCL_3DL_POINT_TYPES_H
 
 #include <pcl/point_types.h>
-#include <pcl_ros/point_cloud.h>
-
-#include <mcl_3dl/chunked_kdtree.h>
-#include <mcl_3dl/point_types.h>
-#include <mcl_3dl/state_6dof.h>
-#include <mcl_3dl/vec3.h>
+#include <pcl/point_cloud.h>
 
 namespace mcl_3dl
 {
-struct LidarMeasurementResult
+struct EIGEN_ALIGN16 PointXYZIL
 {
-  float likelihood;
-  float quality;
+  PCL_ADD_POINT4D;
+  float intensity;
+  uint32_t label;
 
-  LidarMeasurementResult(const float likelihood_value, const float quality_value)
-    : likelihood(likelihood_value)
-    , quality(quality_value)
+  inline PointXYZIL()
   {
+    x = y = z = 0.0f;
+    data[3] = 1.0f;
+    intensity = 0.0f;
+    label = 0;
   }
-};
 
-class LidarMeasurementModelBase
-{
-public:
-  using Ptr = std::shared_ptr<LidarMeasurementModelBase>;
-  using PointType = mcl_3dl::PointXYZIL;
-
-  virtual void loadConfig(
-      const ros::NodeHandle& nh,
-      const std::string& name) = 0;
-  virtual void setGlobalLocalizationStatus(
-      const size_t, const size_t) = 0;
-  virtual float getMaxSearchRange() const = 0;
-
-  virtual pcl::PointCloud<PointType>::Ptr filter(
-      const pcl::PointCloud<PointType>::ConstPtr&) const = 0;
-
-  virtual LidarMeasurementResult measure(
-      ChunkedKdtree<PointType>::Ptr&,
-      const pcl::PointCloud<PointType>::ConstPtr&,
-      const std::vector<Vec3>&,
-      const State6DOF&) const = 0;
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 }  // namespace mcl_3dl
 
-#endif  // MCL_3DL_LIDAR_MEASUREMENT_MODEL_BASE_H
+POINT_CLOUD_REGISTER_POINT_STRUCT(
+    mcl_3dl::PointXYZIL,
+    (float, x, x)(float, y, y)(float, z, z)(float, intensity, intensity)(uint32_t, label, label))
+
+#endif  // MCL_3DL_POINT_TYPES_H
