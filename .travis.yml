@@ -19,9 +19,9 @@ env:
     - DATASET_REF_FILE=short_test_ref.topic
     - secure: "Nk9LAc9NWbnf5urjmTe1nQHdzdbcKV/gYVJB2EBHiQafsn28IQ1f4BBd8tJ7+iFxnkM4I2kGtWTCvfdM91nITz0dj+MN/wbKQ0JsC1KFSi2j0ZRfnfqdQV7s3gfbGJWCQyWR3Z1RLa5FyCTNIb1Ov0fGe3/bYRiuI2mY5cKhhTuEu1grS2gFEjPiSMn3huuqGRpHYzA+a9CNfSHa9msz2AwJggsbbXhGlEz/WXZC0Irc/cLjiTtaqe82cMqxjlzmwVubZZNGHOoRmV7X7aDQmywLgySIx0eGwioz61Tz/puQ6VaZHR4eOUsuF8Jfv3HttwK56cWwQI7XraQokrMJ+fZM4qsg5v0miOeXnPSSZ3baKvAyGBcEQKRUUxiHJ8T5oYJvcRVTQWGM2WSDDlMVAG7jevyinZ9VKYEavNp5P3g7qbi6k2yX0nZ7MVYFJ9pSdowSkuh6DqCE7SnzpTYEHmgdbw5K6fPSzAoCxeKWEN2+3p/iHLT4Iw/iiEbg+FT42eXjHwhfjmNogfko8bd0phjo7R7xxM7q1pNiK4PtZpBdh/RSUgYtTNDWgDDLESgF3tTLBIH0th8b2nUFxW3NIdsY+hOrFkVuhoAd48Enepu6Ft9mA5c7iQCS0b534ah+KpTgd0D0PAQXoF9fp/qP7ri0Zr/MFSvGM4miR2HRvb8="
   matrix:
-    - ROS_DISTRO_TARGET=melodic COVERAGE_TEST=false
-    - ROS_DISTRO_TARGET=kinetic COVERAGE_TEST=false
-    - ROS_DISTRO_TARGET=indigo COVERAGE_TEST=true
+    - ROS_DISTRO_TARGET=melodic
+    - ROS_DISTRO_TARGET=kinetic
+    - ROS_DISTRO_TARGET=indigo
 branches:
   only:
     - master
@@ -45,7 +45,6 @@ script:
     -e TRAVIS_BOT_GITHUB_TOKEN
     -e GITHUB_API_URL_BASE
     -e TRAVIS_BUILD_NUMBER
-    -e COVERAGE_TEST
     `bash <(curl -s https://codecov.io/env)`
     ${DOCKER_CACHE_TARGET}:${ROS_DISTRO_TARGET} /catkin_ws/src/${PACKAGE_NAME}/.travis/test.sh
   - .travis/save_cache.sh
