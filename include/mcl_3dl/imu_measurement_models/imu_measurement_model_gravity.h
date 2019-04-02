@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017, the mcl_3dl authors
+ * Copyright (c) 2019, the mcl_3dl authors
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,56 +27,44 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef MCL_3DL_ND_H
-#define MCL_3DL_ND_H
+#ifndef MCL_3DL_IMU_MEASUREMENT_MODELS_IMU_MEASUREMENT_MODEL_GRAVITY_H
+#define MCL_3DL_IMU_MEASUREMENT_MODELS_IMU_MEASUREMENT_MODEL_GRAVITY_H
 
-#define _USE_MATH_DEFINES
-#include <cmath>
-#include <Eigen/Core>
-#include <Eigen/LU>
+#include <memory>
+
+#include <mcl_3dl/imu_measurement_model_base.h>
+#include <mcl_3dl/nd.h>
 
 namespace mcl_3dl
 {
-template <typename FLT_TYPE = float>
-class NormalLikelihood
+class ImuMeasurementModelGravity : public ImuMeasurementModelBase
 {
 public:
-  explicit NormalLikelihood(const FLT_TYPE sigma)
+  explicit ImuMeasurementModelGravity(const float acc_var)
+    : nd_(acc_var)
   {
-    a_ = 1.0 / sqrtf(2.0 * M_PI * sigma * sigma);
-    sq2_ = sigma * sigma * 2.0;
-  }
-  FLT_TYPE operator()(const FLT_TYPE x) const
-  {
-    return a_ * expf(-x * x / sq2_);
   }
 
-protected:
-  FLT_TYPE a_;
-  FLT_TYPE sq2_;
+  inline void setAccMeasure(const Vec3& acc_measure) final
+  {
+    acc_measure_ = acc_measure;
+    acc_measure_norm_ = acc_measure.norm();
+  }
+
+  inline float measure(const State6DOF& s) const final
+  {
+    const Vec3 acc_estim = s.rot_.inv() * Vec3(0.0, 0.0, 1.0);
+    const float diff = acosf(
+        acc_estim.dot(acc_measure_) / (acc_measure_norm_ * acc_estim.norm()));
+    return nd_(diff);
+  }
+
+private:
+  NormalLikelihood<float> nd_;
+  Vec3 acc_measure_;
+  float acc_measure_norm_;
 };
 
-template <typename FLT_TYPE = float, size_t DIMENSION = 6>
-class NormalLikelihoodNd
-{
-public:
-  using Matrix = Eigen::Matrix<FLT_TYPE, DIMENSION, DIMENSION>;
-  using Vector = Eigen::Matrix<FLT_TYPE, DIMENSION, 1>;
-
-  explicit NormalLikelihoodNd(const Matrix sigma)
-  {
-    a_ = 1.0 / (pow(2.0 * M_PI, 0.5 * DIMENSION) * sqrt(sigma.determinant()));
-    sigma_inv_ = sigma.inverse();
-  }
-  FLT_TYPE operator()(const Vector x) const
-  {
-    return a_ * expf(-0.5 * x.transpose() * sigma_inv_ * x);
-  }
-
-protected:
-  FLT_TYPE a_;
-  Matrix sigma_inv_;
-};
 }  // namespace mcl_3dl
 
-#endif  // MCL_3DL_ND_H
+#endif  // MCL_3DL_IMU_MEASUREMENT_MODELS_IMU_MEASUREMENT_MODEL_GRAVITY_H

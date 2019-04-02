@@ -71,6 +71,8 @@
 
 #include <mcl_3dl/chunked_kdtree.h>
 #include <mcl_3dl/filter.h>
+#include <mcl_3dl/imu_measurement_model_base.h>
+#include <mcl_3dl/imu_measurement_models/imu_measurement_model_gravity.h>
 #include <mcl_3dl/lidar_measurement_model_base.h>
 #include <mcl_3dl/lidar_measurement_models/lidar_measurement_model_beam.h>
 #include <mcl_3dl/lidar_measurement_models/lidar_measurement_model_likelihood.h>
@@ -947,14 +949,11 @@ protected:
       {
         return;
       }
-      const float acc_measure_norm = acc_measure.norm();
-      NormalLikelihood<float> nd(params_.acc_var_);
-      auto imu_measure_func = [this, &nd, &acc_measure, &acc_measure_norm](const State6DOF& s) -> float
+
+      imu_measurement_model_->setAccMeasure(acc_measure);
+      auto imu_measure_func = [this](const State6DOF& s) -> float
       {
-        const Vec3 acc_estim = s.rot_.inv() * Vec3(0.0, 0.0, 1.0);
-        const float diff = acosf(
-            acc_estim.dot(acc_measure) / (acc_measure_norm * acc_estim.norm()));
-        return nd(diff);
+        return imu_measurement_model_->measure(s);
       };
       pf_->measure(imu_measure_func);
 
@@ -1253,6 +1252,7 @@ public:
         LidarMeasurementModelBase::Ptr(
             new LidarMeasurementModelBeam(
                 params_.map_downsample_x_, params_.map_downsample_y_, params_.map_downsample_z_));
+    imu_measurement_model_ = ImuMeasurementModelBase::Ptr(new ImuMeasurementModelGravity(params_.acc_var_));
 
     float max_search_radius = 0;
     for (auto& lm : lidar_measurements_)
@@ -1383,6 +1383,7 @@ protected:
   std::map<
       std::string,
       LidarMeasurementModelBase::Ptr> lidar_measurements_;
+  ImuMeasurementModelBase::Ptr imu_measurement_model_;
 
   std::random_device seed_gen_;
   std::default_random_engine engine_;

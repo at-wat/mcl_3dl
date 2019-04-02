@@ -32,6 +32,8 @@
 
 #include <algorithm>
 
+#include <ros/ros.h>
+
 #include <mcl_3dl/pf.h>
 #include <mcl_3dl/point_types.h>
 #include <mcl_3dl/quat.h>

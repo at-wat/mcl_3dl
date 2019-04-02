@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017, the mcl_3dl authors
+ * Copyright (c) 2019, the mcl_3dl authors
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,56 +27,27 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef MCL_3DL_ND_H
-#define MCL_3DL_ND_H
+#include <gtest/gtest.h>
 
-#define _USE_MATH_DEFINES
-#include <cmath>
-#include <Eigen/Core>
-#include <Eigen/LU>
+#include <mcl_3dl/imu_measurement_models/imu_measurement_model_gravity.h>
 
-namespace mcl_3dl
+TEST(ImuMeasurementModelGravity, measure)
 {
-template <typename FLT_TYPE = float>
-class NormalLikelihood
+  mcl_3dl::ImuMeasurementModelGravity measurement(M_PI / 4.0);
+  measurement.setAccMeasure(mcl_3dl::Vec3(0.1, 0.2, 0.3));
+  mcl_3dl::State6DOF s1(mcl_3dl::Vec3(0.0, 0.0, 0.0),
+                        mcl_3dl::Quat(mcl_3dl::Vec3(M_PI / 18.0, M_PI / 6.0, M_PI / -2.0)));
+  EXPECT_NEAR(measurement.measure(s1), 0.2678633, 1.0e-6);
+
+  measurement.setAccMeasure(mcl_3dl::Vec3(-0.3, -0.2, -0.1));
+  mcl_3dl::State6DOF s2(mcl_3dl::Vec3(0.0, 0.0, 0.0),
+                        mcl_3dl::Quat(mcl_3dl::Vec3(-M_PI / 12.0, M_PI / 36.0, M_PI * 1.5)));
+  EXPECT_NEAR(measurement.measure(s2), 0.0604828, 1.0e-6);
+}
+
+int main(int argc, char** argv)
 {
-public:
-  explicit NormalLikelihood(const FLT_TYPE sigma)
-  {
-    a_ = 1.0 / sqrtf(2.0 * M_PI * sigma * sigma);
-    sq2_ = sigma * sigma * 2.0;
-  }
-  FLT_TYPE operator()(const FLT_TYPE x) const
-  {
-    return a_ * expf(-x * x / sq2_);
-  }
+  testing::InitGoogleTest(&argc, argv);
 
-protected:
-  FLT_TYPE a_;
-  FLT_TYPE sq2_;
-};
-
-template <typename FLT_TYPE = float, size_t DIMENSION = 6>
-class NormalLikelihoodNd
-{
-public:
-  using Matrix = Eigen::Matrix<FLT_TYPE, DIMENSION, DIMENSION>;
-  using Vector = Eigen::Matrix<FLT_TYPE, DIMENSION, 1>;
-
-  explicit NormalLikelihoodNd(const Matrix sigma)
-  {
-    a_ = 1.0 / (pow(2.0 * M_PI, 0.5 * DIMENSION) * sqrt(sigma.determinant()));
-    sigma_inv_ = sigma.inverse();
-  }
-  FLT_TYPE operator()(const Vector x) const
-  {
-    return a_ * expf(-0.5 * x.transpose() * sigma_inv_ * x);
-  }
-
-protected:
-  FLT_TYPE a_;
-  Matrix sigma_inv_;
-};
-}  // namespace mcl_3dl
-
-#endif  // MCL_3DL_ND_H
+  return RUN_ALL_TESTS();
+}
