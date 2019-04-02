@@ -46,7 +46,7 @@ public:
     a_ = 1.0 / sqrtf(2.0 * M_PI * sigma * sigma);
     sq2_ = sigma * sigma * 2.0;
   }
-  FLT_TYPE operator()(const FLT_TYPE x)
+  FLT_TYPE operator()(const FLT_TYPE x) const
   {
     return a_ * expf(-x * x / sq2_);
   }
@@ -68,7 +68,7 @@ public:
     a_ = 1.0 / (pow(2.0 * M_PI, 0.5 * DIMENSION) * sqrt(sigma.determinant()));
     sigma_inv_ = sigma.inverse();
   }
-  FLT_TYPE operator()(const Vector x)
+  FLT_TYPE operator()(const Vector x) const
   {
     return a_ * expf(-0.5 * x.transpose() * sigma_inv_ * x);
   }

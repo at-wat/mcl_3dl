@@ -42,7 +42,7 @@ public:
   using Ptr = std::shared_ptr<ImuMeasurementModelBase>;
 
   virtual void setAccMeasure(const Vec3& acc_measure) = 0;
-  virtual float measure(const State6DOF& s) = 0;
+  virtual float measure(const State6DOF& s) const = 0;
 };
 }  // namespace mcl_3dl
 

@@ -45,13 +45,13 @@ public:
   {
   }
 
-  void setAccMeasure(const Vec3& acc_measure) final
+  inline void setAccMeasure(const Vec3& acc_measure) final
   {
     acc_measure_ = acc_measure;
     acc_measure_norm_ = acc_measure.norm();
   }
 
-  float measure(const State6DOF& s) final
+  inline float measure(const State6DOF& s) const final
   {
     const Vec3 acc_estim = s.rot_.inv() * Vec3(0.0, 0.0, 1.0);
     const float diff = acosf(
