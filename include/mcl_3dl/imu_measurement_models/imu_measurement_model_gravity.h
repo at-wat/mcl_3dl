@@ -27,8 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef IMU_MEASUREMENT_MODEL_GRAVITY_H
-#define IMU_MEASUREMENT_MODEL_GRAVITY_H
+#ifndef MCL_3DL_IMU_MEASUREMENT_MODELS_IMU_MEASUREMENT_MODEL_GRAVITY_H
+#define MCL_3DL_IMU_MEASUREMENT_MODELS_IMU_MEASUREMENT_MODEL_GRAVITY_H
 
 #include <memory>
 
@@ -40,7 +40,7 @@ namespace mcl_3dl
 class ImuMeasurementModelGravity : public ImuMeasurementModelBase
 {
 public:
-  ImuMeasurementModelGravity(const float acc_var)
+  explicit ImuMeasurementModelGravity(const float acc_var)
     : nd_(acc_var)
   {
   }
@@ -67,4 +67,4 @@ private:
 
 }  // namespace mcl_3dl
 
-#endif  // IMU_MEASUREMENT_MODEL_GRAVITY_H
+#endif  // MCL_3DL_IMU_MEASUREMENT_MODELS_IMU_MEASUREMENT_MODEL_GRAVITY_H

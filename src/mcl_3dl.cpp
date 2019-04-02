@@ -951,11 +951,12 @@ protected:
       }
 
       imu_measurement_model_->setAccMeasure(acc_measure);
-      auto imu_measure_func = [this](const State6DOF& s) -> float {
+      auto imu_measure_func = [this](const State6DOF& s) -> float
+      {
         return imu_measurement_model_->measure(s);
       };
       pf_->measure(imu_measure_func);
-      
+
       imu_last_ = msg->header.stamp;
     }
   }
