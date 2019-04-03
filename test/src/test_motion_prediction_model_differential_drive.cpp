@@ -31,70 +31,192 @@
 
 #include <mcl_3dl/motion_prediction_models/motion_prediction_model_differential_drive.h>
 
-TEST(TestMotionPredictionModelDifferentialDrive, predict)
+static const double EPS = 1.0e-6;
+
+TEST(TestMotionPredictionModelDifferentialDrive, predictWithoutNoise)
 {
+  const mcl_3dl::Vec3 relative_trans(0.5, -0.1, 0.1);
+  const mcl_3dl::Quat relative_quat(mcl_3dl::Vec3(0.1, -0.1, 0.3));
+
+  const mcl_3dl::State6DOF odom_prev(mcl_3dl::Vec3(1.0, 1.1, 1.2), mcl_3dl::Vec3(0.3, 0.2, 0.1));
+  const mcl_3dl::State6DOF odom_current(odom_prev.pos_ + odom_prev.rot_ * relative_trans,
+                                        odom_prev.rot_ * relative_quat);
+
+  const mcl_3dl::Vec3 state_trans(1.5, 1.2, 1.3);
+  const float state_yaw_angle = 0.3;
+  const mcl_3dl::Quat state_quat(mcl_3dl::Vec3(-0.3, -0.2, -0.1));
+  mcl_3dl::State6DOF state(state_trans, state_quat);
+  state.noise_ll_ = 0.0;
+  state.noise_la_ = 0.0;
+  state.noise_al_ = 0.0;
+  state.noise_aa_ = 0.0;
+
   mcl_3dl::MotionPredictionModelDifferentialDrive predictor(10.0, 10.0);
-  const mcl_3dl::State6DOF odom_2d_prev(mcl_3dl::Vec3(1.0, 0.5, 0.0),
-                                        mcl_3dl::Quat(mcl_3dl::Vec3(0.0, 0.0, M_PI / 3.0)));
-  const mcl_3dl::Vec3 relative_trans_2d(0.5, 0.0, 0.0);
-  const mcl_3dl::Quat relative_quat_2d(mcl_3dl::Vec3(0.0, 0.0, -M_PI / 18.0));
-  const mcl_3dl::State6DOF odom_2d_current(odom_2d_prev.pos_ + odom_2d_prev.rot_ * relative_trans_2d,
-                                           odom_2d_prev.rot_ * relative_quat_2d);
-  predictor.setOdoms(odom_2d_prev, odom_2d_current, 0.1);
+  predictor.setOdoms(odom_prev, odom_current, 1.0);
+  predictor.predict(state);
 
-  const mcl_3dl::Vec3 relative_trans_s1(0.6, -0.1, 0.0);
-  const mcl_3dl::Quat relative_quat_s1(mcl_3dl::Vec3(0.0, 0.0, -M_PI / 17.0));
-  mcl_3dl::State6DOF s1(odom_2d_prev.pos_ + odom_2d_prev.rot_ * relative_trans_s1,
-                        odom_2d_prev.rot_ * relative_quat_s1);
-  s1.noise_ll_ = 0.1;
-  s1.noise_la_ = 0.05;
-  s1.noise_al_ = 0.05;
-  s1.noise_aa_ = 0.05;
-  predictor.predict(s1);
-  EXPECT_NEAR(s1.pos_.x_, 1.7501203, 1.0e-6);
-  EXPECT_NEAR(s1.pos_.y_, 1.3939149, 1.0e-6);
-  EXPECT_NEAR(s1.pos_.z_, 0.0, 1.0e-6);
-  EXPECT_NEAR(s1.rot_.x_, 0.0, 1.0e-6);
-  EXPECT_NEAR(s1.rot_.y_, 0.0, 1.0e-6);
-  EXPECT_NEAR(s1.rot_.z_, 0.3530190, 1.0e-6);
-  EXPECT_NEAR(s1.rot_.w_, 0.9356161, 1.0e-6);
-  EXPECT_NEAR(s1.odom_err_integ_lin_.x_, 0.0581395, 1.0e-6);
-  EXPECT_NEAR(s1.odom_err_integ_lin_.y_, 0.0, 1.0e-6);
-  EXPECT_NEAR(s1.odom_err_integ_lin_.z_, 0.0, 1.0e-6);
-  EXPECT_NEAR(s1.odom_err_integ_ang_.x_, 0.0, 1.0e-6);
-  EXPECT_NEAR(s1.odom_err_integ_ang_.y_, 0.0, 1.0e-6);
-  EXPECT_NEAR(s1.odom_err_integ_ang_.z_, 0.0333894, 1.0e-6);
+  const auto expected_state_pos = state_trans + state_quat * relative_trans;
+  EXPECT_NEAR(state.pos_.x_, expected_state_pos.x_, EPS);
+  EXPECT_NEAR(state.pos_.y_, expected_state_pos.y_, EPS);
+  EXPECT_NEAR(state.pos_.z_, expected_state_pos.z_, EPS);
 
-  const mcl_3dl::State6DOF odom_3d_prev(mcl_3dl::Vec3(1.0, 0.5, 0.4),
-                                        mcl_3dl::Quat(mcl_3dl::Vec3(M_PI / 12.0, -M_PI / 10.0, M_PI / 3.0)));
-  const mcl_3dl::Vec3 relative_trans_3d(0.4, 0.0, 0.0);
-  const mcl_3dl::Quat relative_quat_3d(mcl_3dl::Vec3(M_PI / 36.0, M_PI / 12.0, -M_PI / 18.0));
-  const mcl_3dl::State6DOF odom_3d_current(odom_3d_prev.pos_ + odom_3d_prev.rot_ * relative_trans_3d,
-                                           odom_3d_prev.rot_ * relative_quat_3d);
-  predictor.setOdoms(odom_3d_prev, odom_3d_current, 0.1);
+  const mcl_3dl::Quat expected_state_rot = state_quat * relative_quat;
+  EXPECT_NEAR(state.rot_.x_, expected_state_rot.x_, EPS);
+  EXPECT_NEAR(state.rot_.y_, expected_state_rot.y_, EPS);
+  EXPECT_NEAR(state.rot_.z_, expected_state_rot.z_, EPS);
+  EXPECT_NEAR(state.rot_.w_, expected_state_rot.w_, EPS);
 
-  const mcl_3dl::Vec3 relative_trans_s2(0.5, 0.05, 0.1);
-  const mcl_3dl::Quat relative_quat_s2(mcl_3dl::Vec3(M_PI / 30.0, M_PI / 16.0, -M_PI / 17.0));
-  mcl_3dl::State6DOF s2(odom_2d_prev.pos_ + odom_2d_prev.rot_ * relative_trans_s2,
-                        odom_2d_prev.rot_ * relative_quat_s2);
-  s2.noise_ll_ = 0.1;
-  s2.noise_la_ = 0.05;
-  s2.noise_al_ = 0.05;
-  s2.noise_aa_ = 0.05;
-  predictor.predict(s2);
-  EXPECT_NEAR(s2.pos_.x_, 1.4980695, 1.0e-6);
-  EXPECT_NEAR(s2.pos_.y_, 1.2981024, 1.0e-6);
-  EXPECT_NEAR(s2.pos_.z_, 0.0109197, 1.0e-6);
-  EXPECT_NEAR(s2.rot_.x_, -0.0109055, 1.0e-6);
-  EXPECT_NEAR(s2.rot_.y_, 0.2461149, 1.0e-6);
-  EXPECT_NEAR(s2.rot_.z_, 0.3333000, 1.0e-6);
-  EXPECT_NEAR(s2.rot_.w_, 0.9100657, 1.0e-6);
-  EXPECT_NEAR(s2.odom_err_integ_lin_.x_, 0.0560445, 1.0e-6);
-  EXPECT_NEAR(s2.odom_err_integ_lin_.y_, 0.0, 1.0e-6);
-  EXPECT_NEAR(s2.odom_err_integ_lin_.z_, 0.0, 1.0e-6);
-  EXPECT_NEAR(s2.odom_err_integ_ang_.x_, 0.0, 1.0e-6);
-  EXPECT_NEAR(s2.odom_err_integ_ang_.y_, 0.0, 1.0e-6);
-  EXPECT_NEAR(s2.odom_err_integ_ang_.z_, 0.0362446, 1.0e-6);
+  // odom_err_integ_lin_ and odom_err_integ_ang_ are zero vectors.
+  EXPECT_NEAR(state.odom_err_integ_lin_.x_, 0.0, EPS);
+  EXPECT_NEAR(state.odom_err_integ_lin_.y_, 0.0, EPS);
+  EXPECT_NEAR(state.odom_err_integ_lin_.z_, 0.0, EPS);
+  EXPECT_NEAR(state.odom_err_integ_ang_.x_, 0.0, EPS);
+  EXPECT_NEAR(state.odom_err_integ_ang_.y_, 0.0, EPS);
+  EXPECT_NEAR(state.odom_err_integ_ang_.z_, 0.0, EPS);
+}
+
+TEST(TestMotionPredictionModelDifferentialDrive, predictWithoutRotation)
+{
+  const mcl_3dl::Vec3 relative_trans(-0.5, 0.1, 0.05);
+  const float relative_trans_norm = relative_trans.norm();
+
+  const mcl_3dl::State6DOF odom_prev(mcl_3dl::Vec3(5.0, 4.0, 3.0), mcl_3dl::Vec3(0.5, 0.4, 0.3));
+  const mcl_3dl::State6DOF odom_current(odom_prev.pos_ + odom_prev.rot_ * relative_trans, odom_prev.rot_);
+
+  const mcl_3dl::Vec3 state_trans(4.0, 3.0, 2.0);
+  const float state_yaw_angle = 0.3;
+  const mcl_3dl::Quat state_quat(mcl_3dl::Vec3(0.0, 0.0, state_yaw_angle));
+  mcl_3dl::State6DOF state(state_trans, state_quat);
+  state.noise_ll_ = 0.1;
+  state.noise_al_ = 0.2;
+  state.noise_la_ = 0.3;
+  state.noise_aa_ = 0.4;
+
+  const float err_integ_multiply = 0.9;
+  mcl_3dl::MotionPredictionModelDifferentialDrive predictor(10.0, 10.0);
+  predictor.setOdoms(odom_prev, odom_current, 1.0);
+  predictor.predict(state);
+
+  const auto expected_state_pos = state_trans + state_quat * relative_trans * (1.0 + state.noise_ll_);
+  EXPECT_NEAR(state.pos_.x_, expected_state_pos.x_, EPS);
+  EXPECT_NEAR(state.pos_.y_, expected_state_pos.y_, EPS);
+  EXPECT_NEAR(state.pos_.z_, expected_state_pos.z_, EPS);
+
+  const float yaw_diff = state.noise_la_ * relative_trans_norm;
+  const mcl_3dl::Quat expected_state_quat(mcl_3dl::Vec3(0.0, 0.0, state_yaw_angle + yaw_diff));
+  EXPECT_NEAR(state.rot_.x_, expected_state_quat.x_, EPS);
+  EXPECT_NEAR(state.rot_.y_, expected_state_quat.y_, EPS);
+  EXPECT_NEAR(state.rot_.z_, expected_state_quat.z_, EPS);
+  EXPECT_NEAR(state.rot_.w_, expected_state_quat.w_, EPS);
+
+  const auto expected_odom_err_integ_lin = (relative_trans * state.noise_ll_) * err_integ_multiply;
+  EXPECT_NEAR(state.odom_err_integ_lin_.x_, expected_odom_err_integ_lin.x_, EPS);
+  EXPECT_NEAR(state.odom_err_integ_lin_.y_, expected_odom_err_integ_lin.y_, EPS);
+  EXPECT_NEAR(state.odom_err_integ_lin_.z_, expected_odom_err_integ_lin.z_, EPS);
+
+  const float expected_odom_err_integ_acc_z = yaw_diff * err_integ_multiply;
+  EXPECT_NEAR(state.odom_err_integ_ang_.x_, 0.0, EPS);
+  EXPECT_NEAR(state.odom_err_integ_ang_.y_, 0.0, EPS);
+  EXPECT_NEAR(state.odom_err_integ_ang_.z_, expected_odom_err_integ_acc_z, EPS);
+}
+
+TEST(TestMotionPredictionModelDifferentialDrive, predictWithoutTranslationAndRollPitch)
+{
+  const float relative_yaw_angle = 0.2;
+  const mcl_3dl::Quat relative_quat(mcl_3dl::Vec3(0.0, 0.0, relative_yaw_angle));
+
+  const mcl_3dl::State6DOF odom_prev(mcl_3dl::Vec3(-5.0, -2.0, -3.0), mcl_3dl::Vec3(0.5, 1.0, 2.0));
+  const mcl_3dl::State6DOF odom_current(odom_prev.pos_, odom_prev.rot_ * relative_quat);
+
+  const mcl_3dl::Vec3 state_trans(-5.5, -3.0, -2.0);
+  const float state_yaw_angle = 0.3;
+  const mcl_3dl::Quat state_quat(mcl_3dl::Vec3(0.0, 0.0, state_yaw_angle));
+  mcl_3dl::State6DOF state(state_trans, state_quat);
+  state.noise_ll_ = 0.1;
+  state.noise_al_ = 0.2;
+  state.noise_la_ = 0.3;
+  state.noise_aa_ = 0.4;
+
+  const float err_integ_multiply = 0.9;
+  mcl_3dl::MotionPredictionModelDifferentialDrive predictor(10.0, 10.0);
+  predictor.setOdoms(odom_prev, odom_current, 1.0);
+  predictor.predict(state);
+
+  const auto expected_state_pos =
+      state_trans + state_quat * mcl_3dl::Vec3(state.noise_al_ * relative_yaw_angle, 0.0, 0.0);
+  EXPECT_NEAR(state.pos_.x_, expected_state_pos.x_, EPS);
+  EXPECT_NEAR(state.pos_.y_, expected_state_pos.y_, EPS);
+  EXPECT_NEAR(state.pos_.z_, expected_state_pos.z_, EPS);
+
+  const float yaw_diff = state.noise_aa_ * relative_yaw_angle;
+  const mcl_3dl::Quat expected_state_quat(mcl_3dl::Vec3(0.0, 0.0, relative_yaw_angle + state_yaw_angle + yaw_diff));
+  EXPECT_NEAR(state.rot_.x_, expected_state_quat.x_, EPS);
+  EXPECT_NEAR(state.rot_.y_, expected_state_quat.y_, EPS);
+  EXPECT_NEAR(state.rot_.z_, expected_state_quat.z_, EPS);
+  EXPECT_NEAR(state.rot_.w_, expected_state_quat.w_, EPS);
+
+  const auto expected_odom_err_integ_lin =
+      mcl_3dl::Vec3(state.noise_al_ * relative_yaw_angle, 0.0, 0.0) * err_integ_multiply;
+  EXPECT_NEAR(state.odom_err_integ_lin_.x_, expected_odom_err_integ_lin.x_, EPS);
+  EXPECT_NEAR(state.odom_err_integ_lin_.y_, expected_odom_err_integ_lin.y_, EPS);
+  EXPECT_NEAR(state.odom_err_integ_lin_.z_, expected_odom_err_integ_lin.z_, EPS);
+
+  const float expected_odom_err_integ_acc_z = yaw_diff * err_integ_multiply;
+  EXPECT_NEAR(state.odom_err_integ_ang_.x_, 0.0, EPS);
+  EXPECT_NEAR(state.odom_err_integ_ang_.y_, 0.0, EPS);
+  EXPECT_NEAR(state.odom_err_integ_ang_.z_, expected_odom_err_integ_acc_z, EPS);
+}
+
+TEST(TestMotionPredictionModelDifferentialDrive, predictWithoutRollPitch)
+{
+  const mcl_3dl::Vec3 relative_trans(1.0, 0.2, 0.3);
+  const float relative_trans_norm = relative_trans.norm();
+  const float relative_yaw_angle = 0.2;
+  const mcl_3dl::Quat relative_quat(mcl_3dl::Vec3(0.0, 0.0, relative_yaw_angle));
+
+  const mcl_3dl::State6DOF odom_prev(mcl_3dl::Vec3(10.0, -5.0, 0.5), mcl_3dl::Vec3(-2.0, -1.0, -0.5));
+  const mcl_3dl::State6DOF odom_current(odom_prev.pos_ + odom_prev.rot_ * relative_trans,
+                                        odom_prev.rot_ * relative_quat);
+
+  const mcl_3dl::Vec3 state_trans(11.0, -5.0, 1.0);
+  const float state_yaw_angle = 0.3;
+  const mcl_3dl::Quat state_quat(mcl_3dl::Vec3(0.0, 0.0, state_yaw_angle));
+  mcl_3dl::State6DOF state(state_trans, state_quat);
+  state.noise_ll_ = 0.1;
+  state.noise_al_ = 0.2;
+  state.noise_la_ = 0.3;
+  state.noise_aa_ = 0.4;
+
+  const float err_integ_multiply = 0.9;
+  mcl_3dl::MotionPredictionModelDifferentialDrive predictor(10.0, 10.0);
+  predictor.setOdoms(odom_prev, odom_current, 1.0);
+  predictor.predict(state);
+
+  const auto expected_state_pos = state_trans +
+                                  state_quat * (relative_trans * (1.0 + state.noise_ll_) +
+                                                mcl_3dl::Vec3(state.noise_al_ * relative_yaw_angle, 0.0, 0.0));
+  EXPECT_NEAR(state.pos_.x_, expected_state_pos.x_, EPS);
+  EXPECT_NEAR(state.pos_.y_, expected_state_pos.y_, EPS);
+  EXPECT_NEAR(state.pos_.z_, expected_state_pos.z_, EPS);
+
+  const double yaw_diff = state.noise_la_ * relative_trans_norm + state.noise_aa_ * relative_yaw_angle;
+  const mcl_3dl::Quat expected_state_quat(mcl_3dl::Vec3(0.0, 0.0, relative_yaw_angle + state_yaw_angle + yaw_diff));
+  EXPECT_NEAR(state.rot_.x_, expected_state_quat.x_, EPS);
+  EXPECT_NEAR(state.rot_.y_, expected_state_quat.y_, EPS);
+  EXPECT_NEAR(state.rot_.z_, expected_state_quat.z_, EPS);
+  EXPECT_NEAR(state.rot_.w_, expected_state_quat.w_, EPS);
+
+  const auto expected_odom_err_integ_lin =
+      (relative_trans * state.noise_ll_ + mcl_3dl::Vec3(state.noise_al_ * relative_yaw_angle, 0.0, 0.0)) *
+      err_integ_multiply;
+  EXPECT_NEAR(state.odom_err_integ_lin_.x_, expected_odom_err_integ_lin.x_, EPS);
+  EXPECT_NEAR(state.odom_err_integ_lin_.y_, expected_odom_err_integ_lin.y_, EPS);
+  EXPECT_NEAR(state.odom_err_integ_lin_.z_, expected_odom_err_integ_lin.z_, EPS);
+
+  const float expected_odom_err_integ_acc_z = yaw_diff * err_integ_multiply;
+  EXPECT_NEAR(state.odom_err_integ_ang_.x_, 0.0, EPS);
+  EXPECT_NEAR(state.odom_err_integ_ang_.y_, 0.0, EPS);
+  EXPECT_NEAR(state.odom_err_integ_ang_.z_, expected_odom_err_integ_acc_z, EPS);
 }
 
 int main(int argc, char** argv)
