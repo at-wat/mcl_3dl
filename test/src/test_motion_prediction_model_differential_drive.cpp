@@ -43,7 +43,6 @@ TEST(TestMotionPredictionModelDifferentialDrive, predictWithoutNoise)
                                         odom_prev.rot_ * relative_quat);
 
   const mcl_3dl::Vec3 state_trans(1.5, 1.2, 1.3);
-  const float state_yaw_angle = 0.3;
   const mcl_3dl::Quat state_quat(mcl_3dl::Vec3(-0.3, -0.2, -0.1));
   mcl_3dl::State6DOF state(state_trans, state_quat);
   state.noise_ll_ = 0.0;
