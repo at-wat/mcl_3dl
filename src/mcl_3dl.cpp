@@ -76,6 +76,8 @@
 #include <mcl_3dl/lidar_measurement_model_base.h>
 #include <mcl_3dl/lidar_measurement_models/lidar_measurement_model_beam.h>
 #include <mcl_3dl/lidar_measurement_models/lidar_measurement_model_likelihood.h>
+#include <mcl_3dl/motion_prediction_model_base.h>
+#include <mcl_3dl/motion_prediction_models/motion_prediction_model_differential_drive.h>
 #include <mcl_3dl/nd.h>
 #include <mcl_3dl/parameters.h>
 #include <mcl_3dl/pf.h>
@@ -219,24 +221,10 @@ protected:
     }
     else if (dt > 0.05)
     {
-      const Vec3 v = odom_prev_.rot_.inv() * (odom_.pos_ - odom_prev_.pos_);
-      const Quat r = odom_prev_.rot_.inv() * odom_.rot_;
-      Vec3 axis;
-      float ang;
-      r.getAxisAng(axis, ang);
-
-      const float trans = v.norm();
-      auto prediction_func = [this, &v, &r, axis, ang, trans, &dt](State6DOF& s)
+      motion_prediction_model_->setOdoms(odom_prev_, odom_, dt);
+      auto prediction_func = [this](State6DOF& s)
       {
-        const Vec3 diff = v * (1.0 + s.noise_ll_) + Vec3(s.noise_al_ * ang, 0.0, 0.0);
-        s.odom_err_integ_lin_ += (diff - v);
-        s.pos_ += s.rot_ * diff;
-        const float yaw_diff = s.noise_la_ * trans + s.noise_aa_ * ang;
-        s.rot_ = Quat(Vec3(0.0, 0.0, 1.0), yaw_diff) * s.rot_ * r;
-        s.rot_.normalize();
-        s.odom_err_integ_ang_ += Vec3(0.0, 0.0, yaw_diff);
-        s.odom_err_integ_lin_ *= (1.0 - dt / params_.odom_err_integ_lin_tc_);
-        s.odom_err_integ_ang_ *= (1.0 - dt / params_.odom_err_integ_ang_tc_);
+        motion_prediction_model_->predict(s);
       };
       pf_->predict(prediction_func);
       odom_last_ = msg->header.stamp;
@@ -1253,6 +1241,9 @@ public:
             new LidarMeasurementModelBeam(
                 params_.map_downsample_x_, params_.map_downsample_y_, params_.map_downsample_z_));
     imu_measurement_model_ = ImuMeasurementModelBase::Ptr(new ImuMeasurementModelGravity(params_.acc_var_));
+    motion_prediction_model_ = MotionPredictionModelBase::Ptr(
+        new MotionPredictionModelDifferentialDrive(params_.odom_err_integ_lin_tc_,
+                                                   params_.odom_err_integ_ang_tc_));
 
     float max_search_radius = 0;
     for (auto& lm : lidar_measurements_)
@@ -1384,6 +1375,7 @@ protected:
       std::string,
       LidarMeasurementModelBase::Ptr> lidar_measurements_;
   ImuMeasurementModelBase::Ptr imu_measurement_model_;
+  MotionPredictionModelBase::Ptr motion_prediction_model_;
 
   std::random_device seed_gen_;
   std::default_random_engine engine_;
