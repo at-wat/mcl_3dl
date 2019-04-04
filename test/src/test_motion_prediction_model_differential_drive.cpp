@@ -136,7 +136,7 @@ TEST(TestMotionPredictionModelDifferentialDrive, predictWithoutTranslationAndRol
   state.noise_la_ = 0.3;
   state.noise_aa_ = 0.4;
 
-  const float err_integ_multiply = 0.9;
+  const float err_integ_multiply = 1.0 - (1.0 / 10.0);  // single step of the exponential smoother
   mcl_3dl::MotionPredictionModelDifferentialDrive predictor(10.0, 10.0);
   predictor.setOdoms(odom_prev, odom_current, 1.0);
   predictor.predict(state);
@@ -186,7 +186,7 @@ TEST(TestMotionPredictionModelDifferentialDrive, predictWithoutRollPitch)
   state.noise_la_ = 0.3;
   state.noise_aa_ = 0.4;
 
-  const float err_integ_multiply = 0.9;
+  const float err_integ_multiply = 1.0 - (1.0 / 10.0);  // single step of the exponential smoother
   mcl_3dl::MotionPredictionModelDifferentialDrive predictor(10.0, 10.0);
   predictor.setOdoms(odom_prev, odom_current, 1.0);
   predictor.predict(state);
