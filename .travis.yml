@@ -1,4 +1,5 @@
 services: docker
+language: bash
 addons:
   apt:
     packages:
