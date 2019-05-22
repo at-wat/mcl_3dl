@@ -21,7 +21,7 @@ set(CATKIN_DEPENDS
 
 find_package(catkin REQUIRED COMPONENTS ${CATKIN_DEPENDS})
 find_package(Eigen3 REQUIRED)
-find_package(PCL 1.7 REQUIRED
+find_package(PCL 1.7.2 REQUIRED
   COMPONENTS
     core
     filters
@@ -62,9 +62,6 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O1")
 
 if(PCL_VERSION VERSION_LESS 1.8.0)
   add_definitions(-DBACKPORT_PCL_VOXEL_GRID)
-endif()
-if(PCL_VERSION VERSION_LESS 1.7.2)
-  add_definitions(-DBACKPORT_PCL_CENTROID)
 endif()
 
 # Binary installed pcl provided by Linux distro is built with -march=native
