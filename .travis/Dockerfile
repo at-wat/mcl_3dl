@@ -1,3 +1,4 @@
+ARG ROS_DISTRO=kinetic
 # ========================================
 FROM alpine:3.7 as cloner
 
@@ -14,7 +15,7 @@ RUN mkdir -p /repos-manifests/src
 RUN find . -name package.xml | xargs -ISRC cp --parents SRC /repos-manifests/
 
 # ========================================
-FROM ros:melodic-ros-core
+FROM ros:${ROS_DISTRO}-ros-core
 
 RUN apt-get -qq update \
   && apt-get upgrade -y \
@@ -33,10 +34,10 @@ RUN rosdep update \
   && rosdep install --from-paths /catkin_ws/src --ignore-src --rosdistro=${ROS_DISTRO} -y \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
+RUN pip install gh-pr-comment catkin_lint
 
 COPY --from=cloner /repos/src /catkin_ws/src
 
-RUN mkdir -p /catkin_ws/src \
-  && cd /catkin_ws/src \
+RUN cd /catkin_ws/src \
   && . /opt/ros/${ROS_DISTRO}/setup.sh \
   && catkin_init_workspace
