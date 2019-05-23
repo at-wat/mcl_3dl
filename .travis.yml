@@ -1,4 +1,5 @@
 services: docker
+language: bash
 addons:
   apt:
     packages:
@@ -36,8 +37,10 @@ script:
   - docker build
     --cache-from ${DOCKER_CACHE_REGISTRY}:${ROS_DISTRO_TARGET}
     -t ${DOCKER_CACHE_TARGET}:${ROS_DISTRO_TARGET}
-    -f Dockerfile.${ROS_DISTRO_TARGET}
-    --pull=true ${TRAVIS_BUILD_DIR} || (gh-pr-comment "[#${TRAVIS_BUILD_NUMBER}] FAILED on ${ROS_DISTRO_TARGET}" "docker build failed"; false)
+    -f .travis/Dockerfile
+    --build-arg ROS_DISTRO=${ROS_DISTRO_TARGET}
+    --pull=true ${TRAVIS_BUILD_DIR}
+    || (gh-pr-comment "[#${TRAVIS_BUILD_NUMBER}] FAILED on ${ROS_DISTRO_TARGET}" "docker build failed"; false)
   - docker run --rm -it
     -e TRAVIS_PULL_REQUEST
     -e TRAVIS_REPO_SLUG

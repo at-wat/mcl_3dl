@@ -61,7 +61,7 @@ using VoxelGrid18 = VoxelGrid<PointT>;
 #include <utility>
 #include <vector>
 
-#include <pcl18_backports/centroid.h>
+#include <pcl/common/centroid.h>
 #include <pcl/filters/boost.h>
 #include <pcl/filters/filter.h>
 
