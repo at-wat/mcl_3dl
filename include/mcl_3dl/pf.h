@@ -182,7 +182,7 @@ public:
     std::sort(particles_dup_.begin(), particles_dup_.end());
 
     const FLT_TYPE pstep = accum / particles_.size();
-    static const FLT_TYPE EPS = std::numeric_limits<float>::epsilon();
+    static const FLT_TYPE EPS = std::numeric_limits<FLT_TYPE>::epsilon();
     auto it = particles_dup_.begin();
     auto it_prev = particles_dup_.begin();
     const FLT_TYPE prob = 1.0 / particles_.size();
