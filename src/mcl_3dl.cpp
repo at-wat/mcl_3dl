@@ -232,9 +232,12 @@ protected:
     }
     if (fake_imu_)
     {
+      const Vec3 accel = odom_.rot_ * Vec3(0.0, 0.0, 1.0);
       sensor_msgs::Imu::Ptr imu(new sensor_msgs::Imu);
       imu->header = msg->header;
-      imu->linear_acceleration.z = 9.8;
+      imu->linear_acceleration.x = accel.x_;
+      imu->linear_acceleration.y = accel.y_;
+      imu->linear_acceleration.z = accel.z_;
       imu->orientation = msg->pose.pose.orientation;
       cbImu(imu);
     }
