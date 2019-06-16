@@ -27,16 +27,10 @@
   <rosparam command="load" file="$(arg config_file)"/>
 
   <!--
-  Required topics with use_neonavigation:=false
+  Required topics
     /imu/data (IMU data with estimated pose)
     /cloud    (Measured pointcloud)
     /odom     (Wheel odometry)
-  -->
-  <!--
-  Required topics with use_neonavigation:=true
-    /imu/data (IMU data with estimated pose)
-    /cloud    (Measured pointcloud)
-    /odom_raw (Raw wheel odometry)
   -->
 
   <node pkg="rviz" type="rviz" name="rviz" args="-d $(find mcl_3dl)/config/mcl_3dl_demo.rviz" />
@@ -54,11 +48,6 @@
   <node pkg="pcl_ros" type="pcd_to_pointcloud" name="pcd_to_pointcloud"
       args="$(arg map_pcd)" if="$(arg use_pointcloud_map)">
     <remap from="cloud_pcd" to="mapcloud" />
-  </node>
-  <node pkg="track_odometry" type="track_odometry" name="track_odometry"
-      if="$(arg use_neonavigation)">
-    <remap from="imu" to="imu/data" />
-    <param name="base_link_id" value="base_link" />
   </node>
 
   <node pkg="trajectory_tracker" type="trajectory_recorder" name="path_recorder"

@@ -230,6 +230,14 @@ protected:
       odom_last_ = msg->header.stamp;
       odom_prev_ = odom_;
     }
+    if (fake_imu_)
+    {
+      sensor_msgs::Imu::Ptr imu(new sensor_msgs::Imu);
+      imu->header = msg->header;
+      imu->linear_acceleration.z = 9.8;
+      imu->orientation = msg->pose.pose.orientation;
+      cbImu(imu);
+    }
   }
   void cbCloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
   {
@@ -946,6 +954,18 @@ protected:
       pf_->measure(imu_measure_func);
 
       imu_last_ = msg->header.stamp;
+
+      if (fake_odom_)
+      {
+        nav_msgs::Odometry::Ptr odom(new nav_msgs::Odometry);
+        odom->header.frame_id = frame_ids_["base_link"];
+        odom->header.stamp = msg->header.stamp;
+        odom->pose.pose.orientation.x = imu_quat_.x_;
+        odom->pose.pose.orientation.y = imu_quat_.y_;
+        odom->pose.pose.orientation.z = imu_quat_.z_;
+        odom->pose.pose.orientation.w = imu_quat_.w_;
+        cbOdom(odom);
+      }
     }
   }
   bool cbResizeParticle(mcl_3dl_msgs::ResizeParticleRequest& request,
@@ -1045,12 +1065,28 @@ public:
     sub_cloud_ = mcl_3dl_compat::subscribe(
         nh_, "cloud",
         pnh_, "cloud", 100, &MCL3dlNode::cbCloud, this);
-    sub_odom_ = mcl_3dl_compat::subscribe(
-        nh_, "odom",
-        pnh_, "odom", 200, &MCL3dlNode::cbOdom, this);
-    sub_imu_ = mcl_3dl_compat::subscribe(
-        nh_, "imu/data",
-        pnh_, "imu", 200, &MCL3dlNode::cbImu, this);
+
+    pnh_.param("fake_imu", fake_imu_, false);
+    pnh_.param("fake_odom", fake_odom_, false);
+    if (fake_imu_ && fake_odom_)
+    {
+      ROS_ERROR("One of IMU and Odometry must be enabled");
+      ros::Duration(0.1).sleep();
+      ros::shutdown();
+      return;
+    }
+    if (!fake_odom_)
+    {
+      sub_odom_ = mcl_3dl_compat::subscribe(
+          nh_, "odom",
+          pnh_, "odom", 200, &MCL3dlNode::cbOdom, this);
+    }
+    if (!fake_imu_)
+    {
+      sub_imu_ = mcl_3dl_compat::subscribe(
+          nh_, "imu/data",
+          pnh_, "imu", 200, &MCL3dlNode::cbImu, this);
+    }
     sub_mapcloud_ = mcl_3dl_compat::subscribe(
         nh_, "mapcloud",
         pnh_, "mapcloud", 1, &MCL3dlNode::cbMapcloud, this);
@@ -1344,6 +1380,7 @@ protected:
   bool output_pcd_;
   bool publish_tf_;
 
+  bool fake_imu_, fake_odom_;
   ros::Time match_output_last_;
   ros::Time odom_last_;
   bool has_map_;

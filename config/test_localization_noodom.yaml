@@ -1,6 +1,7 @@
 mcl_3dl:
   map_frame: "map"
   odom_frame: "base_link"
+  fake_odom: true
   accum_cloud: 1
   lpf_step: 0.0
   num_particles: 256
@@ -15,8 +16,3 @@ obj_to_pointcloud:
 pcd_to_pointcloud:
   frame_id: "map"
   latch: true
-track_odometry:
-  z_filter: 1.0
-  tf_tolerance: 0.1
-  without_odom: true
-
