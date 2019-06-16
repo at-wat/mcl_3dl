@@ -1,10 +1,7 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="without_odom" default="false" />
-  <arg name="config_file" default="$(find mcl_3dl)/config/test_localization.yaml"
-      unless="$(arg without_odom)" />
-  <arg name="config_file" default="$(find mcl_3dl)/config/test_localization_noodom.yaml"
-      if="$(arg without_odom)" />
+  <arg name="without_imu" default="false" />
   <arg name="use_neonavigation" default="false" />
   <arg name="use_pointcloud_map" default="true" />
   <arg name="use_cad_map" default="false" if="$(arg use_pointcloud_map)" />
@@ -22,8 +19,17 @@
   <node pkg="rosbag" type="play" name="playback" args="--clock $(arg bag_file)"
       if="$(arg use_bag_file)">
     <remap from="odom" to="odom_unused" if="$(arg without_odom)" />
+    <remap from="imu/data" to="imu/data_unused" if="$(arg without_imu)" />
   </node>
 
+  <group unless="$(arg without_imu)">
+    <arg name="config_file" default="$(find mcl_3dl)/config/test_localization.yaml"
+        unless="$(arg without_odom)" />
+  </group>
+  <arg name="config_file" default="$(find mcl_3dl)/config/test_localization_noodom.yaml"
+      if="$(arg without_odom)" />
+  <arg name="config_file" default="$(find mcl_3dl)/config/test_localization_noimu.yaml"
+      if="$(arg without_imu)" />
   <rosparam command="load" file="$(arg config_file)"/>
 
   <!--

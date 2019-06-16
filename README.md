@@ -75,7 +75,7 @@ MarkerArray shows several *mcl_3dl* internal information.
 - Red boxes: detected collisions in raycasting
 
 
-A [demo without odometry](doc/DemoWithoutOdometry.md) is also available.
+[Demos without odometry and without IMU](doc/ExperimentalDemos.md) are also available.
 
 ## Contributing
 
