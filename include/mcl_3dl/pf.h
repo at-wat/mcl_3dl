@@ -35,7 +35,6 @@
 #include <algorithm>
 #include <functional>
 #include <cmath>
-#include <limits>
 
 namespace mcl_3dl
 {
@@ -182,14 +181,13 @@ public:
     std::sort(particles_dup_.begin(), particles_dup_.end());
 
     const FLT_TYPE pstep = accum / particles_.size();
-    static const FLT_TYPE EPS = std::numeric_limits<FLT_TYPE>::epsilon();
     auto it = particles_dup_.begin();
     auto it_prev = particles_dup_.begin();
     const FLT_TYPE prob = 1.0 / particles_.size();
     for (size_t i = 0; i < particles_.size(); ++i)
     {
       auto &p = particles_[i];
-      const FLT_TYPE pscan = pstep * (i + 1) - EPS;
+      const FLT_TYPE pscan = std::nextafter(pstep * (i + 1), static_cast<FLT_TYPE>(0.0));
       it = std::lower_bound(it, particles_dup_.end(), Particle<T, FLT_TYPE>(pscan));
       p.probability_ = prob;
       if (it == particles_dup_.end())
