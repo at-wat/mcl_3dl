@@ -199,6 +199,38 @@ TEST(Pf, ResampleFlatLikelihood)
     ASSERT_EQ(pf.getParticle(i)[0], orig[i]);
 }
 
+TEST(Pf, ResampleFirstParticle)
+{
+  const std::vector<float> probs =
+  {
+    0.0001f, 0.2f, 0.2f, 0.2f, 0.3999f
+  };
+  const std::vector<float> states =
+  {
+    0.0f, 1.0f, 2.0f, 3.0f, 4.0f
+  };
+  const std::vector<float> expected_resampled_states =
+  {
+    1.0f, 2.0f, 3.0f, 4.0f, 4.0f
+  };
+  const size_t particle_num = probs.size();
+
+  mcl_3dl::pf::ParticleFilter<State, float> pf(particle_num);
+  auto it = pf.begin();
+  for (size_t i = 0; i < particle_num; ++i, ++it)
+  {
+    it->state_.x = states.at(i);
+    it->probability_ = probs.at(i);
+  }
+  pf.resample(State());
+
+  ASSERT_EQ(particle_num, pf.getParticleSize());
+  for (size_t i = 0; i < pf.getParticleSize(); ++i)
+  {
+    EXPECT_FLOAT_EQ(expected_resampled_states.at(i), pf.getParticle(i)[0]);
+  }
+}
+
 TEST(Pf, Iterators)
 {
   mcl_3dl::pf::ParticleFilter<State, float> pf(10);
