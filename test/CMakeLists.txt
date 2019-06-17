@@ -62,14 +62,28 @@ if(MCL_3DL_EXTRA_TESTS)
   configure_file(tests/tf_rostest.test.in
       ${PROJECT_BINARY_DIR}/test/tests/tf_rostest.test)
 
-  add_rostest_gtest(compare_pose ${PROJECT_BINARY_DIR}/test/tests/localization_rostest.test
+  add_executable(compare_pose
       src/compare_pose.cpp)
-  target_link_libraries(compare_pose ${catkin_LIBRARIES})
+  target_link_libraries(compare_pose ${catkin_LIBRARIES} ${GTEST_LIBRARIES})
   add_dependencies(compare_pose 
         ${PROJECT_NAME}_short_test.bag
         ${PROJECT_NAME}_short_test_ref.topic
-        mcl_3dl
-      )
+        mcl_3dl)
+
+  add_rostest(${PROJECT_BINARY_DIR}/test/tests/localization_rostest.test
+    DEPENDENCIES
+      compare_pose
+      ${PROJECT_NAME}_short_test.bag
+      ${PROJECT_NAME}_short_test_ref.topic
+      mcl_3dl)
+  add_rostest(${PROJECT_BINARY_DIR}/test/tests/localization_rostest.test
+    ARGS without_imu:=true
+    DEPENDENCIES
+      compare_pose
+      ${PROJECT_NAME}_short_test.bag
+      ${PROJECT_NAME}_short_test_ref.topic
+      mcl_3dl)
+
   add_rostest_gtest(compare_tf ${PROJECT_BINARY_DIR}/test/tests/tf_rostest.test
       src/compare_tf.cpp)
   target_link_libraries(compare_tf ${catkin_LIBRARIES})
