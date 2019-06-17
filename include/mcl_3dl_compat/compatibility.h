@@ -43,12 +43,14 @@ namespace mcl_3dl_compat
 //    Set default_level to supported_level.
 // 2. Set default_level to current_level.
 // 3. Increment supported_level and remove old topic names.
+#ifndef UNDEF_COMPATIBILITY_LEVEL
 const int current_level = 1;
 const int supported_level = 0;
 const int default_level = supported_level;
 
 STATIC_ASSERT(supported_level <= current_level && current_level <= supported_level + 1);
 STATIC_ASSERT(supported_level <= default_level && default_level <= current_level);
+#endif
 
 int getCompat()
 {
