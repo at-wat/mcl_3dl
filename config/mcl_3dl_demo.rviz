@@ -64,7 +64,7 @@ Visualization Manager:
       Length: 1
       Name: Axes
       Radius: 0.05
-      Reference Frame: <Fixed Frame>
+      Reference Frame: base_link
       Value: true
     - Alpha: 0.1
       Autocompute Intensity Bounds: true

@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <launch>
   <param name="use_sim_time" value="true" />
+  <arg name="without_imu" default="false" />
 
   <node pkg="rosbag" type="play" name="playback" args="--clock -r 2.0 -d 4.0 @PROJECT_BINARY_DIR@/test/short_test.bag" />
 
@@ -13,5 +14,6 @@
   <node pkg="mcl_3dl" type="mcl_3dl" name="mcl_3dl" output="log">
     <param name="compatible" value="1" />
     <param name="skip_measure" value="2" />
+    <param name="without_imu" value="false" type="bool" />
   </node>
 </launch>
