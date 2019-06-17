@@ -1057,26 +1057,24 @@ protected:
   }
 
 public:
-  MCL3dlNode(int argc, char* argv[])
+  MCL3dlNode()
     : nh_("")
     , pnh_("~")
     , tfl_(tfbuf_)
     , global_localization_fix_cnt_(0)
     , engine_(seed_gen_())
   {
+  }
+  bool configure()
+  {
     mcl_3dl_compat::checkCompatMode();
-    sub_cloud_ = mcl_3dl_compat::subscribe(
-        nh_, "cloud",
-        pnh_, "cloud", 100, &MCL3dlNode::cbCloud, this);
 
     pnh_.param("fake_imu", fake_imu_, false);
     pnh_.param("fake_odom", fake_odom_, false);
     if (fake_imu_ && fake_odom_)
     {
       ROS_ERROR("One of IMU and Odometry must be enabled");
-      ros::Duration(0.1).sleep();
-      ros::shutdown();
-      return;
+      return false;
     }
     if (!fake_odom_)
     {
@@ -1090,6 +1088,10 @@ public:
           nh_, "imu/data",
           pnh_, "imu", 200, &MCL3dlNode::cbImu, this);
     }
+
+    sub_cloud_ = mcl_3dl_compat::subscribe(
+        nh_, "cloud",
+        pnh_, "cloud", 100, &MCL3dlNode::cbCloud, this);
     sub_mapcloud_ = mcl_3dl_compat::subscribe(
         nh_, "mapcloud",
         pnh_, "mapcloud", 1, &MCL3dlNode::cbMapcloud, this);
@@ -1161,13 +1163,10 @@ public:
     pnh_.param("map_update_interval_interval", map_update_interval_t, 2.0);
     params_.map_update_interval_.reset(new ros::Duration(map_update_interval_t));
 
-    double weight[3];
     float weight_f[4];
-    pnh_.param("dist_weight_x", weight[0], 1.0);
-    pnh_.param("dist_weight_y", weight[1], 1.0);
-    pnh_.param("dist_weight_z", weight[2], 5.0);
-    for (size_t i = 0; i < 3; i++)
-      weight_f[i] = weight[i];
+    pnh_.param("dist_weight_x", weight_f[0], 1.0f);
+    pnh_.param("dist_weight_y", weight_f[1], 1.0f);
+    pnh_.param("dist_weight_z", weight_f[2], 5.0f);
     weight_f[3] = 0.0;
     point_rep_.setRescaleValues(weight_f);
 
@@ -1304,6 +1303,8 @@ public:
     map_update_timer_ = nh_.createTimer(
         *params_.map_update_interval_,
         &MCL3dlNode::cbMapUpdateTimer, this);
+
+    return true;
   }
   ~MCL3dlNode()
   {
@@ -1426,7 +1427,11 @@ int main(int argc, char* argv[])
 {
   ros::init(argc, argv, "mcl_3dl");
 
-  mcl_3dl::MCL3dlNode mcl(argc, argv);
+  mcl_3dl::MCL3dlNode mcl;
+  if (!mcl.configure())
+  {
+    return 1;
+  }
   ros::spin();
 
   return 0;
