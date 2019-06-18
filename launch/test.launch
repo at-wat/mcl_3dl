@@ -22,10 +22,8 @@
     <remap from="imu/data" to="imu/data_unused" if="$(arg without_imu)" />
   </node>
 
-  <group unless="$(arg without_imu)">
-    <arg name="config_file" default="$(find mcl_3dl)/config/test_localization.yaml"
-        unless="$(arg without_odom)" />
-  </group>
+  <arg name="config_file" default="$(find mcl_3dl)/config/test_localization.yaml"
+      unless="$(eval arg('without_odom') or arg('without_imu'))" />
   <arg name="config_file" default="$(find mcl_3dl)/config/test_localization_noodom.yaml"
       if="$(arg without_odom)" />
   <arg name="config_file" default="$(find mcl_3dl)/config/test_localization_noimu.yaml"

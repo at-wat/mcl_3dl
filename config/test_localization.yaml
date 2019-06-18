@@ -3,8 +3,8 @@ mcl_3dl:
   accum_cloud: 2
   lpf_step: 1.0
   likelihood:
-  match_dist_min: 0.3
-  match_output_dist: 0.3
+    match_dist_min: 0.3
+    match_output_dist: 0.3
 obj_to_pointcloud:
   frame_id: "map"
   points_per_meter_sq: 1200.0
