@@ -81,6 +81,10 @@ TEST(State6DOF, Accessors)
     b[i] = 0.1 * (i + 1);
   for (size_t i = 0; i < b.size(); ++i)
     ASSERT_FLOAT_EQ(b[i], 0.1 * (i + 1));
+
+  const mcl_3dl::State6DOF c = b;
+  for (size_t i = 0; i < b.size(); ++i)
+    ASSERT_FLOAT_EQ(c[i], 0.1 * (i + 1));
 }
 
 int main(int argc, char** argv)
