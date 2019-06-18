@@ -184,8 +184,8 @@ TEST(DebugOutput, MatchedUnmatched)
   ASSERT_TRUE(static_cast<bool>(matched));
   ASSERT_TRUE(static_cast<bool>(unmatched));
 
-  ASSERT_GT(matched->width * matched->height, 0);
-  ASSERT_GT(unmatched->width * unmatched->height, 0);
+  ASSERT_GT(matched->width * matched->height, 0u);
+  ASSERT_GT(unmatched->width * unmatched->height, 0u);
 
   {
     sensor_msgs::PointCloud2ConstIterator<float> x(*matched, "x");
