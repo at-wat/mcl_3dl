@@ -87,6 +87,30 @@ TEST(State6DOF, Accessors)
     ASSERT_FLOAT_EQ(c[i], 0.1 * (i + 1));
 }
 
+TEST(State6DOF, Adder)
+{
+  const mcl_3dl::State6DOF a(
+      mcl_3dl::Vec3(1.0, 2.0, 3.0), mcl_3dl::Quat(mcl_3dl::Vec3(0.0, 0.0, 1.0), 0.1));
+  const mcl_3dl::State6DOF b(
+      mcl_3dl::Vec3(4.0, 5.0, 6.0), mcl_3dl::Quat(mcl_3dl::Vec3(0.0, 0.0, 1.0), 0.2));
+
+  const mcl_3dl::State6DOF sum = a + b;
+  const mcl_3dl::State6DOF sub = a - b;
+  const mcl_3dl::Quat sum_rot(mcl_3dl::Vec3(0.0, 0.0, 1.0), 0.3);
+  const mcl_3dl::Quat sub_rot(mcl_3dl::Vec3(0.0, 0.0, 1.0), -0.1);
+
+  ASSERT_EQ(sum.pos_, mcl_3dl::Vec3(5.0, 7.0, 9.0));
+  ASSERT_FLOAT_EQ(sum.rot_.x_, sum_rot.x_);
+  ASSERT_FLOAT_EQ(sum.rot_.y_, sum_rot.y_);
+  ASSERT_FLOAT_EQ(sum.rot_.z_, sum_rot.z_);
+  ASSERT_FLOAT_EQ(sum.rot_.w_, sum_rot.w_);
+  ASSERT_EQ(sub.pos_, mcl_3dl::Vec3(-3.0, -3.0, -3.0));
+  ASSERT_FLOAT_EQ(sub.rot_.x_, sub_rot.x_);
+  ASSERT_FLOAT_EQ(sub.rot_.y_, sub_rot.y_);
+  ASSERT_FLOAT_EQ(sub.rot_.z_, sub_rot.z_);
+  ASSERT_FLOAT_EQ(sub.rot_.w_, sub_rot.w_);
+}
+
 int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
