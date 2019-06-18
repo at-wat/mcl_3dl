@@ -74,6 +74,11 @@ MarkerArray shows several *mcl_3dl* internal information.
 - Red lines: casted rays in the beam-model calculation
 - Red boxes: detected collisions in raycasting
 
+To try global localization, call `/global_localization` by the following command.
+
+```shell
+rosservice call /global_localization
+```
 
 [Demos without odometry and without IMU](doc/ExperimentalDemos.md) are also available.
 
