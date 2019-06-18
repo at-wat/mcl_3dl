@@ -9,6 +9,9 @@ mcl_3dl:
   resample_var_y: 0.2
   resample_var_z: 0.05
   bias_var_dist: 100.0
+  likelihood:
+    match_dist_min: 0.3
+    match_output_dist: 0.3
 obj_to_pointcloud:
   frame_id: "map"
   points_per_meter_sq: 1200.0

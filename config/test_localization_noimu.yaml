@@ -8,6 +8,9 @@ mcl_3dl:
   resample_var_pitch: 0.1
   resample_var_roll: 0.1
   acc_var: 1.2
+  likelihood:
+    match_dist_min: 0.3
+    match_output_dist: 0.3
 obj_to_pointcloud:
   frame_id: "map"
   points_per_meter_sq: 1200.0
