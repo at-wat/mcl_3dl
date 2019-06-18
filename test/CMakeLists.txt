@@ -26,6 +26,11 @@ target_link_libraries(test_motion_prediction_model_differential_drive ${catkin_L
 add_executable(performance_raycast src/performance_raycast.cpp)
 target_link_libraries(performance_raycast ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${PCL_LIBRARIES})
 
+add_rostest_gtest(test_debug_output tests/debug_output_rostest.test
+    src/test_debug_output.cpp)
+target_link_libraries(test_debug_output ${catkin_LIBRARIES})
+add_dependencies(test_debug_output mcl_3dl)
+
 add_rostest_gtest(test_expansion_resetting tests/expansion_resetting_rostest.test
     src/test_expansion_resetting.cpp)
 target_link_libraries(test_expansion_resetting ${catkin_LIBRARIES})
