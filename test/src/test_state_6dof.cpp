@@ -77,9 +77,9 @@ TEST(State6DOF, Accessors)
   ASSERT_EQ(a[12], 0.0f);
 
   mcl_3dl::State6DOF b;
-  for (int i = 0; i < b.size(); ++i)
+  for (size_t i = 0; i < b.size(); ++i)
     b[i] = 0.1 * (i + 1);
-  for (int i = 0; i < b.size(); ++i)
+  for (size_t i = 0; i < b.size(); ++i)
     ASSERT_FLOAT_EQ(b[i], 0.1 * (i + 1));
 }
 
