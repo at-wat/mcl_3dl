@@ -71,7 +71,7 @@ public:
       v_.z_ = y;
     }
   };
-  RPYVec rpy;
+  RPYVec rpy_;
   float& operator[](const size_t i)override
   {
     switch (i)
@@ -169,7 +169,7 @@ public:
   State6DOF(const mcl_3dl::Vec3 pos, const mcl_3dl::Vec3 rpy)
   {
     pos_ = pos;
-    this->rpy = RPYVec(rpy);
+    rpy_ = RPYVec(rpy);
     noise_ll_ = noise_la_ = noise_aa_ = noise_al_ = 0.0;
     odom_err_integ_lin_ = mcl_3dl::Vec3(0.0, 0.0, 0.0);
     odom_err_integ_ang_ = mcl_3dl::Vec3(0.0, 0.0, 0.0);
@@ -208,7 +208,7 @@ public:
     mcl_3dl::Vec3 rpy_noise;
     for (size_t i = 0; i < 3; i++)
     {
-      std::normal_distribution<float> nd(0.0, sigma.rpy.v_[i]);
+      std::normal_distribution<float> nd(0.0, sigma.rpy_.v_[i]);
       rpy_noise[i] = noise[i + 10] = nd(engine_);
     }
     noise.rot_ = mcl_3dl::Quat(rpy_noise) * mean.rot_;

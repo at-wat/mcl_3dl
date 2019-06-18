@@ -52,7 +52,7 @@ TEST(State6DOF, Constructors)
   ASSERT_TRUE(b.isDiff());
   ASSERT_EQ(b.pos_, mcl_3dl::Vec3(4.0, 5.0, 6.0));
   ASSERT_EQ(b.rot_, mcl_3dl::Quat(0.0, 0.0, 0.0, 1.0));
-  ASSERT_EQ(b.rpy.v_, mcl_3dl::Vec3(0.1, 0.2, 0.3));
+  ASSERT_EQ(b.rpy_.v_, mcl_3dl::Vec3(0.1, 0.2, 0.3));
   ASSERT_EQ(b.odom_err_integ_lin_, mcl_3dl::Vec3(0.0, 0.0, 0.0));
   ASSERT_EQ(b.odom_err_integ_ang_, mcl_3dl::Vec3(0.0, 0.0, 0.0));
 }
