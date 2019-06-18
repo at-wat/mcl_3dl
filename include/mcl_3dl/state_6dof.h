@@ -237,7 +237,7 @@ public:
         continue;
       ret[i] = (*this)[i] - in[i];
     }
-    ret.rot_ = a.rot_ * rot_.inv();
+    ret.rot_ = a.rot_.inv() * rot_;
     return ret;
   }
 };
