@@ -287,7 +287,9 @@ TEST_F(ExpansionResetting, ManualExpand)
     rate.sleep();
     ros::spinOnce();
     if (status_)
+    {
       ASSERT_NE(status_->status, mcl_3dl_msgs::Status::EXPANSION_RESETTING);
+    }
     pub_cloud_.publish(generateCloudMsg());
     pub_imu_.publish(generateImuMsg());
     pub_odom_.publish(generateOdomMsg());
