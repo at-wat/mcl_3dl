@@ -192,6 +192,8 @@ protected:
       s.odom_err_integ_ang_ = Vec3();
     };
     pf_->predict(integ_reset_func);
+
+    publishParticles();
   }
 
   void cbOdom(const nav_msgs::Odometry::ConstPtr& msg)
@@ -746,27 +748,7 @@ protected:
       }
     }
 
-    geometry_msgs::PoseArray pa;
-    if (has_odom_)
-      pa.header.stamp = odom_last_ + tf_tolerance_base_ + *params_.tf_tolerance_;
-    else
-      pa.header.stamp = ros::Time::now() + tf_tolerance_base_ + *params_.tf_tolerance_;
-    pa.header.frame_id = frame_ids_["map"];
-    for (size_t i = 0; i < pf_->getParticleSize(); i++)
-    {
-      geometry_msgs::Pose pm;
-      auto p = pf_->getParticle(i);
-      p.rot_.normalize();
-      pm.position.x = p.pos_.x_;
-      pm.position.y = p.pos_.y_;
-      pm.position.z = p.pos_.z_;
-      pm.orientation.x = p.rot_.x_;
-      pm.orientation.y = p.rot_.y_;
-      pm.orientation.z = p.rot_.z_;
-      pm.orientation.w = p.rot_.w_;
-      pa.poses.push_back(pm);
-    }
-    pub_particle_.publish(pa);
+    publishParticles();
 
     pf_->resample(State6DOF(
         Vec3(params_.resample_var_x_,
@@ -887,9 +869,20 @@ protected:
            rot_rpy.z_)
               .finished();
 
-      return nd(diff_vec);
+      const auto n = nd(diff_vec);
+      return n;
     };
     pf_->measure(measure_func);
+
+    pf_->resample(State6DOF(
+        Vec3(params_.resample_var_x_,
+             params_.resample_var_y_,
+             params_.resample_var_z_),
+        Vec3(params_.resample_var_roll_,
+             params_.resample_var_pitch_,
+             params_.resample_var_yaw_)));
+
+    publishParticles();
   }
   void cbImu(const sensor_msgs::Imu::ConstPtr& msg)
   {
@@ -975,6 +968,7 @@ protected:
                         mcl_3dl_msgs::ResizeParticleResponse& response)
   {
     pf_->resizeParticle(request.size);
+    publishParticles();
     return true;
   }
   bool cbExpansionReset(std_srvs::TriggerRequest& request,
@@ -987,6 +981,7 @@ protected:
         Vec3(params_.expansion_var_roll_,
              params_.expansion_var_pitch_,
              params_.expansion_var_yaw_)));
+    publishParticles();
     return true;
   }
   bool cbGlobalLocalization(std_srvs::TriggerRequest& request,
@@ -1054,6 +1049,31 @@ protected:
     response.success = true;
     response.message = std::to_string(points->size()) + " particles";
     return true;
+  }
+
+  void publishParticles()
+  {
+    geometry_msgs::PoseArray pa;
+    if (has_odom_)
+      pa.header.stamp = odom_last_ + tf_tolerance_base_ + *params_.tf_tolerance_;
+    else
+      pa.header.stamp = ros::Time::now() + tf_tolerance_base_ + *params_.tf_tolerance_;
+    pa.header.frame_id = frame_ids_["map"];
+    for (size_t i = 0; i < pf_->getParticleSize(); i++)
+    {
+      geometry_msgs::Pose pm;
+      auto p = pf_->getParticle(i);
+      p.rot_.normalize();
+      pm.position.x = p.pos_.x_;
+      pm.position.y = p.pos_.y_;
+      pm.position.z = p.pos_.z_;
+      pm.orientation.x = p.rot_.x_;
+      pm.orientation.y = p.rot_.y_;
+      pm.orientation.z = p.rot_.z_;
+      pm.orientation.w = p.rot_.w_;
+      pa.poses.push_back(pm);
+    }
+    pub_particle_.publish(pa);
   }
 
 public:

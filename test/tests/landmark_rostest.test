@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<launch>
+  <node pkg="mcl_3dl" type="mcl_3dl" name="mcl_3dl" output="screen">
+    <param name="compatible" value="1" />
+    <param name="lpf_step" value="0" />
+    <param name="num_particles" value="4096" />
+    <param name="resample_var_x" value="0.0" />
+    <param name="resample_var_y" value="0.0" />
+    <param name="resample_var_z" value="0.0" />
+    <param name="resample_var_roll" value="0.0" />
+    <param name="resample_var_pitch" value="0.0" />
+    <param name="resample_var_yaw" value="0.0" />
+  </node>
+
+  <node pkg="tf2_ros" type="static_transform_publisher" name="stf_base_link" args="1 0 0 0 0 0 odom base_link" />
+
+  <test test-name="test_landmark" pkg="mcl_3dl" type="test_landmark" time-limit="90" />
+</launch>
