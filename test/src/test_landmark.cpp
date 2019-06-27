@@ -108,8 +108,8 @@ TEST(Landmark, Measurement)
     ASSERT_FLOAT_EQ(p.orientation.w, 1.0f);
   }
   const std::pair<float, float> mean_init = getMean(poses->poses);
-  ASSERT_NEAR(mean_init.first, 2.0f, 5e-2f);
-  ASSERT_NEAR(mean_init.second, 1.0f, 5e-2f);
+  ASSERT_NEAR(mean_init.first, 2.0f, 0.1f);
+  ASSERT_NEAR(mean_init.second, 1.0f, 0.1f);
 
   poses = nullptr;
   pub_landmark.publish(generatePoseWithCov(2.6, 1.0, 1000.0));
@@ -127,8 +127,8 @@ TEST(Landmark, Measurement)
     ASSERT_FLOAT_EQ(p.orientation.w, 1.0f);
   }
   const std::pair<float, float> mean_measured = getMean(poses->poses);
-  ASSERT_NEAR(mean_measured.first, 2.3f, 5e-2f);
-  ASSERT_NEAR(mean_measured.second, 0.5f, 5e-2f);
+  ASSERT_NEAR(mean_measured.first, 2.3f, 0.1f);
+  ASSERT_NEAR(mean_measured.second, 0.5f, 0.1f);
 }
 
 int main(int argc, char** argv)
