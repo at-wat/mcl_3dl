@@ -30,6 +30,7 @@
 #include <ros/ros.h>
 
 #include <geometry_msgs/PoseArray.h>
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <mcl_3dl_msgs/Status.h>
 #include <nav_msgs/Odometry.h>
 #include <sensor_msgs/Imu.h>
@@ -142,41 +143,101 @@ inline nav_msgs::Odometry generateOdomMsg()
   odom.pose.pose.orientation.w = 1;
   return odom;
 }
+inline geometry_msgs::PoseWithCovarianceStamped generateInitialPose()
+{
+  geometry_msgs::PoseWithCovarianceStamped pose;
+  pose.header.frame_id = "map";
+  pose.header.stamp = ros::Time::now();
+  pose.pose.pose.orientation.w = 1.0;
+  pose.pose.covariance[6 * 0 + 0] = 0.05;
+  pose.pose.covariance[6 * 1 + 1] = 0.05;
+  pose.pose.covariance[6 * 2 + 2] = 0.05;
+  pose.pose.covariance[6 * 3 + 3] = 0.0;
+  pose.pose.covariance[6 * 4 + 4] = 0.0;
+  pose.pose.covariance[6 * 5 + 5] = 0.05;
+  return pose;
+}
 }  // namespace
 
-TEST(ExpansionResetting, ExpandAndResume)
+class ExpansionResetting : public ::testing::Test
 {
-  geometry_msgs::PoseArray::ConstPtr poses;
-  mcl_3dl_msgs::Status::ConstPtr status;
+protected:
+  ros::NodeHandle nh_;
+  ros::Subscriber sub_pose_;
+  ros::Subscriber sub_status_;
+  ros::Subscriber sub_pose_cov_;
+  ros::Publisher pub_mapcloud_;
+  ros::Publisher pub_cloud_;
+  ros::Publisher pub_imu_;
+  ros::Publisher pub_odom_;
+  ros::Publisher pub_init_;
+  ros::ServiceClient src_expansion_resetting_;
 
-  const boost::function<void(const geometry_msgs::PoseArray::ConstPtr&)> cb_pose =
-      [&poses](const geometry_msgs::PoseArray::ConstPtr& msg) -> void
+  geometry_msgs::PoseArray::ConstPtr poses_;
+  geometry_msgs::PoseWithCovarianceStamped::ConstPtr pose_cov_;
+  mcl_3dl_msgs::Status::ConstPtr status_;
+
+  void cbPose(const geometry_msgs::PoseArray::ConstPtr& msg)
   {
-    poses = msg;
-  };
-  const boost::function<void(const mcl_3dl_msgs::Status::ConstPtr&)> cb_status =
-      [&status](const mcl_3dl_msgs::Status::ConstPtr& msg) -> void
+    poses_ = msg;
+  }
+  void cbStatus(const mcl_3dl_msgs::Status::ConstPtr& msg)
   {
-    status = msg;
-  };
+    status_ = msg;
+  }
+  void cbPoseCov(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg)
+  {
+    pose_cov_ = msg;
+  }
+  bool findTruePose(const tf2::Transform& true_pose)
+  {
+    if (!poses_)
+      return false;
 
-  ros::NodeHandle nh("");
-  ros::Subscriber sub_pose = nh.subscribe("mcl_3dl/particles", 1, cb_pose);
-  ros::Subscriber sub_status = nh.subscribe("mcl_3dl/status", 1, cb_status);
+    bool found_true_positive(false);
+    for (const auto& pose : poses_->poses)
+    {
+      tf2::Transform particle_pose;
+      tf2::fromMsg(pose, particle_pose);
 
-  ros::ServiceClient src_expansion_resetting =
-      nh.serviceClient<std_srvs::TriggerRequest, std_srvs::TriggerResponse>(
-          "expansion_resetting");
+      const tf2::Transform tf_diff = particle_pose.inverse() * true_pose;
+      if (tf_diff.getOrigin().length() < 2e-1 &&
+          fabs(tf2::getYaw(tf_diff.getRotation())) < 2e-1)
+        found_true_positive = true;
+    }
+    return found_true_positive;
+  }
 
-  ros::Publisher pub_mapcloud = nh.advertise<sensor_msgs::PointCloud2>("mapcloud", 1, true);
-  ros::Publisher pub_cloud = nh.advertise<sensor_msgs::PointCloud2>("cloud", 1);
-  ros::Publisher pub_imu = nh.advertise<sensor_msgs::Imu>("imu/data", 1);
-  ros::Publisher pub_odom = nh.advertise<nav_msgs::Odometry>("odom", 1);
+public:
+  ExpansionResetting()
+    : nh_()
+  {
+    sub_pose_ = nh_.subscribe("mcl_3dl/particles", 1, &ExpansionResetting::cbPose, this);
+    sub_status_ = nh_.subscribe("mcl_3dl/status", 1, &ExpansionResetting::cbStatus, this);
+    sub_pose_cov_ = nh_.subscribe("amcl_pose", 1, &ExpansionResetting::cbPoseCov, this);
 
+    pub_mapcloud_ = nh_.advertise<sensor_msgs::PointCloud2>("mapcloud", 1, true);
+    pub_cloud_ = nh_.advertise<sensor_msgs::PointCloud2>("cloud", 1);
+    pub_imu_ = nh_.advertise<sensor_msgs::Imu>("imu/data", 1);
+    pub_odom_ = nh_.advertise<nav_msgs::Odometry>("odom", 1);
+    pub_init_ =
+        nh_.advertise<geometry_msgs::PoseWithCovarianceStamped>("initialpose", 1, true);
+
+    src_expansion_resetting_ =
+        nh_.serviceClient<std_srvs::TriggerRequest, std_srvs::TriggerResponse>(
+            "expansion_resetting");
+    src_expansion_resetting_.waitForExistence(ros::Duration(10));
+
+    pub_init_.publish(generateInitialPose());
+  }
+};
+
+TEST_F(ExpansionResetting, ExpandAndResume)
+{
   const float offset_x = 1;
   const float offset_y = 0;
   const float offset_z = 0;
-  pub_mapcloud.publish(generateMapMsg(offset_x, offset_y, offset_z));
+  pub_mapcloud_.publish(generateMapMsg(offset_x, offset_y, offset_z));
 
   ros::Duration(1.0).sleep();
   ros::Rate rate(10);
@@ -185,31 +246,63 @@ TEST(ExpansionResetting, ExpandAndResume)
   {
     rate.sleep();
     ros::spinOnce();
-    if (status && status->status == mcl_3dl_msgs::Status::EXPANSION_RESETTING)
+    if (status_ && status_->status == mcl_3dl_msgs::Status::EXPANSION_RESETTING)
       i = 0;
-    pub_cloud.publish(generateCloudMsg());
-    pub_imu.publish(generateImuMsg());
-    pub_odom.publish(generateOdomMsg());
+    pub_cloud_.publish(generateCloudMsg());
+    pub_imu_.publish(generateImuMsg());
+    pub_odom_.publish(generateOdomMsg());
   }
   ASSERT_TRUE(ros::ok());
 
-  ASSERT_TRUE(static_cast<bool>(status));
-  ASSERT_TRUE(static_cast<bool>(poses));
+  ASSERT_TRUE(static_cast<bool>(status_));
+  ASSERT_TRUE(static_cast<bool>(poses_));
 
-  const tf2::Transform true_pose(
-      tf2::Quaternion(0, 0, 0, 1), tf2::Vector3(offset_x, offset_y, offset_z));
-  bool found_true_positive(false);
-  for (const auto& pose : poses->poses)
+  ASSERT_TRUE(
+      findTruePose(tf2::Transform(
+          tf2::Quaternion(0, 0, 0, 1),
+          tf2::Vector3(offset_x, offset_y, offset_z))));
+}
+
+TEST_F(ExpansionResetting, ManualExpand)
+{
+  const float offset_x = 1;
+  const float offset_y = 0;
+  const float offset_z = 0;
+  pub_mapcloud_.publish(generateMapMsg(offset_x, offset_y, offset_z));
+
+  ASSERT_TRUE(ros::ok());
+
+  ros::Duration(2.0).sleep();
+  ros::spinOnce();
+  status_ = nullptr;
+  std_srvs::TriggerRequest req;
+  std_srvs::TriggerResponse res;
+  ASSERT_TRUE(src_expansion_resetting_.call(req, res));
+  ros::Duration(0.2).sleep();
+
+  ros::Rate rate(10);
+  // Wait until finishing expansion resetting
+  for (int i = 0; i < 40; ++i)
   {
-    tf2::Transform particle_pose;
-    tf2::fromMsg(pose, particle_pose);
-
-    const tf2::Transform tf_diff = particle_pose.inverse() * true_pose;
-    if (tf_diff.getOrigin().length() < 2e-1 &&
-        fabs(tf2::getYaw(tf_diff.getRotation())) < 2e-1)
-      found_true_positive = true;
+    rate.sleep();
+    ros::spinOnce();
+    if (status_)
+    {
+      ASSERT_NE(status_->status, mcl_3dl_msgs::Status::EXPANSION_RESETTING);
+    }
+    pub_cloud_.publish(generateCloudMsg());
+    pub_imu_.publish(generateImuMsg());
+    pub_odom_.publish(generateOdomMsg());
   }
-  ASSERT_TRUE(found_true_positive);
+  ASSERT_TRUE(ros::ok());
+
+  ASSERT_TRUE(static_cast<bool>(status_));
+  ASSERT_TRUE(static_cast<bool>(poses_));
+
+  ASSERT_TRUE(
+      findTruePose(tf2::Transform(
+          tf2::Quaternion(0, 0, 0, 1),
+          tf2::Vector3(offset_x, offset_y, offset_z))));
 }
 
 int main(int argc, char** argv)

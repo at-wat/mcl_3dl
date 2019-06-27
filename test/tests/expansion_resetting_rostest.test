@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <launch>
   <test test-name="test_expansion_resetting" pkg="mcl_3dl" type="test_expansion_resetting" time-limit="90" />
+  <!--node name="test_expansion_resetting" pkg="mcl_3dl" type="test_expansion_resetting" /-->
 
   <node pkg="mcl_3dl" type="mcl_3dl" name="mcl_3dl" output="screen">
     <param name="compatible" value="1" />
@@ -10,14 +11,7 @@
     <param name="beam/clip_near" value="0.0" />
     <param name="lpf_step" value="0" />
     <param name="dist_weight_z" value="1.0" />
-
-    <!-- Make initial variance smaller to trap particles in local minimum -->
-    <param name="init_var_x" value="0.05" />
-    <param name="init_var_y" value="0.05" />
-    <param name="init_var_z" value="0.05" />
-    <param name="init_var_roll" value="0.0" />
-    <param name="init_var_pitch" value="0.0" />
-    <param name="init_var_yaw" value="0.05" />
+    <param name="num_particles" value="256" />
 
     <param name="match_ratio_thresh" value="0.8" />
     <param name="expansion_var_x" value="0.4" />
