@@ -112,7 +112,7 @@ TEST(Landmark, Measurement)
   ASSERT_NEAR(mean_init.second, 1.0f, 5e-2f);
 
   poses = nullptr;
-  pub_landmark.publish(generatePoseWithCov(4.0, 1.0, 1000.0));
+  pub_landmark.publish(generatePoseWithCov(2.6, 1.0, 1000.0));
   ros::Duration(0.1).sleep();
   ros::spinOnce();
 
@@ -127,7 +127,7 @@ TEST(Landmark, Measurement)
     ASSERT_FLOAT_EQ(p.orientation.w, 1.0f);
   }
   const std::pair<float, float> mean_measured = getMean(poses->poses);
-  ASSERT_NEAR(mean_measured.first, 3.0f, 5e-2f);
+  ASSERT_NEAR(mean_measured.first, 2.3f, 5e-2f);
   ASSERT_NEAR(mean_measured.second, 0.5f, 5e-2f);
 }
 
