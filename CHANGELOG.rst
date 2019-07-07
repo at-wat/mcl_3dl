@@ -2,8 +2,8 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.1.5 (2019-07-07)
-------------------
+Forthcoming
+-----------
 * Add a test for landmark measurement (`#242 <https://github.com/at-wat/mcl_3dl/issues/242>`_)
 * Add test case for expansion resetting service (`#241 <https://github.com/at-wat/mcl_3dl/issues/241>`_)
 * Test matched/unmatched debug outputs (`#240 <https://github.com/at-wat/mcl_3dl/issues/240>`_)
