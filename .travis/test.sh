@@ -54,7 +54,7 @@ catkin_test_results || (gh-pr-comment "${build_number} FAILED on ${ROS_DISTRO}" 
 
 $result_text</details>"; false)
 
-(cd src/mcl_3dl/; cp -r /catkin_ws/build ./; bash <(curl -s https://codecov.io/bash) -y .codecov.yml)
+(cd src/mcl_3dl/; cp -r /catkin_ws/build ./; bash <(curl -s https://codecov.io/bash) -y .codecov.yml -X gcovout)
 
 gh-pr-comment "${build_number} PASSED on ${ROS_DISTRO}" "<details><summary>All tests passed</summary>
 
