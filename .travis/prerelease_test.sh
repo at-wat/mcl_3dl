@@ -38,5 +38,5 @@ generate_prerelease_script.py \
   --output-dir ./
 
 ./prerelease.sh \
-  && gh-pr-comment "[#${TRAVIS_BUILD_NUMBER} prerelease] PASSED on ${ROS_DISTRO_TARGET}" "" \
-  || (gh-pr-comment "[#${TRAVIS_BUILD_NUMBER} prerelease] FAILED on ${ROS_DISTRO_TARGET}" ""; false)
+  && gh-pr-comment "[#${TRAVIS_BUILD_NUMBER}-prerelease] PASSED on ${ROS_DISTRO_TARGET}" "" \
+  || (gh-pr-comment "[#${TRAVIS_BUILD_NUMBER}-prerelease] FAILED on ${ROS_DISTRO_TARGET}" ""; false)
