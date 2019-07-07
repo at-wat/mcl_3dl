@@ -21,6 +21,8 @@ generate_prerelease_script.py \
   --custom-repo \
     mcl_3dl__custom-2:git:https://github.com/at-wat/mcl_3dl.git:${TRAVIS_PULL_REQUEST_BRANCH} \
   --level 1 \
-  --output-dir ./ \
-  && gh-pr-comment "[prerelease #${TRAVIS_BUILD_NUMBER}] PASSED on ${ROS_DISTRO_TARGET}" "" \
-  || (gh-pr-comment "[prerelease #${TRAVIS_BUILD_NUMBER}] FAILED on ${ROS_DISTRO_TARGET}" ""; false)
+  --output-dir ./
+
+./prerelease.sh \
+  && gh-pr-comment "[#${TRAVIS_BUILD_NUMBER} prerelease] PASSED on ${ROS_DISTRO_TARGET}" "" \
+  || (gh-pr-comment "[#${TRAVIS_BUILD_NUMBER} prerelease] FAILED on ${ROS_DISTRO_TARGET}" ""; false)
