@@ -4,12 +4,9 @@ addons:
   apt:
     packages:
       - python-pip
-
-
 cache:
   directories:
     - /home/travis/docker/dataset
-
 env:
   global:
     - PACKAGE_NAME=mcl_3dl
@@ -47,6 +44,7 @@ script:
     -e TRAVIS_BOT_GITHUB_TOKEN
     -e GITHUB_API_URL_BASE
     -e TRAVIS_BUILD_NUMBER
-    `bash <(curl -s https://codecov.io/env)`
+    $(bash <(curl -s https://codecov.io/env))
     ${DOCKER_CACHE_TARGET}:${ROS_DISTRO_TARGET} /catkin_ws/src/${PACKAGE_NAME}/.travis/test.sh
   - .travis/save_cache.sh
+  - .travis/prerelease_test.sh
