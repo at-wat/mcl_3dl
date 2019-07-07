@@ -7,6 +7,19 @@ if [[ ! "${TRAVIS_PULL_REQUEST_BRANCH}" =~ ^release-.*$ ]]; then
   exit 0
 fi
 
+case ${ROS_DISTRO_TARGET} in
+  kinetic )
+    UBUNTU_DIST_TARGET=xenial
+    ;;
+  melodic )
+    UBUNTU_DIST_TARGET=bionic
+    ;;
+  * )
+    echo "Unknown ROS_DISTRO_TARGET: ${ROS_DISTRO_TARGET}"
+    exit 1
+    ;;
+esac
+
 echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" | sudo tee /etc/apt/sources.list.d/ros-latest.list
 sudo apt-key adv --keyserver hkp://pool.sks-keyservers.net --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
 sudo apt-get update -qq
@@ -17,7 +30,7 @@ cd /tmp/prerelease_job
 
 generate_prerelease_script.py \
   https://raw.githubusercontent.com/ros-infrastructure/ros_buildfarm_config/production/index.yaml \
-  ${ROS_DISTRO_TARGET} default ubuntu xenial amd64 \
+  ${ROS_DISTRO_TARGET} default ubuntu ${UBUNTU_DIST_TARGET} amd64 \
   --custom-repo \
     mcl_3dl__custom-2:git:https://github.com/at-wat/mcl_3dl.git:${TRAVIS_PULL_REQUEST_BRANCH} \
   --level 1 \
