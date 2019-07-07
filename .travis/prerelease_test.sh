@@ -2,7 +2,7 @@
 
 set -eu
 
-if [[ ! ${TRAVIS_BRANCH} =~ ^release-.*$ ]]; then
+if [[ ! "${TRAVIS_PULL_REQUEST_BRANCH}" =~ ^release-.*$ ]]; then
   echo "Skipping prerelease test"
   exit 0
 fi
@@ -19,7 +19,7 @@ generate_prerelease_script.py \
   https://raw.githubusercontent.com/ros-infrastructure/ros_buildfarm_config/production/index.yaml \
   ${ROS_DISTRO_TARGET} default ubuntu xenial amd64 \
   --custom-repo \
-    mcl_3dl__custom-2:git:https://github.com/at-wat/mcl_3dl.git:${TRAVIS_BRANCH} \
+    mcl_3dl__custom-2:git:https://github.com/at-wat/mcl_3dl.git:${TRAVIS_PULL_REQUEST_BRANCH} \
   --level 1 \
   --output-dir ./ \
   && gh-pr-comment "[prerelease #${TRAVIS_BUILD_NUMBER}] PASSED on ${ROS_DISTRO_TARGET}" "" \
