@@ -320,7 +320,6 @@ public:
         }
       }
     }
-    std::cerr << particles_.size() << "/" << p_num << "/" << indices.size() << " (" << p_sum << std::endl;
     for (size_t j = 0; j < ie_.size(); j++)
     {
       for (size_t k = 0; k < ie_.size(); k++)
