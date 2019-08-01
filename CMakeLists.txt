@@ -34,7 +34,6 @@ catkin_package(
 )
 
 
-add_compile_options(-std=c++17)
 include_directories(include ${catkin_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${PCL_INCLUDE_DIR})
 add_definitions(${PCL_DEFINITIONS})
 
@@ -86,7 +85,6 @@ if(CATKIN_ENABLE_TESTING)
   add_subdirectory(test)
 
   find_package(roslint REQUIRED)
-  set(ROSLINT_CPP_OPTS "--filter=-runtime/references,-build/c++11,-build/c++14")
   roslint_cpp()
   roslint_add_test()
 endif()

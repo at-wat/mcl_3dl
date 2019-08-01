@@ -298,13 +298,14 @@ public:
             std::max(
                 size_t(0),
                 static_cast<size_t>(p_num * random_sample_ratio)));
-    std::vector<size_t> full_indices(p_num);
-    std::iota(full_indices.begin(), full_indices.end(), 0);
-    std::vector<size_t> indices;
-    indices.reserve(num);
-    std::sample(
-        full_indices.begin(), full_indices.end(),
-        std::back_inserter(indices), num, engine_);
+
+    std::vector<size_t> indices(p_num);
+    std::iota(indices.begin(), indices.end(), 0);
+    if (random_sample_ratio < 1.0)
+    {
+      std::shuffle(indices.begin(), indices.end(), engine_);
+      indices.resize(num);
+    }
 
     p_sum = 0.0;
     for (size_t i : indices)
