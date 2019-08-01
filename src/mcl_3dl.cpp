@@ -1052,7 +1052,7 @@ protected:
       }
     }
     response.success = true;
-    response.message = std::to_string(points->size()) + " particles";
+    response.message = std::to_string(pf_->getParticleSize()) + " particles";
     return true;
   }
 
