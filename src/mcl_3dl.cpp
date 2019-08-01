@@ -655,7 +655,12 @@ protected:
     if (publish_tf_)
       tfb_.sendTransform(transforms);
 
-    auto cov = pf_->covariance();
+    // Calculate covariance from sampled particles to reduce calculation cost on global localization.
+    // Use the number of original particles or at least 10% of full particles.
+    auto cov = pf_->covariance(
+        1.0,
+        std::max(
+            0.1f, static_cast<float>(params_.num_particles_) / pf_->getParticleSize()));
 
     geometry_msgs::PoseWithCovarianceStamped pose;
     pose.header.stamp = msg->header.stamp;

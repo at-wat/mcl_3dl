@@ -186,7 +186,7 @@ public:
     const FLT_TYPE prob = 1.0 / particles_.size();
     for (size_t i = 0; i < particles_.size(); ++i)
     {
-      auto &p = particles_[i];
+      auto& p = particles_[i];
       const FLT_TYPE pscan = std::nextafter(pstep * (i + 1), static_cast<FLT_TYPE>(0.0));
       it = std::lower_bound(it, particles_dup_.end(), Particle<T, FLT_TYPE>(pscan));
       p.probability_ = prob;
@@ -274,14 +274,16 @@ public:
     }
     return mean.getMean();
   }
-  std::vector<T> covariance(const FLT_TYPE pass_ratio = 1.0)
+  std::vector<T> covariance(
+      const FLT_TYPE pass_ratio = 1.0,
+      const FLT_TYPE random_sample_ratio = 1.0)
   {
     T e = expectation(pass_ratio);
     FLT_TYPE p_sum = 0;
-    size_t p_num = 0;
     std::vector<T> cov;
     cov.resize(e.size());
 
+    size_t p_num = 0;
     for (auto& p : particles_)
     {
       p_num++;
@@ -289,9 +291,26 @@ public:
       if (p_sum > pass_ratio)
         break;
     }
-    p_sum = 0;
-    for (auto& p : particles_)
+
+    const size_t num =
+        std::min(
+            p_num,
+            std::max(
+                size_t(0),
+                static_cast<size_t>(p_num * random_sample_ratio)));
+    std::vector<size_t> full_indices(p_num);
+    std::iota(full_indices.begin(), full_indices.end(), 0);
+    std::vector<size_t> indices;
+    indices.reserve(num);
+    std::sample(
+        full_indices.begin(), full_indices.end(),
+        std::back_inserter(indices), num, engine_);
+
+    p_sum = 0.0;
+    for (size_t i : indices)
     {
+      auto& p = particles_[i];
+      p_sum += p.probability_;
       for (size_t j = 0; j < ie_.size(); j++)
       {
         for (size_t k = j; k < ie_.size(); k++)
@@ -299,17 +318,13 @@ public:
           cov[k][j] = cov[j][k] += p.state_.covElement(e, j, k) * p.probability_;
         }
       }
-
-      p_sum += p.probability_;
-      if (p_sum > pass_ratio)
-        break;
     }
+    std::cerr << particles_.size() << "/" << p_num << "/" << indices.size() << " (" << p_sum << std::endl;
     for (size_t j = 0; j < ie_.size(); j++)
     {
-      for (size_t k = j; k < ie_.size(); k++)
+      for (size_t k = 0; k < ie_.size(); k++)
       {
         cov[k][j] /= p_sum;
-        cov[j][k] /= p_sum;
       }
     }
 
