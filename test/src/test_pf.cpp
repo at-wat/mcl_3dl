@@ -137,6 +137,9 @@ TEST(Pf, BayesianEstimation)
       pf.resample(State(0.0));
       ASSERT_NEAR(avg, pf.expectation()[0], abs_error);
       ASSERT_NEAR(var, pf.covariance()[0][0], abs_error);
+
+      // 50% Random sampled covaliance calculation
+      ASSERT_NEAR(var, pf.covariance(1.0, 0.5)[0][0], abs_error * 2);
     }
   }
 }
@@ -202,17 +205,17 @@ TEST(Pf, ResampleFlatLikelihood)
 TEST(Pf, ResampleFirstParticle)
 {
   const std::vector<float> probs =
-  {
-    0.0001f, 0.2f, 0.2f, 0.2f, 0.3999f
-  };
+      {
+        0.0001f, 0.2f, 0.2f, 0.2f, 0.3999f
+      };
   const std::vector<float> states =
-  {
-    0.0f, 1.0f, 2.0f, 3.0f, 4.0f
-  };
+      {
+        0.0f, 1.0f, 2.0f, 3.0f, 4.0f
+      };
   const std::vector<float> expected_resampled_states =
-  {
-    1.0f, 2.0f, 3.0f, 4.0f, 4.0f
-  };
+      {
+        1.0f, 2.0f, 3.0f, 4.0f, 4.0f
+      };
   const size_t particle_num = probs.size();
 
   mcl_3dl::pf::ParticleFilter<State, float> pf(particle_num);

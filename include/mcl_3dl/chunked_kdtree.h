@@ -71,7 +71,7 @@ public:
     {
       return (id.x_) ^ (id.y_ << 11) ^ (id.z_ << 22);
     }
-    ChunkId(const int& x, const int& y, const int& z)
+    ChunkId(const int x, const int y, const int z)
       : x_(x)
       , y_(y)
       , z_(z)
@@ -228,7 +228,7 @@ public:
 
     return ret;
   }
-  typename pcl::KdTreeFLANN<POINT_TYPE>::Ptr getChunkKdtree(const POINT_TYPE p)
+  typename pcl::KdTreeFLANN<POINT_TYPE>::Ptr getChunkKdtree(const POINT_TYPE& p)
   {
     return getChunkKdtree(getChunkId(p));
   }
@@ -238,7 +238,7 @@ public:
       return typename pcl::KdTreeFLANN<POINT_TYPE>::Ptr();
     return chunks_[c].kdtree_;
   }
-  typename pcl::PointCloud<POINT_TYPE>::Ptr getChunkCloud(const POINT_TYPE p)
+  typename pcl::PointCloud<POINT_TYPE>::Ptr getChunkCloud(const POINT_TYPE& p)
   {
     return getChunkCloud(getChunkId(p));
   }
@@ -248,7 +248,7 @@ public:
       return typename pcl::PointCloud<POINT_TYPE>::Ptr();
     return chunks_[c].cloud_;
   }
-  ChunkId getChunkId(const POINT_TYPE p) const
+  ChunkId getChunkId(const POINT_TYPE& p) const
   {
     return ChunkId(static_cast<int>(floor(p.x * pos_to_chunk_)),
                    static_cast<int>(floor(p.y * pos_to_chunk_)),
