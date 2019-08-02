@@ -292,19 +292,19 @@ public:
         break;
     }
 
-    const size_t num =
-        std::min(
-            p_num,
-            std::max(
-                size_t(0),
-                static_cast<size_t>(p_num * random_sample_ratio)));
-
     std::vector<size_t> indices(p_num);
     std::iota(indices.begin(), indices.end(), 0);
     if (random_sample_ratio < 1.0)
     {
       std::shuffle(indices.begin(), indices.end(), engine_);
-      indices.resize(num);
+
+      const size_t sample_num =
+          std::min(
+              p_num,
+              std::max(
+                  size_t(0),
+                  static_cast<size_t>(p_num * random_sample_ratio)));
+      indices.resize(sample_num);
     }
 
     p_sum = 0.0;
