@@ -2,6 +2,32 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Speed-up covariance calculation during global localization (`#248 <https://github.com/at-wat/mcl_3dl/issues/248>`_)
+* Run prerelease test on release preparation PR (`#246 <https://github.com/at-wat/mcl_3dl/issues/246>`_)
+* Add a test for landmark measurement (`#242 <https://github.com/at-wat/mcl_3dl/issues/242>`_)
+* Add test case for expansion resetting service (`#241 <https://github.com/at-wat/mcl_3dl/issues/241>`_)
+* Test matched/unmatched debug outputs (`#240 <https://github.com/at-wat/mcl_3dl/issues/240>`_)
+* Add basic tests for State6DOF class (`#239 <https://github.com/at-wat/mcl_3dl/issues/239>`_)
+* Fix demo configuration and update README (`#238 <https://github.com/at-wat/mcl_3dl/issues/238>`_)
+* Add no-imu and no-odometry modes (`#234 <https://github.com/at-wat/mcl_3dl/issues/234>`_)
+* Add test case for obsolated compatibility mode (`#237 <https://github.com/at-wat/mcl_3dl/issues/237>`_)
+* Fix document file permission (`#236 <https://github.com/at-wat/mcl_3dl/issues/236>`_)
+* Add test for compatibility level check (`#235 <https://github.com/at-wat/mcl_3dl/issues/235>`_)
+* Fix ParticleFilter::resample() (`#233 <https://github.com/at-wat/mcl_3dl/issues/233>`_)
+* Drop ROS Indigo and Ubuntu Trusty support (`#230 <https://github.com/at-wat/mcl_3dl/issues/230>`_)
+* Disable CI build for indigo (`#229 <https://github.com/at-wat/mcl_3dl/issues/229>`_)
+* Refactor motion prediction models (`#227 <https://github.com/at-wat/mcl_3dl/issues/227>`_)
+* Refactor IMU measurement models (`#226 <https://github.com/at-wat/mcl_3dl/issues/226>`_)
+* Fix include directory priority (`#225 <https://github.com/at-wat/mcl_3dl/issues/225>`_)
+* Custom point type (`#206 <https://github.com/at-wat/mcl_3dl/issues/206>`_)
+* Fix transform object constness (`#224 <https://github.com/at-wat/mcl_3dl/issues/224>`_)
+* Add LICENSE file (`#220 <https://github.com/at-wat/mcl_3dl/issues/220>`_)
+* Add post-release test script (`#218 <https://github.com/at-wat/mcl_3dl/issues/218>`_)
+* Reduce memcpy in point cloud transform (`#216 <https://github.com/at-wat/mcl_3dl/issues/216>`_)
+* Contributors: Atsushi Watanabe, Naotaka Hatao
+
 0.1.4 (2018-12-20)
 ------------------
 * Fix IO figure (`#212 <https://github.com/at-wat/mcl_3dl/issues/212>`_)
