@@ -29,8 +29,6 @@ before_install:
   - .travis/cache_dataset.sh
   - pip install --user gh-pr-comment
 
-install: true
-
 script:
   - docker build
     --cache-from ${DOCKER_CACHE_REGISTRY}:${ROS_DISTRO_TARGET}
@@ -49,4 +47,18 @@ script:
     $(bash <(curl -s https://codecov.io/env))
     ${DOCKER_CACHE_TARGET}:${ROS_DISTRO_TARGET} /catkin_ws/src/${PACKAGE_NAME}/.travis/test.sh
   - .travis/save_cache.sh
-  - .travis/prerelease_test.sh
+
+jobs:
+  include:
+    - stage: prerelease-test
+      if: head_branch =~ ^release-.*$
+      env:
+        - ROS_DISTRO_TARGET=kinetic
+      before_install: pip install --user gh-pr-comment
+      script: .travis/prerelease_test.sh
+    - stage: prerelease-test
+      if: head_branch =~ ^release-.*$
+      env:
+        - ROS_DISTRO_TARGET=melodic
+      before_install: pip install --user gh-pr-comment
+      script: .travis/prerelease_test.sh
