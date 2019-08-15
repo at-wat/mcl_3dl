@@ -4,6 +4,7 @@ Changelog for package mcl_3dl
 
 0.1.5 (2019-08-15)
 ------------------
+* Split prerelease test job to avoid CI time-limit (`#251 <https://github.com/at-wat/mcl_3dl/issues/251>`_)
 * Speed-up covariance calculation during global localization (`#248 <https://github.com/at-wat/mcl_3dl/issues/248>`_)
 * Run prerelease test on release preparation PR (`#246 <https://github.com/at-wat/mcl_3dl/issues/246>`_)
 * Add a test for landmark measurement (`#242 <https://github.com/at-wat/mcl_3dl/issues/242>`_)
