@@ -635,7 +635,7 @@ protected:
     transforms.push_back(trans);
 
     e.rot_ = map_rot * odom_.rot_;
-    e.pos_ = map_pos + e.rot_ * odom_.rot_.inv() * odom_.pos_;
+    e.pos_ = map_pos + map_rot * odom_.pos_;
 
     assert(std::isfinite(e.pos_.x_));
     assert(std::isfinite(e.pos_.y_));
