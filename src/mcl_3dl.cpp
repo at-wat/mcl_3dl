@@ -635,7 +635,7 @@ protected:
     transforms.push_back(trans);
 
     e.rot_ = map_rot * odom_.rot_;
-    e.pos_ = map_pos + e.rot_ * odom_.rot_.inv() * odom_.pos_;
+    e.pos_ = map_pos + map_rot * odom_.pos_;
 
     assert(std::isfinite(e.pos_.x_));
     assert(std::isfinite(e.pos_.y_));
@@ -1040,11 +1040,9 @@ protected:
       assert(pit != points->end());
       particle.probability_ = prob;
       particle.probability_bias_ = 1.0;
-      particle.state_.pos_.x_ = pit->x;
-      particle.state_.pos_.y_ = pit->y;
-      particle.state_.pos_.z_ = pit->z;
-      particle.state_.rot_ = Quat(Vec3(0.0, 0.0, 2.0 * M_PI * cnt / dir)) * imu_quat_;
-      particle.state_.rot_.normalize();
+      particle.state_ = State6DOF(
+          Vec3(pit->x, pit->y, pit->z),
+          (Quat(Vec3(0.0, 0.0, 2.0 * M_PI * cnt / dir)) * imu_quat_).normalized());
       if (++cnt >= dir)
       {
         cnt = 0;

@@ -10,6 +10,13 @@
     <param name="beam/clip_near" value="0.0" />
     <param name="lpf_step" value="0" />
     <param name="dist_weight_z" value="1.0" />
+    <param name="jump_dist" value="1000.0" />
+    <param name="jump_ang" value="1000.0" />
+    <param name="odom_err_lin_lin" value="0.5" />
+    <param name="odom_err_integ_lin_tc" value="120.0" />
+    <param name="odom_err_integ_lin_sigma" value="2.5" />
+    <param name="odom_err_integ_ang_tc" value="120.0" />
+    <param name="odom_err_integ_ang_sigma" value="0.1" />
   </node>
 
   <node pkg="tf2_ros" type="static_transform_publisher" name="stf_base_link" args="0 5 0 0 0 0 odom base_link" />
