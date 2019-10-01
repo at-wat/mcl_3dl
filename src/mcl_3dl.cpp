@@ -1045,6 +1045,8 @@ protected:
       particle.state_.pos_.z_ = pit->z;
       particle.state_.rot_ = Quat(Vec3(0.0, 0.0, 2.0 * M_PI * cnt / dir)) * imu_quat_;
       particle.state_.rot_.normalize();
+      particle.state_.odom_err_integ_lin_ = Vec3();
+      particle.state_.odom_err_integ_ang_ = Vec3();
       if (++cnt >= dir)
       {
         cnt = 0;
