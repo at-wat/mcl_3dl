@@ -155,18 +155,26 @@ inline sensor_msgs::Imu generateImuMsg()
   imu.linear_acceleration.z = 9.8;
   return imu;
 }
-inline nav_msgs::Odometry generateOdomMsg()
+inline nav_msgs::Odometry generateOdomMsg(const float y)
 {
   nav_msgs::Odometry odom;
   odom.header.frame_id = "odom";
   odom.header.stamp = ros::Time::now();
-  odom.pose.pose.position.y = 5;
+  odom.pose.pose.position.y = y;
   odom.pose.pose.orientation.w = 1;
   return odom;
 }
 }  // namespace
 
-TEST(GlobalLocalization, Localize)
+class GlobalLocalization : public ::testing::TestWithParam<float>
+{
+};
+
+INSTANTIATE_TEST_CASE_P(
+    OdometryOffset, GlobalLocalization,
+    ::testing::Values(5.0, 100.0));
+
+TEST_P(GlobalLocalization, Localize)
 {
   geometry_msgs::PoseArray::ConstPtr poses;
   mcl_3dl_msgs::Status::ConstPtr status;
@@ -216,9 +224,19 @@ TEST(GlobalLocalization, Localize)
         pub_cloud.publish(
             generateCloudMsg(offset_x, offset_y, offset_z - laser_frame_height, offset_yaw));
         pub_imu.publish(generateImuMsg());
-        pub_odom.publish(generateOdomMsg());
+        pub_odom.publish(generateOdomMsg(0.0));
       }
       ASSERT_TRUE(ros::ok());
+
+      for (float y = 0; y < GetParam() && ros::ok(); y += 0.5)
+      {
+        ros::Duration(0.01).sleep();
+        ros::spinOnce();
+        pub_cloud.publish(
+            generateCloudMsg(offset_x, offset_y, offset_z - laser_frame_height, offset_yaw));
+        pub_imu.publish(generateImuMsg());
+        pub_odom.publish(generateOdomMsg(y));
+      }
 
       std_srvs::Trigger trigger;
       ASSERT_TRUE(src_global_localization.call(trigger));
@@ -234,7 +252,7 @@ TEST(GlobalLocalization, Localize)
         pub_cloud.publish(
             generateCloudMsg(offset_x, offset_y, offset_z - laser_frame_height, offset_yaw));
         pub_imu.publish(generateImuMsg());
-        pub_odom.publish(generateOdomMsg());
+        pub_odom.publish(generateOdomMsg(GetParam()));
       }
       ASSERT_TRUE(ros::ok());
 
@@ -248,7 +266,7 @@ TEST(GlobalLocalization, Localize)
         pub_cloud.publish(
             generateCloudMsg(offset_x, offset_y, offset_z - laser_frame_height, offset_yaw));
         pub_imu.publish(generateImuMsg());
-        pub_odom.publish(generateOdomMsg());
+        pub_odom.publish(generateOdomMsg(GetParam()));
       }
       ASSERT_TRUE(ros::ok());
 
@@ -260,7 +278,7 @@ TEST(GlobalLocalization, Localize)
         pub_cloud.publish(
             generateCloudMsg(offset_x, offset_y, offset_z - laser_frame_height, offset_yaw));
         pub_imu.publish(generateImuMsg());
-        pub_odom.publish(generateOdomMsg());
+        pub_odom.publish(generateOdomMsg(GetParam()));
       }
       ASSERT_TRUE(ros::ok());
 
