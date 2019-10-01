@@ -155,12 +155,13 @@ inline sensor_msgs::Imu generateImuMsg()
   imu.linear_acceleration.z = 9.8;
   return imu;
 }
-inline nav_msgs::Odometry generateOdomMsg(const float y)
+inline nav_msgs::Odometry generateOdomMsg(const float x)
 {
   nav_msgs::Odometry odom;
   odom.header.frame_id = "odom";
   odom.header.stamp = ros::Time::now();
-  odom.pose.pose.position.y = y;
+  odom.pose.pose.position.x = x;
+  odom.pose.pose.position.y = 5;
   odom.pose.pose.orientation.w = 1;
   return odom;
 }
