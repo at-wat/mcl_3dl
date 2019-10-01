@@ -228,9 +228,13 @@ TEST_P(GlobalLocalization, Localize)
         pub_odom.publish(generateOdomMsg(0.0));
       }
       ASSERT_TRUE(ros::ok());
-      pub_odom.publish(generateOdomMsg(GetParam()));
-      ros::Duration(0.5).sleep();
-      ros::spinOnce();
+      for (int i = 0; i < 5; ++i)
+      {
+        // Publish odom multiple times to make mcl_3dl internal odometry diff zero
+        pub_odom.publish(generateOdomMsg(GetParam()));
+        ros::Duration(0.1).sleep();
+        ros::spinOnce();
+      }
 
       std_srvs::Trigger trigger;
       ASSERT_TRUE(src_global_localization.call(trigger));
