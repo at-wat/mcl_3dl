@@ -227,16 +227,9 @@ TEST_P(GlobalLocalization, Localize)
         pub_odom.publish(generateOdomMsg(0.0));
       }
       ASSERT_TRUE(ros::ok());
-
-      for (float y = 0; y < GetParam() && ros::ok(); y += 0.5)
-      {
-        ros::Duration(0.01).sleep();
-        ros::spinOnce();
-        pub_cloud.publish(
-            generateCloudMsg(offset_x, offset_y, offset_z - laser_frame_height, offset_yaw));
-        pub_imu.publish(generateImuMsg());
-        pub_odom.publish(generateOdomMsg(y));
-      }
+      pub_odom.publish(generateOdomMsg(GetParam()));
+      ros::Duration(0.5).sleep();
+      ros::spinOnce();
 
       std_srvs::Trigger trigger;
       ASSERT_TRUE(src_global_localization.call(trigger));
@@ -292,17 +285,28 @@ TEST_P(GlobalLocalization, Localize)
               -(offset_x * sin(-offset_yaw) + offset_y * cos(-offset_yaw)),
               -offset_z));
       bool found_true_positive(false);
+      float dist_err_min = FLT_MAX;
+      float ang_err_min = FLT_MAX;
       for (const auto& pose : poses->poses)
       {
         tf2::Transform particle_pose;
         tf2::fromMsg(pose, particle_pose);
 
         const tf2::Transform tf_diff = particle_pose.inverse() * true_pose;
-        if (tf_diff.getOrigin().length() < 2e-1 &&
-            fabs(tf2::getYaw(tf_diff.getRotation())) < 2e-1)
+        const float dist_err = tf_diff.getOrigin().length();
+        const float ang_err = fabs(tf2::getYaw(tf_diff.getRotation()));
+        if (dist_err < 2e-1 && ang_err < 2e-1)
           found_true_positive = true;
+
+        if (dist_err_min > dist_err)
+        {
+          dist_err_min = dist_err;
+          ang_err_min = ang_err;
+        }
       }
-      ASSERT_TRUE(found_true_positive);
+      ASSERT_TRUE(found_true_positive)
+          << "Minimum position error: " << dist_err_min << std::endl
+          << "Angular error: " << ang_err_min << std::endl;
     }
   }
 }
