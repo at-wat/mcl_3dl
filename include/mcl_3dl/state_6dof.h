@@ -72,7 +72,7 @@ public:
     }
   };
   RPYVec rpy_;
-  float& operator[](const size_t i)override
+  float& operator[](const size_t i) override
   {
     switch (i)
     {
@@ -191,25 +191,23 @@ public:
       p.z = t.z_;
     }
   }
-  static State6DOF generateNoise(
-      std::default_random_engine& engine_,
-      const State6DOF& mean, const State6DOF& sigma)
+  template <typename RANDOM_ENGINE, typename NOISE_GEN>
+  static State6DOF generateNoise(RANDOM_ENGINE& engine, State6DOF mean, NOISE_GEN& gen)
   {
     State6DOF noise;
-    if (mean.isDiff() || !sigma.isDiff())
+    if (mean.isDiff())
     {
-      ROS_ERROR("Failed to generate noise. mean must be mcl_3dl::Quat and sigma must be rpy vec.");
+      ROS_ERROR("Failed to generate noise. mean must be mcl_3dl::Quat.");
     }
+    const auto org_noise = gen(engine);
     for (size_t i = 0; i < 3; i++)
     {
-      std::normal_distribution<float> nd(mean[i], sigma[i]);
-      noise[i] = noise[i + 7] = nd(engine_);
+      noise[i] = noise[i + 7] = mean[i] + org_noise[i];
     }
     mcl_3dl::Vec3 rpy_noise;
     for (size_t i = 0; i < 3; i++)
     {
-      std::normal_distribution<float> nd(0.0, sigma.rpy_.v_[i]);
-      rpy_noise[i] = noise[i + 10] = nd(engine_);
+      rpy_noise[i] = noise[i + 10] = org_noise[i + 3];
     }
     noise.rot_ = mcl_3dl::Quat(rpy_noise) * mean.rot_;
     return noise;
@@ -241,6 +239,27 @@ public:
     return ret;
   }
 };
+
+template <>
+template <>
+inline DiagonalNoiseGenerator<float>::DiagonalNoiseGenerator(const State6DOF& sigma)
+  : sigma_(6)
+{
+  if (!sigma.isDiff())
+  {
+    ROS_ERROR("Failed to generate noise. sigma must be rpy vec.");
+  }
+  for (size_t i = 0; i < 3; i++)
+  {
+    sigma_[i] = sigma[i];
+  }
+  mcl_3dl::Vec3 rpy_noise;
+  for (size_t i = 0; i < 3; i++)
+  {
+    sigma_[i + 3] = sigma.rpy_.v_[i];
+  }
+}
+
 class ParticleWeightedMeanQuat : public mcl_3dl::pf::ParticleWeightedMean<State6DOF, float>
 {
 protected:

@@ -96,7 +96,7 @@ class MCL3dlNode
 {
 protected:
   using PointType = mcl_3dl::PointXYZIL;
-  std::shared_ptr<pf::ParticleFilter<State6DOF, float, ParticleWeightedMeanQuat>> pf_;
+  std::shared_ptr<pf::ParticleFilter<State6DOF, float, ParticleWeightedMeanQuat, std::default_random_engine>> pf_;
 
   class MyPointRepresentation : public pcl::PointRepresentation<PointType>
   {
@@ -171,20 +171,14 @@ protected:
     {
       return;
     }
-    pf_->init(
-        State6DOF(
-            Vec3(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z),
-            Quat(pose.pose.orientation.x,
-                 pose.pose.orientation.y,
-                 pose.pose.orientation.z,
-                 pose.pose.orientation.w)),
-        State6DOF(
-            Vec3(msg->pose.covariance[0],
-                 msg->pose.covariance[6 * 1 + 1],
-                 msg->pose.covariance[6 * 2 + 2]),
-            Vec3(msg->pose.covariance[6 * 3 + 3],
-                 msg->pose.covariance[6 * 4 + 4],
-                 msg->pose.covariance[6 * 5 + 5])));
+    const State6DOF mean(Vec3(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z),
+                         Quat(pose.pose.orientation.x,
+                              pose.pose.orientation.y,
+                              pose.pose.orientation.z,
+                              pose.pose.orientation.w));
+    const MultivariateNoiseGenerator<float> noise_gen(msg->pose.covariance);
+    pf_->init(mean, noise_gen);
+
     pc_update_.reset();
     auto integ_reset_func = [](State6DOF& s)
     {
@@ -1199,7 +1193,10 @@ public:
     params_.global_localization_div_yaw_ = lroundf(2 * M_PI / grid_ang);
 
     pnh_.param("num_particles", params_.num_particles_, 64);
-    pf_.reset(new pf::ParticleFilter<State6DOF, float, ParticleWeightedMeanQuat>(params_.num_particles_));
+    pf_.reset(new pf::ParticleFilter<State6DOF,
+                                     float,
+                                     ParticleWeightedMeanQuat,
+                                     std::default_random_engine>(params_.num_particles_));
 
     pnh_.param("resample_var_x", params_.resample_var_x_, 0.05);
     pnh_.param("resample_var_y", params_.resample_var_y_, 0.05);
