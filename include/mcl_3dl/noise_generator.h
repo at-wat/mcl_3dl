@@ -106,7 +106,7 @@ public:
   {
     Vector random(dim_);
     std::normal_distribution<FLT_TYPE> nd(0.0, 1.0);
-    for (int j = 0; j < dim_; ++j)
+    for (size_t j = 0; j < dim_; ++j)
     {
       random[j] = nd(engine);
     }
