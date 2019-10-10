@@ -54,7 +54,7 @@ TEST(NoiseGenerator, DiagonalNoiseGenerator)
   for (size_t i = 0; i < 1000; ++i)
   {
     const auto result = gen(mt);
-    ASSERT_EQ(3, result.size());
+    ASSERT_EQ(dim, result.size());
     for (size_t j = 0; j < dim; ++j)
     {
       results[j].push_back(result[j]);
@@ -104,7 +104,7 @@ TEST(NoiseGenerator, MultivariateNoiseGenerator)
   for (size_t i = 0; i < 1000; ++i)
   {
     const auto result = gen(mt);
-    ASSERT_EQ(3, result.size());
+    ASSERT_EQ(dim, result.size());
     for (size_t j = 0; j < dim; ++j)
     {
       results[j].push_back(result[j]);
