@@ -194,6 +194,10 @@ public:
   template <typename RANDOM_ENGINE, typename NOISE_GEN>
   static State6DOF generateNoise(RANDOM_ENGINE& engine, State6DOF mean, NOISE_GEN& gen)
   {
+    if (gen.getDimension() != 6)
+    {
+      ROS_ERROR("Dimension of noise must be 6. Passed: %lu", gen.getDimension());
+    }
     State6DOF noise;
     if (mean.isDiff())
     {
@@ -242,7 +246,7 @@ public:
 
 template <>
 template <>
-inline DiagonalNoiseGenerator<float>::DiagonalNoiseGenerator(const State6DOF& sigma)
+inline DiagonalNoiseGenerator<float>::DiagonalNoiseGenerator(State6DOF& sigma)
   : sigma_(6)
 {
   if (!sigma.isDiff())
