@@ -64,8 +64,7 @@ TEST(NoiseGenerator, DiagonalNoiseGenerator)
   for (size_t i = 0; i < dim; ++i)
   {
     const double average = std::accumulate(results[i].begin(), results[i].end(), 0.0) / results[i].size();
-    EXPECT_GE(average, -0.1);
-    EXPECT_LE(average, 0.1);
+    EXPECT_NEAR(average, 0.0, 0.1);
     averages.push_back(average);
   }
   for (size_t i = 0; i < dim; ++i)
@@ -114,8 +113,7 @@ TEST(NoiseGenerator, MultivariateNoiseGenerator)
   for (size_t i = 0; i < dim; ++i)
   {
     const double average = std::accumulate(results[i].begin(), results[i].end(), 0.0) / results[i].size();
-    EXPECT_GE(average, -0.1);
-    EXPECT_LE(average, 0.1);
+    EXPECT_NEAR(average, 0.0, 0.1);
     averages.push_back(average);
   }
   for (size_t i = 0; i < dim; ++i)
