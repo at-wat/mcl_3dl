@@ -2,8 +2,8 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.6 (2019-10-21)
+------------------
 * Clear odometry integration error on global localization (`#257 <https://github.com/at-wat/mcl_3dl/issues/257>`_)
 * Accelerate CI and prerelease test (`#254 <https://github.com/at-wat/mcl_3dl/issues/254>`_)
 * Contributors: Atsushi Watanabe
