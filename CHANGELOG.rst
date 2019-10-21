@@ -2,6 +2,12 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Clear odometry integration error on global localization (`#257 <https://github.com/at-wat/mcl_3dl/issues/257>`_)
+* Accelerate CI and prerelease test (`#254 <https://github.com/at-wat/mcl_3dl/issues/254>`_)
+* Contributors: Atsushi Watanabe
+
 0.1.5 (2019-08-15)
 ------------------
 * Split prerelease test job to avoid CI time-limit (`#251 <https://github.com/at-wat/mcl_3dl/issues/251>`_)
