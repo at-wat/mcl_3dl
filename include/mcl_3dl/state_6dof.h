@@ -39,6 +39,9 @@
 #include <mcl_3dl/quat.h>
 #include <mcl_3dl/vec3.h>
 
+#include <mcl_3dl/noise_generator_base.h>
+#include <mcl_3dl/noise_generators/diagonal_noise_generator.h>
+
 namespace mcl_3dl
 {
 class State6DOF : public mcl_3dl::pf::ParticleBase<float>
@@ -191,29 +194,27 @@ public:
       p.z = t.z_;
     }
   }
-  template <typename RANDOM_ENGINE, typename NOISE_GEN>
-  static State6DOF generateNoise(RANDOM_ENGINE& engine, State6DOF mean, NOISE_GEN& gen)
+  template <typename T, typename RANDOM_ENGINE, typename NOISE_GEN>
+  static State6DOF generateNoise(RANDOM_ENGINE& engine, const NOISE_GEN& gen)
   {
     if (gen.getDimension() != 6)
     {
       ROS_ERROR("Dimension of noise must be 6. Passed: %lu", gen.getDimension());
     }
     State6DOF noise;
-    if (mean.isDiff())
-    {
-      ROS_ERROR("Failed to generate noise. mean must be mcl_3dl::Quat.");
-    }
     const auto org_noise = gen(engine);
+    const auto& mean = gen.getMean();
     for (size_t i = 0; i < 3; i++)
     {
-      noise[i] = noise[i + 7] = mean[i] + org_noise[i];
+      noise[i] = noise[i + 7] = org_noise[i];
     }
     mcl_3dl::Vec3 rpy_noise;
     for (size_t i = 0; i < 3; i++)
     {
-      rpy_noise[i] = noise[i + 10] = org_noise[i + 3];
+      rpy_noise[i] = org_noise[i + 3];
+      noise[i + 10] = org_noise[i + 3] - mean[i + 3];
     }
-    noise.rot_ = mcl_3dl::Quat(rpy_noise) * mean.rot_;
+    noise.rot_ = mcl_3dl::Quat(rpy_noise);
     return noise;
   }
   State6DOF operator+(const State6DOF& a) const
@@ -246,9 +247,29 @@ public:
 
 template <>
 template <>
-inline DiagonalNoiseGenerator<float>::DiagonalNoiseGenerator(State6DOF& sigma)
-  : sigma_(6)
+inline void NoiseGeneratorBase<float>::setMean(const State6DOF& mean)
 {
+  mean_.resize(6);
+  if (mean.isDiff())
+  {
+    ROS_ERROR("Failed to generate noise. mean must be mcl_3dl::Quat.");
+  }
+  for (size_t i = 0; i < 3; i++)
+  {
+    mean_[i] = mean[i];
+  }
+  const Vec3 rpy = mean.rot_.getRPY();
+  for (size_t i = 0; i < 3; i++)
+  {
+    mean_[i + 3] = rpy[i];
+  }
+}
+
+template <>
+template <>
+inline void DiagonalNoiseGenerator<float>::setSigma(const State6DOF& sigma)
+{
+  sigma_.resize(6);
   if (!sigma.isDiff())
   {
     ROS_ERROR("Failed to generate noise. sigma must be rpy vec.");

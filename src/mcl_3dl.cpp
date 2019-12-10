@@ -10,8 +10,8 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the copyright holder nor the names of its 
- *       contributors may be used to endorse or promote products derived from 
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -87,6 +87,7 @@
 #include <mcl_3dl/raycast.h>
 #include <mcl_3dl/state_6dof.h>
 #include <mcl_3dl/vec3.h>
+#include <mcl_3dl/noise_generators/multivariate_noise_generator.h>
 
 #include <mcl_3dl_compat/compatibility.h>
 
@@ -176,8 +177,8 @@ protected:
                               pose.pose.orientation.y,
                               pose.pose.orientation.z,
                               pose.pose.orientation.w));
-    const MultivariateNoiseGenerator<float> noise_gen(msg->pose.covariance);
-    pf_->init(mean, noise_gen);
+    const MultivariateNoiseGenerator<float> noise_gen(mean, msg->pose.covariance);
+    pf_->initUsingNoiseGenerator(noise_gen);
 
     pc_update_.reset();
     auto integ_reset_func = [](State6DOF& s)

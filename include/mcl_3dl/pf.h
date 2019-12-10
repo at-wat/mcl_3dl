@@ -30,13 +30,13 @@
 #ifndef MCL_3DL_PF_H
 #define MCL_3DL_PF_H
 
+#include <algorithm>
+#include <cmath>
+#include <functional>
 #include <random>
 #include <vector>
-#include <algorithm>
-#include <functional>
-#include <cmath>
 
-#include <mcl_3dl/noise_generator.h>
+#include <mcl_3dl/noise_generators/diagonal_noise_generator.h>
 
 namespace mcl_3dl
 {
@@ -67,19 +67,18 @@ public:
     T exp = e;
     return ((*this)[k] - exp[k]) * ((*this)[j] - exp[j]);
   }
-  template <typename RANDOM_ENGINE, typename T, typename NOISE_GEN>
-  static T generateNoise(RANDOM_ENGINE& engine, T mean, NOISE_GEN& gen)
+
+  template <typename T, typename RANDOM_ENGINE, typename NOISE_GEN>
+  static T generateNoise(RANDOM_ENGINE& engine, const NOISE_GEN& gen)
   {
     const auto org_noise = gen(engine);
     T noise;
     for (size_t i = 0; i < noise.size(); i++)
     {
-      noise[i] = mean[i] + org_noise[i];
+      noise[i] = org_noise[i];
     }
     return noise;
   }
-
-protected:
 };
 
 template <typename T, typename FLT_TYPE = float>
@@ -163,23 +162,23 @@ public:
   }
   void init(T mean, T sigma)
   {
-    return init(mean, DiagonalNoiseGenerator<FLT_TYPE>(sigma));
+    return initUsingNoiseGenerator(DiagonalNoiseGenerator<FLT_TYPE>(mean, sigma));
   }
   template <typename GEN>
-  void init(T mean, const GEN& generator)
+  void initUsingNoiseGenerator(const GEN& generator)
   {
     for (auto& p : particles_)
     {
-      p.state_ = T::generateNoise(engine_, mean, generator);
+      p.state_ = T::template generateNoise<T>(engine_, generator);
       p.probability_ = 1.0 / particles_.size();
     }
   }
   void resample(T sigma)
   {
-    resample(DiagonalNoiseGenerator<FLT_TYPE>(sigma));
+    resampleUsingNoiseGenerator(DiagonalNoiseGenerator<FLT_TYPE>(T(), sigma));
   }
   template <typename GEN>
-  void resample(const GEN& generator)
+  void resampleUsingNoiseGenerator(const GEN& generator)
   {
     FLT_TYPE accum = 0;
     for (auto& p : particles_)
@@ -208,7 +207,7 @@ public:
       }
       else if (it == it_prev)
       {
-        p.state_ = it->state_ + T::generateNoise(engine_, T(), generator);
+        p.state_ = it->state_ + T::template generateNoise<T>(engine_, generator);
         p.state_.normalize();
       }
       else
@@ -220,14 +219,14 @@ public:
   }
   void noise(T sigma)
   {
-    noise(DiagonalNoiseGenerator<FLT_TYPE>(sigma));
+    addNoiseUsingNoiseGenerator(DiagonalNoiseGenerator<FLT_TYPE>(T(), sigma));
   }
   template <typename GEN>
-  void noise(const GEN& generator)
+  void addNoiseUsingNoiseGenerator(const GEN& generator)
   {
     for (auto& p : particles_)
     {
-      p.state_ = p.state_ + T::generateNoise(engine_, T(), generator);
+      p.state_ = p.state_ + T::template generateNoise<T>(engine_, generator);
     }
   }
   void predict(std::function<void(T&)> model)

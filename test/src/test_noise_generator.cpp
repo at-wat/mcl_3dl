@@ -27,30 +27,27 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <vector>
 
 #include <gtest/gtest.h>
 
-#include <mcl_3dl/noise_generator.h>
-#include <algorithm>
+#include <mcl_3dl/noise_generators/diagonal_noise_generator.h>
+#include <mcl_3dl/noise_generators/multivariate_noise_generator.h>
+#include <mcl_3dl/state_6dof.h>
 
 namespace mcl_3dl
 {
-TEST(NoiseGenerator, DiagonalNoiseGenerator)
+void testDiagonalNoiseGeneratorResults(const std::vector<float>& expected_mean,
+                                       const std::vector<float>& expected_sigma,
+                                       const DiagonalNoiseGenerator<float>& gen)
 {
-  const size_t dim = 3;
-  std::vector<double> expected_sigma;
-  expected_sigma.push_back(1.0);
-  expected_sigma.push_back(2.0);
-  expected_sigma.push_back(3.0);
-
-  DiagonalNoiseGenerator<double> gen(expected_sigma);
+  const size_t dim = expected_mean.size();
   ASSERT_EQ(dim, gen.getDimension());
-
   std::mt19937 mt(123);
-  std::vector<std::vector<double>> results(dim);
+  std::vector<std::vector<float>> results(dim);
   for (size_t i = 0; i < 1000; ++i)
   {
     const auto result = gen(mt);
@@ -60,47 +57,80 @@ TEST(NoiseGenerator, DiagonalNoiseGenerator)
       results[j].push_back(result[j]);
     }
   }
-  std::vector<double> averages;
+  std::vector<float> means;
   for (size_t i = 0; i < dim; ++i)
   {
-    const double average = std::accumulate(results[i].begin(), results[i].end(), 0.0) / results[i].size();
-    EXPECT_NEAR(average, 0.0, 0.1);
-    averages.push_back(average);
+    const float mean = std::accumulate(results[i].begin(), results[i].end(), 0.0) / results[i].size();
+    EXPECT_NEAR(mean, expected_mean[i], 0.1);
+    means.push_back(mean);
   }
   for (size_t i = 0; i < dim; ++i)
   {
-    const double average = averages[i];
+    const float mean = means[i];
     // clang-format off
-    const auto calc_var = [average](double prev, double val)
+    const auto calc_var = [mean](float prev, float val)
     {
-      return prev + std::pow((val - average), 2);
+      return prev + std::pow((val - mean), 2);
     };
     // clang-format on
-    const double var = std::accumulate(results[i].begin(), results[i].end(), 0.0, calc_var) / results[i].size();
-    const double sigma = std::sqrt(var);
+    const float var = std::accumulate(results[i].begin(), results[i].end(), 0.0, calc_var) / results[i].size();
+    const float sigma = std::sqrt(var);
     EXPECT_GE(sigma, expected_sigma[i] * 0.9);
     EXPECT_LE(sigma, expected_sigma[i] * 1.1);
   }
 }
 
-TEST(NoiseGenerator, MultivariateNoiseGenerator)
+TEST(NoiseGenerator, DiagonalNoiseGenerator)
 {
-  const size_t dim = 3;
+  std::vector<float> expected_mean;
+  expected_mean.push_back(7.0);
+  expected_mean.push_back(8.0);
+  expected_mean.push_back(9.0);
+
+  std::vector<float> expected_sigma;
+  expected_sigma.push_back(1.0);
+  expected_sigma.push_back(2.0);
+  expected_sigma.push_back(3.0);
+
+  const DiagonalNoiseGenerator<float> gen(expected_mean, expected_sigma);
+  testDiagonalNoiseGeneratorResults(expected_mean, expected_sigma, gen);
+}
+
+TEST(NoiseGenerator, DiagonalNoiseGeneratorForState6Dof)
+{
   // clang-format off
-  const std::vector<double> expected_covariances =
+  const std::vector<float> expected_mean =
   {
-      1.0, 0.3, 0.7,
-      0.3, 2.0, 0.4,
-      0.7, 0.4, 1.0
+      5.0, 10.0, -20.0, 0.2, -0.3, 0.4
+  };
+  const std::vector<float> expected_sigma =
+  {
+      0.3, 0.4, 0.5, 0.1, 0.05, 0.025
   };
   // clang-format on
 
-  const MultivariateNoiseGenerator<double> gen(expected_covariances);
+  const mcl_3dl::Vec3 mean_pos(expected_mean[0], expected_mean[1], expected_mean[2]);
+  const mcl_3dl::Quat mean_rot(mcl_3dl::Vec3(expected_mean[3], expected_mean[4], expected_mean[5]));
+  const State6DOF mean(mean_pos, mean_rot);
+
+  const mcl_3dl::Vec3 sigma_pos(expected_sigma[0], expected_sigma[1], expected_sigma[2]);
+  const mcl_3dl::Vec3 sigma_rpy(expected_sigma[3], expected_sigma[4], expected_sigma[5]);
+  const State6DOF sigma(sigma_pos, sigma_rpy);
+
+  const DiagonalNoiseGenerator<float> gen(mean, sigma);
+  testDiagonalNoiseGeneratorResults(expected_mean, expected_sigma, gen);
+}
+
+void testMultivariateNoiseGeneratorResults(const std::vector<float>& expected_means,
+                                           const std::vector<float>& expected_covariances,
+                                           const MultivariateNoiseGenerator<float>& gen)
+{
+  const size_t dim = expected_means.size();
   ASSERT_EQ(dim, gen.getDimension());
 
   std::mt19937 mt(123);
-  std::vector<std::vector<double>> results(dim);
-  for (size_t i = 0; i < 1000; ++i)
+  std::vector<std::vector<float>> results(dim);
+  for (size_t i = 0; i < 10000; ++i)
   {
     const auto result = gen(mt);
     ASSERT_EQ(dim, result.size());
@@ -109,18 +139,18 @@ TEST(NoiseGenerator, MultivariateNoiseGenerator)
       results[j].push_back(result[j]);
     }
   }
-  std::vector<double> averages;
+  std::vector<float> averages;
   for (size_t i = 0; i < dim; ++i)
   {
-    const double average = std::accumulate(results[i].begin(), results[i].end(), 0.0) / results[i].size();
-    EXPECT_NEAR(average, 0.0, 0.1);
+    const float average = std::accumulate(results[i].begin(), results[i].end(), 0.0) / results[i].size();
+    EXPECT_NEAR(average, expected_means[i], 0.1);
     averages.push_back(average);
   }
   for (size_t i = 0; i < dim; ++i)
   {
     for (size_t j = i; j < dim; ++j)
     {
-      double covar = 0;
+      float covar = 0;
       for (size_t n = 0; n < results[i].size(); ++n)
       {
         covar += (results[i][n] - averages[i]) * (results[j][n] - averages[j]);
@@ -131,6 +161,52 @@ TEST(NoiseGenerator, MultivariateNoiseGenerator)
     }
   }
 }
+
+TEST(NoiseGenerator, MultivariateNoiseGenerator)
+{
+  // clang-format off
+  const std::vector<float> expected_mean =
+  {
+      -1.0, 2.0, -3.0,
+  };
+  const std::vector<float> expected_covariance =
+  {
+      1.0, 0.3, 0.7,
+      0.3, 2.0, 0.4,
+      0.7, 0.4, 1.0
+  };
+  // clang-format on
+
+  const MultivariateNoiseGenerator<float> gen(expected_mean, expected_covariance);
+  testMultivariateNoiseGeneratorResults(expected_mean, expected_covariance, gen);
+}
+
+TEST(NoiseGenerator, MultivariateNoiseGeneratorForState6Dof)
+{
+  // clang-format off
+  const std::vector<float> expected_mean =
+  {
+      5.0, -6.0, 7.0, -0.3, 0.2, 0.1
+  };
+  const std::vector<float> expected_covariance =
+  {
+      2.0,  0.5,  0.6,  0.05,  0.04,  0.03,
+      0.5,  2.5,  0.4,  0.06,  0.07,  0.08,
+      0.6,  0.4,  3.0,  0.09,  0.02,  0.11,
+      0.05, 0.06, 0.09, 0.2,   0.045, 0.035,
+      0.04, 0.07, 0.02, 0.045, 0.15,  0.015,
+      0.03, 0.08, 0.11, 0.035, 0.015, 0.1
+  };
+  // clang-format on
+
+  const mcl_3dl::Vec3 mean_pos(expected_mean[0], expected_mean[1], expected_mean[2]);
+  const mcl_3dl::Quat mean_rot(mcl_3dl::Vec3(expected_mean[3], expected_mean[4], expected_mean[5]));
+  const State6DOF mean(mean_pos, mean_rot);
+
+  const MultivariateNoiseGenerator<float> gen(mean, expected_covariance);
+  testMultivariateNoiseGeneratorResults(expected_mean, expected_covariance, gen);
+}
+
 }  // namespace mcl_3dl
 
 int main(int argc, char** argv)

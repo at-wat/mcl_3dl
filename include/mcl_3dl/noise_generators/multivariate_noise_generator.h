@@ -27,74 +27,49 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef MCL_3DL_NOISE_GENERATOR_H
-#define MCL_3DL_NOISE_GENERATOR_H
+#ifndef MCL_3DL_NOISE_GENERATORS_MULTIVARIATE_NOISE_GENERATOR_H
+#define MCL_3DL_NOISE_GENERATORS_MULTIVARIATE_NOISE_GENERATOR_H
 
-#include <algorithm>
-#include <cmath>
-#include <functional>
 #include <random>
 #include <vector>
 
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>
 
-#include "ros/ros.h"
+#include <mcl_3dl/noise_generator_base.h>
 
 namespace mcl_3dl
 {
 template <typename FLT_TYPE>
-class DiagonalNoiseGenerator
+class MultivariateNoiseGenerator : public NoiseGeneratorBase<FLT_TYPE>
 {
 public:
-  template <typename T>
-  explicit DiagonalNoiseGenerator(T& sigma)
-    : sigma_(sigma.size())
+  using Parent = NoiseGeneratorBase<FLT_TYPE>;
+  using Matrix = Eigen::Matrix<FLT_TYPE, Eigen::Dynamic, Eigen::Dynamic>;
+  using Vector = Eigen::Matrix<FLT_TYPE, Eigen::Dynamic, 1>;
+
+  template <typename MEAN_TYPE, typename COV_TYPE>
+  explicit MultivariateNoiseGenerator(const MEAN_TYPE& mean, const COV_TYPE& covariance)
   {
-    for (size_t i = 0; i < sigma.size(); ++i)
+    Parent::setMean(mean);
+    mean_vec_.resize(Parent::mean_.size());
+    for (size_t i = 0; i < mean_vec_.size(); ++i)
     {
-      sigma_[i] = sigma[i];
+      mean_vec_[i] = Parent::mean_[i];
     }
+    setCovariance(covariance);
   }
 
-  template <typename RANDOM_ENGINE>
-  std::vector<FLT_TYPE> operator()(RANDOM_ENGINE& engine) const
+  template <typename COV_TYPE>
+  void setCovariance(const COV_TYPE& covariance)
   {
-    std::vector<FLT_TYPE> noise(sigma_.size());
-    for (size_t i = 0; i < sigma_.size(); i++)
+    const size_t dim = Parent::getDimension();
+    Matrix cov_matrix(dim, dim);
+    for (size_t i = 0; i < dim; ++i)
     {
-      std::normal_distribution<FLT_TYPE> nd(0.0, sigma_[i]);
-      noise[i] = nd(engine);
-    }
-    return noise;
-  }
-
-  size_t getDimension() const
-  {
-    return sigma_.size();
-  }
-
-protected:
-  std::vector<FLT_TYPE> sigma_;
-};
-
-template <typename FLT_TYPE>
-class MultivariateNoiseGenerator
-{
-public:
-  typedef Eigen::Matrix<FLT_TYPE, Eigen::Dynamic, Eigen::Dynamic> Matrix;
-  typedef Eigen::Matrix<FLT_TYPE, Eigen::Dynamic, 1> Vector;
-
-  template <typename T>
-  explicit MultivariateNoiseGenerator(T& covariances)
-    : dim_(std::lround(std::sqrt(covariances.size())))
-  {
-    Matrix cov_matrix(dim_, dim_);
-    for (size_t i = 0; i < dim_; ++i)
-    {
-      for (size_t j = 0; j < dim_; ++j)
+      for (size_t j = 0; j < dim; ++j)
       {
-        cov_matrix(i, j) = covariances[j + i * dim_];
+        cov_matrix(i, j) = covariance[j + i * dim];
       }
     }
     const Eigen::SelfAdjointEigenSolver<Matrix> eigen_solver(cov_matrix);
@@ -104,26 +79,22 @@ public:
   template <typename RANDOM_ENGINE>
   std::vector<FLT_TYPE> operator()(RANDOM_ENGINE& engine) const
   {
-    Vector random(dim_);
+    const size_t dim = Parent::getDimension();
+    Vector random(dim);
     std::normal_distribution<FLT_TYPE> nd(0.0, 1.0);
-    for (size_t j = 0; j < dim_; ++j)
+    for (size_t j = 0; j < dim; ++j)
     {
       random[j] = nd(engine);
     }
-    const Vector sample_noise = norm_transform_ * random;
-    return std::vector<FLT_TYPE>(sample_noise.data(), sample_noise.data() + dim_);
-  }
-
-  size_t getDimension() const
-  {
-    return dim_;
+    const Vector sample_noise = mean_vec_ + norm_transform_ * random;
+    return std::vector<FLT_TYPE>(sample_noise.data(), sample_noise.data() + dim);
   }
 
 protected:
-  size_t dim_;
+  Vector mean_vec_;
   Matrix norm_transform_;
 };
 
 }  // namespace mcl_3dl
 
-#endif  // MCL_3DL_NOISE_GENERATOR_H
+#endif  // MCL_3DL_NOISE_GENERATORS_MULTIVARIATE_NOISE_GENERATOR_H
