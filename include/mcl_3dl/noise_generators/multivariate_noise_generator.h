@@ -53,7 +53,7 @@ public:
   {
     Parent::setMean(mean);
     mean_vec_.resize(Parent::mean_.size());
-    for (size_t i = 0; i < mean_vec_.size(); ++i)
+    for (int i = 0; i < mean_vec_.size(); ++i)
     {
       mean_vec_[i] = Parent::mean_[i];
     }
