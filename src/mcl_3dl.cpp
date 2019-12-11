@@ -1101,8 +1101,6 @@ protected:
     float sum = 0.0f;
     for (auto& particle : *pf_)
     {
-      std::cout << "prob: " << particle.probability_ << std::endl;
-      ;
       sum += particle.probability_;
     }
 
