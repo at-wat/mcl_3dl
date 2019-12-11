@@ -10,6 +10,7 @@ set(CATKIN_DEPENDS
   tf2_ros
   tf2_sensor_msgs
 
+  diagnostic_updater
   geometry_msgs
   mcl_3dl_msgs
   nav_msgs
