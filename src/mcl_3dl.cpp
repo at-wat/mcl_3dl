@@ -681,7 +681,7 @@ protected:
     pose.pose.pose.orientation.w = e.rot_.w_;
     for (size_t i = 0; i < 36; i++)
     {
-      pose.pose.covariance[i] = cov_last_[i] = cov[i / 6][i % 6];
+      pose.pose.covariance[i] = cov[i / 6][i % 6];
     }
     pub_pose_.publish(pose);
 
@@ -1345,12 +1345,13 @@ public:
     pnh_.param("publish_tf", publish_tf_, true);
     pnh_.param("output_pcd", output_pcd_, false);
 
-    pnh_.param<float>("std_warn_thresh_x", std_warn_thresh_[0], 0.0);
-    pnh_.param<float>("std_warn_thresh_y", std_warn_thresh_[1], 0.0);
-    pnh_.param<float>("std_warn_thresh_z", std_warn_thresh_[2], 0.0);
-    pnh_.param<float>("std_warn_thresh_roll", std_warn_thresh_[3], 0.0);
-    pnh_.param<float>("std_warn_thresh_pitch", std_warn_thresh_[4], 0.0);
-    pnh_.param<float>("std_warn_thresh_yaw", std_warn_thresh_[5], 0.0);
+    const float float_max = std::numeric_limits<float>::max();
+    pnh_.param("std_warn_thresh_x", std_warn_thresh_[0], float_max);
+    pnh_.param("std_warn_thresh_y", std_warn_thresh_[1], float_max);
+    pnh_.param("std_warn_thresh_z", std_warn_thresh_[2], float_max);
+    pnh_.param("std_warn_thresh_roll", std_warn_thresh_[3], float_max);
+    pnh_.param("std_warn_thresh_pitch", std_warn_thresh_[4], float_max);
+    pnh_.param("std_warn_thresh_yaw", std_warn_thresh_[5], float_max);
 
     imu_quat_ = Quat(0.0, 0.0, 0.0, 1.0);
 
@@ -1492,7 +1493,6 @@ protected:
   int cnt_accum_;
   Quat imu_quat_;
   size_t global_localization_fix_cnt_;
-  std::array<float, 36> cov_last_;
   diagnostic_updater::Updater diag_updater_;
   mcl_3dl_msgs::Status status_;
 
