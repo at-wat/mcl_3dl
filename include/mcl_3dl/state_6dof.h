@@ -31,6 +31,7 @@
 #define MCL_3DL_STATE_6DOF_H
 
 #include <algorithm>
+#include <vector>
 
 #include <ros/ros.h>
 
