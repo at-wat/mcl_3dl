@@ -279,7 +279,6 @@ inline void DiagonalNoiseGenerator<float>::setSigma(const State6DOF& sigma)
   {
     sigma_[i] = sigma[i];
   }
-  mcl_3dl::Vec3 rpy_noise;
   for (size_t i = 0; i < 3; i++)
   {
     sigma_[i + 3] = sigma.rpy_.v_[i];
