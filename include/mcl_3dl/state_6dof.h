@@ -202,8 +202,8 @@ public:
       ROS_ERROR("Dimension of noise must be 6. Passed: %lu", gen.getDimension());
     }
     State6DOF noise;
-    const auto org_noise = gen(engine);
-    const auto& mean = gen.getMean();
+    const std::vector<float> org_noise = gen(engine);
+    const std::vector<float>& mean = gen.getMean();
     for (size_t i = 0; i < 3; i++)
     {
       noise[i] = noise[i + 7] = org_noise[i];
