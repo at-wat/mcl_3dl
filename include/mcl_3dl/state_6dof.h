@@ -31,6 +31,7 @@
 #define MCL_3DL_STATE_6DOF_H
 
 #include <algorithm>
+#include <vector>
 
 #include <ros/ros.h>
 
@@ -38,6 +39,9 @@
 #include <mcl_3dl/point_types.h>
 #include <mcl_3dl/quat.h>
 #include <mcl_3dl/vec3.h>
+
+#include <mcl_3dl/noise_generator_base.h>
+#include <mcl_3dl/noise_generators/diagonal_noise_generator.h>
 
 namespace mcl_3dl
 {
@@ -72,7 +76,7 @@ public:
     }
   };
   RPYVec rpy_;
-  float& operator[](const size_t i)override
+  float& operator[](const size_t i) override
   {
     switch (i)
     {
@@ -191,27 +195,27 @@ public:
       p.z = t.z_;
     }
   }
-  static State6DOF generateNoise(
-      std::default_random_engine& engine_,
-      const State6DOF& mean, const State6DOF& sigma)
+  template <typename T, typename RANDOM_ENGINE, typename NOISE_GEN>
+  static State6DOF generateNoise(RANDOM_ENGINE& engine, const NOISE_GEN& gen)
   {
-    State6DOF noise;
-    if (mean.isDiff() || !sigma.isDiff())
+    if (gen.getDimension() != 6)
     {
-      ROS_ERROR("Failed to generate noise. mean must be mcl_3dl::Quat and sigma must be rpy vec.");
+      ROS_ERROR("Dimension of noise must be 6. Passed: %lu", gen.getDimension());
     }
+    State6DOF noise;
+    const std::vector<float> org_noise = gen(engine);
+    const std::vector<float>& mean = gen.getMean();
     for (size_t i = 0; i < 3; i++)
     {
-      std::normal_distribution<float> nd(mean[i], sigma[i]);
-      noise[i] = noise[i + 7] = nd(engine_);
+      noise[i] = noise[i + 7] = org_noise[i];
     }
     mcl_3dl::Vec3 rpy_noise;
     for (size_t i = 0; i < 3; i++)
     {
-      std::normal_distribution<float> nd(0.0, sigma.rpy_.v_[i]);
-      rpy_noise[i] = noise[i + 10] = nd(engine_);
+      rpy_noise[i] = org_noise[i + 3];
+      noise[i + 10] = org_noise[i + 3] - mean[i + 3];
     }
-    noise.rot_ = mcl_3dl::Quat(rpy_noise) * mean.rot_;
+    noise.rot_ = mcl_3dl::Quat(rpy_noise);
     return noise;
   }
   State6DOF operator+(const State6DOF& a) const
@@ -241,6 +245,46 @@ public:
     return ret;
   }
 };
+
+template <>
+template <>
+inline void NoiseGeneratorBase<float>::setMean(const State6DOF& mean)
+{
+  mean_.resize(6);
+  if (mean.isDiff())
+  {
+    ROS_ERROR("Failed to generate noise. mean must be mcl_3dl::Quat.");
+  }
+  for (size_t i = 0; i < 3; i++)
+  {
+    mean_[i] = mean[i];
+  }
+  const Vec3 rpy = mean.rot_.getRPY();
+  for (size_t i = 0; i < 3; i++)
+  {
+    mean_[i + 3] = rpy[i];
+  }
+}
+
+template <>
+template <>
+inline void DiagonalNoiseGenerator<float>::setSigma(const State6DOF& sigma)
+{
+  sigma_.resize(6);
+  if (!sigma.isDiff())
+  {
+    ROS_ERROR("Failed to generate noise. sigma must be rpy vec.");
+  }
+  for (size_t i = 0; i < 3; i++)
+  {
+    sigma_[i] = sigma[i];
+  }
+  for (size_t i = 0; i < 3; i++)
+  {
+    sigma_[i + 3] = sigma.rpy_.v_[i];
+  }
+}
+
 class ParticleWeightedMeanQuat : public mcl_3dl::pf::ParticleWeightedMean<State6DOF, float>
 {
 protected:

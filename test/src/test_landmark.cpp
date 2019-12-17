@@ -112,7 +112,7 @@ TEST(Landmark, Measurement)
   ASSERT_NEAR(mean_init.second, 1.0f, 0.1f);
 
   poses = nullptr;
-  pub_landmark.publish(generatePoseWithCov(2.6, 1.0, 1000.0));
+  pub_landmark.publish(generatePoseWithCov(2.6, 1.0, 1000.0 * 1000.0));
   ros::Duration(0.1).sleep();
   ros::spinOnce();
 
