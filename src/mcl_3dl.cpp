@@ -252,6 +252,8 @@ protected:
     status_ = status_msg;
     status_.header.stamp = ros::Time::now();
     status_.status = mcl_3dl_msgs::Status::NORMAL;
+    status_.error = mcl_3dl_msgs::Status::ERROR_NORMAL;
+    status_.convergence_status = mcl_3dl_msgs::Status::CONVERGENCE_STATUS_NORMAL;
 
     if (!has_map_)
       return;
@@ -375,7 +377,7 @@ protected:
     if (pc_locals["likelihood"]->size() == 0)
     {
       ROS_ERROR("All points are filtered out. Failed to localize.");
-      status_.error = mcl_3dl_msgs::Status::POINTS_NOT_FOUND;
+      status_.error = mcl_3dl_msgs::Status::ERROR_POINTS_NOT_FOUND;
       diag_updater_.force_update();
       return;
     }
@@ -688,17 +690,15 @@ protected:
 
     if (!global_localization_fix_cnt_)
     {
-      for (unsigned int i = 0; i < 6; ++i)
+      if (std::sqrt(cov[0][0]) > std_warn_thresh_[0] ||
+          std::sqrt(cov[1][1]) > std_warn_thresh_[1] ||
+          std::sqrt(cov[5][5]) > std_warn_thresh_[2])
       {
-        if (std::sqrt(cov[i][i]) > std_warn_thresh_[i])
-        {
-          status_.error = mcl_3dl_msgs::Status::LARGE_STD_VALUE;
-          break;
-        }
+        status_.convergence_status = mcl_3dl_msgs::Status::CONVERGENCE_STATUS_LARGE_STD_VALUE;
       }
     }
 
-    if (status_.error != mcl_3dl_msgs::Status::LARGE_STD_VALUE)
+    if (status_.convergence_status != mcl_3dl_msgs::Status::CONVERGENCE_STATUS_LARGE_STD_VALUE)
     {
       Vec3 fix_axis;
       const float fix_ang = sqrtf(cov[3][3] + cov[4][4] + cov[5][5]);
@@ -708,7 +708,7 @@ protected:
           fabs(fix_ang) < params_.fix_ang_)
       {
         ROS_DEBUG("Localization fixed");
-        status_.status = mcl_3dl_msgs::Status::COVARIANCE_CONVERGED;
+        status_.convergence_status = mcl_3dl_msgs::Status::CONVERGENCE_STATUS_CONVERGED;
       }
     }
 
@@ -1117,20 +1117,20 @@ protected:
 
   void diagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper& stat)
   {
-    if (status_.error == mcl_3dl_msgs::Status::LARGE_STD_VALUE)
-    {
-      stat.summary(diagnostic_msgs::DiagnosticStatus::ERROR, "Too Large Standard Deviation.");
-    }
-    else if (status_.error == mcl_3dl_msgs::Status::POINTS_NOT_FOUND)
+    if (status_.error == mcl_3dl_msgs::Status::ERROR_POINTS_NOT_FOUND)
     {
       stat.summary(diagnostic_msgs::DiagnosticStatus::ERROR, "Valid points does not found.");
     }
+    else if (status_.convergence_status == mcl_3dl_msgs::Status::CONVERGENCE_STATUS_LARGE_STD_VALUE)
+    {
+      stat.summary(diagnostic_msgs::DiagnosticStatus::ERROR, "Too Large Standard Deviation.");
+    }
 
-    stat.addf("Entropy", "%.2f", getEntropy());
     stat.add("Pointcloud Availability", has_map_ ? "true" : "false");
     stat.add("Odometry Availability", has_odom_ ? "true" : "false");
     stat.add("IMU Availability", has_imu_ ? "true" : "false");
 
+    status_.entropy = getEntropy();
     pub_status_.publish(status_);
   }
 
@@ -1347,10 +1347,7 @@ public:
     const float float_max = std::numeric_limits<float>::max();
     pnh_.param("std_warn_thresh_x", std_warn_thresh_[0], float_max);
     pnh_.param("std_warn_thresh_y", std_warn_thresh_[1], float_max);
-    pnh_.param("std_warn_thresh_z", std_warn_thresh_[2], float_max);
-    pnh_.param("std_warn_thresh_roll", std_warn_thresh_[3], float_max);
-    pnh_.param("std_warn_thresh_pitch", std_warn_thresh_[4], float_max);
-    pnh_.param("std_warn_thresh_yaw", std_warn_thresh_[5], float_max);
+    pnh_.param("std_warn_thresh_yaw", std_warn_thresh_[2], float_max);
 
     imu_quat_ = Quat(0.0, 0.0, 0.0, 1.0);
 
@@ -1472,7 +1469,7 @@ protected:
   std::map<std::string, std::string> frame_ids_;
   bool output_pcd_;
   bool publish_tf_;
-  std::array<float, 6> std_warn_thresh_;
+  std::array<float, 3> std_warn_thresh_;
 
   bool fake_imu_, fake_odom_;
   ros::Time match_output_last_;
