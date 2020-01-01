@@ -106,8 +106,8 @@ public:
     , max_b_(Eigen::Vector4i::Zero())
     , div_b_(Eigen::Vector4i::Zero())
     , divb_mul_(Eigen::Vector4i::Zero())
-    , filter_limit_min_(-FLT_MAX)
-    , filter_limit_max_(FLT_MAX)
+    , filter_limit_min_(-std::numeric_limits<float>::max())
+    , filter_limit_max_(std::numeric_limits<float>::max())
     , filter_limit_negative_(false)
     , min_points_per_voxel_(0)
   {
@@ -304,7 +304,7 @@ public:
     filter_limit_max_ = limit_max;
   }
 
-  /** \brief Get the field filter limits (min/max) set by the user. The default values are -FLT_MAX, FLT_MAX.
+  /** \brief Get the field filter limits (min/max) set by the user. The default values are -std::numeric_limits<float>::max(), std::numeric_limits<float>::max().
      * \param[out] limit_min the minimum allowed field value
      * \param[out] limit_max the maximum allowed field value
      */
