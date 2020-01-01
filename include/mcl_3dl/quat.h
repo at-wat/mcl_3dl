@@ -31,6 +31,7 @@
 #define MCL_3DL_QUAT_H
 
 #include <algorithm>
+#include <cmath>
 
 #include <mcl_3dl/vec3.h>
 

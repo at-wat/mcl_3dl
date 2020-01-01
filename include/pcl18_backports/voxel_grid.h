@@ -55,6 +55,7 @@ using VoxelGrid18 = VoxelGrid<PointT>;
 // System has old PCL; backport VoxelGrid from pcl-1.8
 
 #include <algorithm>
+#include <cmath>
 #include <functional>
 #include <limits>
 #include <string>

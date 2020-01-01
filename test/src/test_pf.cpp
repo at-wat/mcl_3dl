@@ -27,13 +27,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <cmath>
 #include <cstddef>
 #include <vector>
 
-#include <gtest/gtest.h>
-
 #include <mcl_3dl/pf.h>
 #include <mcl_3dl/nd.h>
+
+#include <gtest/gtest.h>
 
 class State : public mcl_3dl::pf::ParticleBase<float>
 {

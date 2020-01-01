@@ -28,13 +28,12 @@
  */
 
 #define _USE_MATH_DEFINES
-
-#include <cstddef>
 #include <cmath>
-
-#include <gtest/gtest.h>
+#include <cstddef>
 
 #include <mcl_3dl/quat.h>
+
+#include <gtest/gtest.h>
 
 TEST(Quat, Constractors)
 {

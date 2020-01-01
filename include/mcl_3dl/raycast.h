@@ -30,10 +30,11 @@
 #ifndef MCL_3DL_RAYCAST_H
 #define MCL_3DL_RAYCAST_H
 
+#include <cmath>
+#include <vector>
+
 #include <mcl_3dl/vec3.h>
 #include <mcl_3dl/chunked_kdtree.h>
-
-#include <vector>
 
 namespace mcl_3dl
 {

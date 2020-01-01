@@ -30,13 +30,14 @@
 #ifndef MCL_3DL_CHUNKED_KDTREE_H
 #define MCL_3DL_CHUNKED_KDTREE_H
 
-#include <pcl/point_types.h>
-#include <pcl/kdtree/kdtree.h>
-#include <pcl/kdtree/kdtree_flann.h>
-
+#include <cmath>
 #include <stdexcept>
 #include <unordered_map>
 #include <vector>
+
+#include <pcl/point_types.h>
+#include <pcl/kdtree/kdtree.h>
+#include <pcl/kdtree/kdtree_flann.h>
 
 namespace mcl_3dl
 {

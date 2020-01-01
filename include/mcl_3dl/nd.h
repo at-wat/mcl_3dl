@@ -32,6 +32,7 @@
 
 #define _USE_MATH_DEFINES
 #include <cmath>
+
 #include <Eigen/Core>
 #include <Eigen/LU>
 

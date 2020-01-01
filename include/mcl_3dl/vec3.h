@@ -30,6 +30,8 @@
 #ifndef MCL_3DL_VEC3_H
 #define MCL_3DL_VEC3_H
 
+#include <cmath>
+
 namespace mcl_3dl
 {
 class Vec3

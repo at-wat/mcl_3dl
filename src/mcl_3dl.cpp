@@ -28,16 +28,20 @@
  */
 
 #include <algorithm>
+#include <cmath>
 #include <map>
 #include <memory>
 #include <string>
 #include <utility>
 #include <vector>
 
+#include <Eigen/Core>
+
 #include <boost/chrono.hpp>
 #include <boost/shared_ptr.hpp>
 
 #include <ros/ros.h>
+
 #include <sensor_msgs/PointCloud.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/point_cloud_conversion.h>
@@ -64,8 +68,6 @@
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/kdtree/kdtree.h>
 #include <pcl/kdtree/kdtree_flann.h>
-
-#include <Eigen/Core>
 
 #include <pcl18_backports/voxel_grid.h>
 

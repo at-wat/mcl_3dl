@@ -27,8 +27,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <cstddef>
 #include <cmath>
+#include <cstddef>
+
 #include <Eigen/Geometry>
 
 #include <gtest/gtest.h>
