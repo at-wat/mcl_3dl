@@ -148,7 +148,7 @@ public:
   }
   float norm() const
   {
-    return sqrtf(dot(*this));
+    return std::sqrt(dot(*this));
   }
   Vec3 normalized() const
   {

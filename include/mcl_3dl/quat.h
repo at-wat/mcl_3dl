@@ -61,10 +61,10 @@ public:
     const Vec3 yv = up_raw.cross(xv).normalized();
     const Vec3 zv = xv.cross(yv).normalized();
 
-    w_ = sqrtf(std::max(0.0, 1.0 + xv.x_ + yv.y_ + zv.z_)) / 2.0;
-    x_ = sqrtf(std::max(0.0, 1.0 + xv.x_ - yv.y_ - zv.z_)) / 2.0;
-    y_ = sqrtf(std::max(0.0, 1.0 - xv.x_ + yv.y_ - zv.z_)) / 2.0;
-    z_ = sqrtf(std::max(0.0, 1.0 - xv.x_ - yv.y_ + zv.z_)) / 2.0;
+    w_ = std::sqrt(std::max(0.0, 1.0 + xv.x_ + yv.y_ + zv.z_)) / 2.0;
+    x_ = std::sqrt(std::max(0.0, 1.0 + xv.x_ - yv.y_ - zv.z_)) / 2.0;
+    y_ = std::sqrt(std::max(0.0, 1.0 - xv.x_ + yv.y_ - zv.z_)) / 2.0;
+    z_ = std::sqrt(std::max(0.0, 1.0 - xv.x_ - yv.y_ + zv.z_)) / 2.0;
     if (zv.y_ - yv.z_ > 0)
       x_ = -x_;
     if (xv.z_ - zv.x_ > 0)
@@ -87,7 +87,7 @@ public:
   }
   float norm() const
   {
-    return sqrtf(dot(*this));
+    return std::sqrt(dot(*this));
   }
   bool operator==(const Quat& q) const
   {
@@ -243,7 +243,7 @@ public:
     if (ang > M_PI)
       ang -= 2.0 * M_PI;
     const float wsq = 1.0 - w_ * w_;
-    axis = Vec3(x_, y_, z_) / sqrtf(wsq);
+    axis = Vec3(x_, y_, z_) / std::sqrt(wsq);
   }
   void rotateAxis(const Quat& r)
   {

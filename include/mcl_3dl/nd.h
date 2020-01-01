@@ -43,7 +43,7 @@ class NormalLikelihood
 public:
   explicit NormalLikelihood(const FLT_TYPE sigma)
   {
-    a_ = 1.0 / sqrtf(2.0 * M_PI * sigma * sigma);
+    a_ = 1.0 / std::sqrt(2.0 * M_PI * sigma * sigma);
     sq2_ = sigma * sigma * 2.0;
   }
   FLT_TYPE operator()(const FLT_TYPE x) const

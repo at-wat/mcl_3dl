@@ -250,9 +250,9 @@ public:
   }
   ChunkId getChunkId(const POINT_TYPE& p) const
   {
-    return ChunkId(static_cast<int>(floor(p.x * pos_to_chunk_)),
-                   static_cast<int>(floor(p.y * pos_to_chunk_)),
-                   static_cast<int>(floor(p.z * pos_to_chunk_)));
+    return ChunkId(static_cast<int>(std::floor(p.x * pos_to_chunk_)),
+                   static_cast<int>(std::floor(p.y * pos_to_chunk_)),
+                   static_cast<int>(std::floor(p.z * pos_to_chunk_)));
   }
 
 protected:

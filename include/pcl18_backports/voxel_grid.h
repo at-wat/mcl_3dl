@@ -221,9 +221,9 @@ public:
   inline int
   getCentroidIndex(const PointT& p) const
   {
-    return (leaf_layout_.at((Eigen::Vector4i(static_cast<int>(floor(p.x * inverse_leaf_size_[0])),
-                                             static_cast<int>(floor(p.y * inverse_leaf_size_[1])),
-                                             static_cast<int>(floor(p.z * inverse_leaf_size_[2])), 0) -
+    return (leaf_layout_.at((Eigen::Vector4i(static_cast<int>(std::floor(p.x * inverse_leaf_size_[0])),
+                                             static_cast<int>(std::floor(p.y * inverse_leaf_size_[1])),
+                                             static_cast<int>(std::floor(p.z * inverse_leaf_size_[2])), 0) -
                              min_b_)
                                 .dot(divb_mul_)));
   }
@@ -237,9 +237,9 @@ public:
   inline std::vector<int>
   getNeighborCentroidIndices(const PointT& reference_point, const Eigen::MatrixXi& relative_coordinates) const
   {
-    Eigen::Vector4i ijk(static_cast<int>(floor(reference_point.x * inverse_leaf_size_[0])),
-                        static_cast<int>(floor(reference_point.y * inverse_leaf_size_[1])),
-                        static_cast<int>(floor(reference_point.z * inverse_leaf_size_[2])), 0);
+    Eigen::Vector4i ijk(static_cast<int>(std::floor(reference_point.x * inverse_leaf_size_[0])),
+                        static_cast<int>(std::floor(reference_point.y * inverse_leaf_size_[1])),
+                        static_cast<int>(std::floor(reference_point.z * inverse_leaf_size_[2])), 0);
     Eigen::Array4i diff2min = min_b_ - ijk;
     Eigen::Array4i diff2max = max_b_ - ijk;
     std::vector<int> neighbors(relative_coordinates.cols());
@@ -272,9 +272,9 @@ public:
   inline Eigen::Vector3i
   getGridCoordinates(float x, float y, float z) const
   {
-    return (Eigen::Vector3i(static_cast<int>(floor(x * inverse_leaf_size_[0])),
-                            static_cast<int>(floor(y * inverse_leaf_size_[1])),
-                            static_cast<int>(floor(z * inverse_leaf_size_[2]))));
+    return (Eigen::Vector3i(static_cast<int>(std::floor(x * inverse_leaf_size_[0])),
+                            static_cast<int>(std::floor(y * inverse_leaf_size_[1])),
+                            static_cast<int>(std::floor(z * inverse_leaf_size_[2]))));
   }
 
   /** \brief Returns the index in the downsampled cloud corresponding to a given set of coordinates.
@@ -406,12 +406,12 @@ protected:
     }
 
     // Compute the minimum and maximum bounding box values
-    min_b_[0] = static_cast<int>(floor(min_p[0] * inverse_leaf_size_[0]));
-    max_b_[0] = static_cast<int>(floor(max_p[0] * inverse_leaf_size_[0]));
-    min_b_[1] = static_cast<int>(floor(min_p[1] * inverse_leaf_size_[1]));
-    max_b_[1] = static_cast<int>(floor(max_p[1] * inverse_leaf_size_[1]));
-    min_b_[2] = static_cast<int>(floor(min_p[2] * inverse_leaf_size_[2]));
-    max_b_[2] = static_cast<int>(floor(max_p[2] * inverse_leaf_size_[2]));
+    min_b_[0] = static_cast<int>(std::floor(min_p[0] * inverse_leaf_size_[0]));
+    max_b_[0] = static_cast<int>(std::floor(max_p[0] * inverse_leaf_size_[0]));
+    min_b_[1] = static_cast<int>(std::floor(min_p[1] * inverse_leaf_size_[1]));
+    max_b_[1] = static_cast<int>(std::floor(max_p[1] * inverse_leaf_size_[1]));
+    min_b_[2] = static_cast<int>(std::floor(min_p[2] * inverse_leaf_size_[2]));
+    max_b_[2] = static_cast<int>(std::floor(max_p[2] * inverse_leaf_size_[2]));
 
     // Compute the number of divisions needed along all axis
     div_b_ = max_b_ - min_b_ + Eigen::Vector4i::Ones();
@@ -438,11 +438,11 @@ protected:
           continue;
 
       int ijk0 = static_cast<int>(
-          floor(input_->points[*it].x * inverse_leaf_size_[0]) - static_cast<float>(min_b_[0]));
+          std::floor(input_->points[*it].x * inverse_leaf_size_[0]) - static_cast<float>(min_b_[0]));
       int ijk1 = static_cast<int>(
-          floor(input_->points[*it].y * inverse_leaf_size_[1]) - static_cast<float>(min_b_[1]));
+          std::floor(input_->points[*it].y * inverse_leaf_size_[1]) - static_cast<float>(min_b_[1]));
       int ijk2 = static_cast<int>(
-          floor(input_->points[*it].z * inverse_leaf_size_[2]) - static_cast<float>(min_b_[2]));
+          std::floor(input_->points[*it].z * inverse_leaf_size_[2]) - static_cast<float>(min_b_[2]));
 
       // Compute the centroid leaf index
       int idx = ijk0 * divb_mul_[0] + ijk1 * divb_mul_[1] + ijk2 * divb_mul_[2];

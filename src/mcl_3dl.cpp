@@ -676,8 +676,8 @@ protected:
     {
       bool fix = false;
       Vec3 fix_axis;
-      const float fix_ang = sqrtf(cov[3][3] + cov[4][4] + cov[5][5]);
-      const float fix_dist = sqrtf(cov[0][0] + cov[1][1] + cov[2][2]);
+      const float fix_ang = std::sqrt(cov[3][3] + cov[4][4] + cov[5][5]);
+      const float fix_dist = std::sqrt(cov[0][0] + cov[1][1] + cov[2][2]);
       ROS_DEBUG("cov: lin %0.3f ang %0.3f", fix_dist, fix_ang);
       if (fix_dist < params_.fix_dist_ &&
           fabs(fix_ang) < params_.fix_ang_)
@@ -830,7 +830,7 @@ protected:
         pf_->resizeParticle(params_.num_particles_);
       }
       // wait 99.7% fix (three-sigma)
-      global_localization_fix_cnt_ = 1 + ceil(params_.lpf_step_) * 3.0;
+      global_localization_fix_cnt_ = 1 + std::ceil(params_.lpf_step_) * 3.0;
     }
     if (global_localization_fix_cnt_)
     {
@@ -1191,7 +1191,7 @@ public:
     pnh_.param("global_localization_grid_lin", params_.global_localization_grid_, 0.3);
     double grid_ang;
     pnh_.param("global_localization_grid_ang", grid_ang, 0.524);
-    params_.global_localization_div_yaw_ = lroundf(2 * M_PI / grid_ang);
+    params_.global_localization_div_yaw_ = std::lround(2 * M_PI / grid_ang);
 
     pnh_.param("num_particles", params_.num_particles_, 64);
     pf_.reset(new pf::ParticleFilter<State6DOF,

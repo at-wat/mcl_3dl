@@ -75,7 +75,7 @@ public:
         const float grid_min, const float grid_max)
     {
       kdtree_ = kdtree;
-      length_ = floorf((end - begin).norm() / grid_min - sqrtf(2.0));
+      length_ = std::floor((end - begin).norm() / grid_min - std::sqrt(2.0));
       inc_ = (end - begin).normalized() * grid_min;
       pos_ = begin + inc_;
       count_ = 1;
@@ -101,11 +101,11 @@ public:
       std::vector<float> sqdist(1);
       if (kdtree_->radiusSearch(
               center,
-              sqrtf(2.0) * grid_max_ / 2.0, id, sqdist, 1))
+              std::sqrt(2.0) * grid_max_ / 2.0, id, sqdist, 1))
       {
         collision = true;
 
-        const float d0 = sqrtf(sqdist[0]);
+        const float d0 = std::sqrt(sqdist[0]);
         const Vec3 pos_prev = pos_ - (inc_ * 2.0);
         POINT_TYPE center_prev;
         center_prev.x = pos_prev.x_;
@@ -113,9 +113,9 @@ public:
         center_prev.z = pos_prev.z_;
         if (kdtree_->radiusSearch(
                 center_prev,
-                grid_min_ * 2 + sqrtf(2.0) * grid_max_ / 2.0, id, sqdist, 1))
+                grid_min_ * 2 + std::sqrt(2.0) * grid_max_ / 2.0, id, sqdist, 1))
         {
-          const float d1 = sqrtf(sqdist[0]);
+          const float d1 = std::sqrt(sqdist[0]);
           sin_ang = fabs(d1 - d0) / (grid_min_ * 2.0);
         }
         else

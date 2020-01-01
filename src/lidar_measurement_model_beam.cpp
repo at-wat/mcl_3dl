@@ -81,7 +81,7 @@ void LidarMeasurementModelBeam::loadConfig(
   double beam_likelihood_min;
   pnh.param("beam_likelihood", beam_likelihood_min, 0.2);
   beam_likelihood_min_ = beam_likelihood_min;
-  beam_likelihood_ = powf(beam_likelihood_min, 1.0 / static_cast<float>(num_points));
+  beam_likelihood_ = std::pow(beam_likelihood_min, 1.0 / static_cast<float>(num_points));
 
   double ang_total_ref;
   pnh.param("ang_total_ref", ang_total_ref, M_PI / 6.0);
