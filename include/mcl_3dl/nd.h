@@ -66,12 +66,12 @@ public:
 
   explicit NormalLikelihoodNd(const Matrix sigma)
   {
-    a_ = 1.0 / (pow(2.0 * M_PI, 0.5 * DIMENSION) * sqrt(sigma.determinant()));
+    a_ = 1.0 / (std::pow(2.0 * M_PI, 0.5 * DIMENSION) * std::sqrt(sigma.determinant()));
     sigma_inv_ = sigma.inverse();
   }
   FLT_TYPE operator()(const Vector x) const
   {
-    return a_ * expf(-0.5 * x.transpose() * sigma_inv_ * x);
+    return a_ * std::exp(static_cast<FLT_TYPE>(-0.5 * x.transpose() * sigma_inv_ * x));
   }
 
 protected:

@@ -72,7 +72,7 @@ TEST(CompareTf, Compare)
     const float x_error = pose.pose.position.x - msg->pose.pose.position.x;
     const float y_error = pose.pose.position.y - msg->pose.pose.position.y;
     const float z_error = pose.pose.position.z - msg->pose.pose.position.z;
-    const float error = std::sqrt(std::pow(x_error, 2.0) + std::pow(y_error, 2.0) + std::pow(z_error, 2.0));
+    const float error = std::sqrt(std::pow(x_error, 2) + std::pow(y_error, 2) + std::pow(z_error, 2));
 
     fprintf(stderr, "compare_tf[%d/%d]:\n", cnt, cnt_max);
     fprintf(stderr, "  error=%0.3f\n", error);

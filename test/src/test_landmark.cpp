@@ -68,7 +68,7 @@ std::pair<float, float> getMean(const std::vector<geometry_msgs::Pose>& poses)
   float root_mean = 0;
   for (const geometry_msgs::Pose p : poses)
   {
-    root_mean += std::pow(p.position.y - mean, 2.0f);
+    root_mean += std::pow(p.position.y - mean, 2);
   }
   root_mean /= poses.size();
 

@@ -100,7 +100,7 @@ TEST(Pf, BayesianEstimation)
 
       auto likelihood = [center2, sigma2](const State& s) -> float
       {
-        return std::exp(-std::pow(s[0] - center2, 2.0) / (2.0 * std::pow(sigma2, 2.0)));
+        return std::exp(-std::pow(s[0] - center2, 2) / (2.0 * std::pow(sigma2, 2)));
       };
       pf.measure(likelihood);
 
@@ -126,7 +126,7 @@ TEST(Pf, BayesianEstimation)
       for (int i = 0; i < HISTOGRAM_SIZE; i++)
       {
         const float x = (i - HISTOGRAM_SIZE / 2.0) * HISTOGRAM_RESOLUTION - avg;
-        var += std::pow(x, 2.0) * dist[i];
+        var += std::pow(x, 2) * dist[i];
       }
       var /= total;
 

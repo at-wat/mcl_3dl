@@ -61,7 +61,7 @@ TEST(ComparePose, Compare)
       const float x_error = path.poses[i_path].pose.position.x - msg->pose.pose.position.x;
       const float y_error = path.poses[i_path].pose.position.y - msg->pose.pose.position.y;
       const float z_error = path.poses[i_path].pose.position.z - msg->pose.pose.position.z;
-      const float error = std::sqrt(std::pow(x_error, 2.0) + std::pow(y_error, 2.0) + std::pow(z_error, 2.0));
+      const float error = std::sqrt(std::pow(x_error, 2) + std::pow(y_error, 2) + std::pow(z_error, 2));
       const float x_sigma = std::sqrt(msg->pose.covariance[0 * 6 + 0]);
       const float y_sigma = std::sqrt(msg->pose.covariance[1 * 6 + 1]);
       const float z_sigma = std::sqrt(msg->pose.covariance[2 * 6 + 2]);
