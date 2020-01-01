@@ -31,6 +31,7 @@
 #define MCL_3DL_PF_H
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <functional>
 #include <random>

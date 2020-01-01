@@ -31,6 +31,7 @@
 #define MCL_3DL_STATE_6DOF_H
 
 #include <algorithm>
+#include <cassert>
 #include <vector>
 
 #include <ros/ros.h>
@@ -76,7 +77,7 @@ public:
     }
   };
   RPYVec rpy_;
-  float& operator[](const size_t i) override
+  float& operator[](const size_t i)override
   {
     switch (i)
     {

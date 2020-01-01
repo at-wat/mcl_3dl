@@ -30,9 +30,9 @@
 #ifndef MCL_3DL_COMPAT_COMPATIBILITY_H
 #define MCL_3DL_COMPAT_COMPATIBILITY_H
 
-#include <ros/ros.h>
-
 #include <string>
+
+#include <ros/ros.h>
 
 namespace mcl_3dl_compat
 {
