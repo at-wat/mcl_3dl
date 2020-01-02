@@ -2,11 +2,12 @@ coverage:
   status:
     project:
       default:
-        threshold: 2
+        target: auto
+        threshold: 2%
     patch:
       default:
-        against: parent
         target: 25%
+        base: pr
 
 ignore:
   - "test/**/*"
