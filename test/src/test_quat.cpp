@@ -28,13 +28,12 @@
  */
 
 #define _USE_MATH_DEFINES
-
-#include <cstddef>
 #include <cmath>
-
-#include <gtest/gtest.h>
+#include <cstddef>
 
 #include <mcl_3dl/quat.h>
+
+#include <gtest/gtest.h>
 
 TEST(Quat, Constractors)
 {
@@ -72,10 +71,10 @@ TEST(Quat, Constractors)
     ASSERT_LT(fabs(c.w_ - e.w_), 1e-6);
 
     // Check elements
-    ASSERT_LT(fabs(c.x_ - r * sqrtf(2.0) / 2.0), 1e-6);
-    ASSERT_LT(fabs(c.y_ - p * sqrtf(2.0) / 2.0), 1e-6);
-    ASSERT_LT(fabs(c.z_ - y * sqrtf(2.0) / 2.0), 1e-6);
-    ASSERT_LT(fabs(c.w_ - sqrtf(2.0) / 2.0), 1e-6);
+    ASSERT_LT(fabs(c.x_ - r * std::sqrt(2.0) / 2.0), 1e-6);
+    ASSERT_LT(fabs(c.y_ - p * std::sqrt(2.0) / 2.0), 1e-6);
+    ASSERT_LT(fabs(c.z_ - y * std::sqrt(2.0) / 2.0), 1e-6);
+    ASSERT_LT(fabs(c.w_ - std::sqrt(2.0) / 2.0), 1e-6);
 
     // Check reverse conversions
     mcl_3dl::Vec3 crpy(c.getRPY());

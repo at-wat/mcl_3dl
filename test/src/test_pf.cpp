@@ -27,13 +27,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <cmath>
 #include <cstddef>
 #include <vector>
 
-#include <gtest/gtest.h>
-
 #include <mcl_3dl/pf.h>
 #include <mcl_3dl/nd.h>
+
+#include <gtest/gtest.h>
 
 class State : public mcl_3dl::pf::ParticleBase<float>
 {
@@ -99,7 +100,7 @@ TEST(Pf, BayesianEstimation)
 
       auto likelihood = [center2, sigma2](const State& s) -> float
       {
-        return exp(-powf(s[0] - center2, 2.0) / (2.0 * powf(sigma2, 2.0)));
+        return std::exp(-std::pow(s[0] - center2, 2) / (2.0 * std::pow(sigma2, 2)));
       };
       pf.measure(likelihood);
 
@@ -125,7 +126,7 @@ TEST(Pf, BayesianEstimation)
       for (int i = 0; i < HISTOGRAM_SIZE; i++)
       {
         const float x = (i - HISTOGRAM_SIZE / 2.0) * HISTOGRAM_RESOLUTION - avg;
-        var += powf(x, 2.0) * dist[i];
+        var += std::pow(x, 2) * dist[i];
       }
       var /= total;
 
@@ -166,14 +167,14 @@ TEST(Pf, VariableParticleSize)
     const State e = pf.expectation();
     const std::vector<State> v = pf.covariance();
     ASSERT_LT(fabs(e[0] - center), 1e-1);
-    ASSERT_LT(fabs(sqrtf(v[0][0]) - sigma), 1e-1);
+    ASSERT_LT(fabs(std::sqrt(v[0][0]) - sigma), 1e-1);
 
     pf.resample(State());
 
     const State e_r = pf.expectation();
     const std::vector<State> v_r = pf.covariance();
     ASSERT_LT(fabs(e_r[0] - center), 1e-1);
-    ASSERT_LT(fabs(sqrtf(v_r[0][0]) - sigma), 1e-1);
+    ASSERT_LT(fabs(std::sqrt(v_r[0][0]) - sigma), 1e-1);
 
     if (i + 1 != size_num)
     {
