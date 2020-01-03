@@ -22,3 +22,4 @@ jobs:
           git_email: atsushi.w@ieee.org
           release_repository_push_url: https://github.com/${{ github.repository }}-release.git
           tag_and_release: true
+          open_pr: true
