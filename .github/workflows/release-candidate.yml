@@ -1,7 +1,7 @@
 name: release-candidate
 on:
   issues:
-    types: [opened]
+    types: [opened, edited]
 
 jobs:
   release-candidate:
