@@ -2,6 +2,17 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.1.7 (2020-01-06)
+------------------
+* Update assets to v0.0.6 (`#273 <https://github.com/at-wat/mcl_3dl/issues/273>`_)
+* Update assets to v0.0.5 (`#272 <https://github.com/at-wat/mcl_3dl/issues/272>`_)
+* Add catkin/bloom release actions (`#269 <https://github.com/at-wat/mcl_3dl/issues/269>`_)
+* Fix codecov setting (`#270 <https://github.com/at-wat/mcl_3dl/issues/270>`_)
+* Fix codecov config (`#268 <https://github.com/at-wat/mcl_3dl/issues/268>`_)
+* Migrate C math functions to C++ (`#267 <https://github.com/at-wat/mcl_3dl/issues/267>`_)
+* Enable particle initialization using covariances (`#259 <https://github.com/at-wat/mcl_3dl/issues/259>`_)
+* Contributors: Atsushi Watanabe, Naotaka Hatao
+
 0.1.6 (2019-10-21)
 ------------------
 * Clear odometry integration error on global localization (`#257 <https://github.com/at-wat/mcl_3dl/issues/257>`_)
