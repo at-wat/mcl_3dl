@@ -11,8 +11,6 @@ Changelog for package mcl_3dl
 * Fix codecov config (`#268 <https://github.com/at-wat/mcl_3dl/issues/268>`_)
 * Migrate C math functions to C++ (`#267 <https://github.com/at-wat/mcl_3dl/issues/267>`_)
 * Enable particle initialization using covariances (`#259 <https://github.com/at-wat/mcl_3dl/issues/259>`_)
-  * Enable particle initialization using covariances
-  * Convert standard deviations to variances in tests
 * Contributors: Atsushi Watanabe, Naotaka Hatao
 
 0.1.6 (2019-10-21)
