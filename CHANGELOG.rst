@@ -2,8 +2,8 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.7 (2020-01-06)
+------------------
 * Update assets to v0.0.6 (`#273 <https://github.com/at-wat/mcl_3dl/issues/273>`_)
 * Update assets to v0.0.5 (`#272 <https://github.com/at-wat/mcl_3dl/issues/272>`_)
 * Add catkin/bloom release actions (`#269 <https://github.com/at-wat/mcl_3dl/issues/269>`_)
