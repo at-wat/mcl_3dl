@@ -1,4 +1,4 @@
 - git:
     local-name: mcl_3dl_msgs
-    uri: https://github.com/DaikiMaekawa/mcl_3dl_msgs.git
-    version: expose-internal-errors
+    uri: https://github.com/at-wat/mcl_3dl_msgs.git
+    version: master
