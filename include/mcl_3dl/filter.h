@@ -30,6 +30,7 @@
 #ifndef MCL_3DL_FILTER_H
 #define MCL_3DL_FILTER_H
 
+#include <cassert>
 #include <cmath>
 
 namespace mcl_3dl

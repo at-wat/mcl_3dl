@@ -1,0 +1,28 @@
+# This file is automatically deployed from https://github.com/at-wat/.rospkg-assets.
+# Please don't directly edit; update at-wat/.rospkg-assets instead.
+
+name: bloom-release
+on:
+  push:
+    paths:
+      - package.xml
+    branches:
+      - master
+
+jobs:
+  bloom-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: bloom release
+        uses: at-wat/bloom-release-action@v0
+        with:
+          ros_distro: kinetic melodic
+          github_token_bloom: ${{ secrets.GITHUB_TOKEN_BLOOM }}
+          github_user: at-wat
+          git_user: Atsushi Watanabe
+          git_email: atsushi.w@ieee.org
+          release_repository_push_url: https://github.com/${{ github.repository }}-release.git
+          tag_and_release: true
+          open_pr: true

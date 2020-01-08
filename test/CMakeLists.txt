@@ -22,6 +22,8 @@ catkin_add_gtest(test_imu_measurement_model_gravity src/test_imu_measurement_mod
 target_link_libraries(test_imu_measurement_model_gravity ${catkin_LIBRARIES})
 catkin_add_gtest(test_motion_prediction_model_differential_drive src/test_motion_prediction_model_differential_drive.cpp)
 target_link_libraries(test_motion_prediction_model_differential_drive ${catkin_LIBRARIES})
+catkin_add_gtest(test_noise_generator src/test_noise_generator.cpp)
+target_link_libraries(test_noise_generator ${catkin_LIBRARIES})
 
 add_executable(performance_raycast src/performance_raycast.cpp)
 target_link_libraries(performance_raycast ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${PCL_LIBRARIES})

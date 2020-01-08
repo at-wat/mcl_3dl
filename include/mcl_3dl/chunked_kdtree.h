@@ -30,13 +30,14 @@
 #ifndef MCL_3DL_CHUNKED_KDTREE_H
 #define MCL_3DL_CHUNKED_KDTREE_H
 
-#include <pcl/point_types.h>
-#include <pcl/kdtree/kdtree.h>
-#include <pcl/kdtree/kdtree_flann.h>
-
+#include <cmath>
 #include <stdexcept>
 #include <unordered_map>
 #include <vector>
+
+#include <pcl/point_types.h>
+#include <pcl/kdtree/kdtree.h>
+#include <pcl/kdtree/kdtree_flann.h>
 
 namespace mcl_3dl
 {
@@ -250,9 +251,9 @@ public:
   }
   ChunkId getChunkId(const POINT_TYPE& p) const
   {
-    return ChunkId(static_cast<int>(floor(p.x * pos_to_chunk_)),
-                   static_cast<int>(floor(p.y * pos_to_chunk_)),
-                   static_cast<int>(floor(p.z * pos_to_chunk_)));
+    return ChunkId(static_cast<int>(std::floor(p.x * pos_to_chunk_)),
+                   static_cast<int>(std::floor(p.y * pos_to_chunk_)),
+                   static_cast<int>(std::floor(p.z * pos_to_chunk_)));
   }
 
 protected:

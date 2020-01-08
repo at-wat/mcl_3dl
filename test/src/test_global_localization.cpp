@@ -27,6 +27,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <limits>
+#include <random>
+#include <vector>
+
 #include <ros/ros.h>
 
 #include <geometry_msgs/PoseArray.h>
@@ -38,9 +42,6 @@
 #include <std_srvs/Trigger.h>
 #include <tf2/utils.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-
-#include <random>
-#include <vector>
 
 #include <gtest/gtest.h>
 
@@ -290,8 +291,8 @@ TEST_P(GlobalLocalization, Localize)
               -(offset_x * sin(-offset_yaw) + offset_y * cos(-offset_yaw)),
               -offset_z));
       bool found_true_positive(false);
-      float dist_err_min = FLT_MAX;
-      float ang_err_min = FLT_MAX;
+      float dist_err_min = std::numeric_limits<float>::max();
+      float ang_err_min = std::numeric_limits<float>::max();
       for (const auto& pose : poses->poses)
       {
         tf2::Transform particle_pose;

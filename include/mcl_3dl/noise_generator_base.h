@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017, the mcl_3dl authors
+ * Copyright (c) 2019, the mcl_3dl authors
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -10,8 +10,8 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the copyright holder nor the names of its 
- *       contributors may be used to endorse or promote products derived from 
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -27,57 +27,44 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef MCL_3DL_ND_H
-#define MCL_3DL_ND_H
+#ifndef MCL_3DL_NOISE_GENERATOR_BASE_H
+#define MCL_3DL_NOISE_GENERATOR_BASE_H
 
-#define _USE_MATH_DEFINES
-#include <cmath>
-
-#include <Eigen/Core>
-#include <Eigen/LU>
+#include <vector>
 
 namespace mcl_3dl
 {
-template <typename FLT_TYPE = float>
-class NormalLikelihood
+template <typename FLT_TYPE>
+class NoiseGeneratorBase
 {
 public:
-  explicit NormalLikelihood(const FLT_TYPE sigma)
+  virtual ~NoiseGeneratorBase()
   {
-    a_ = 1.0 / std::sqrt(2.0 * M_PI * sigma * sigma);
-    sq2_ = sigma * sigma * 2.0;
   }
-  FLT_TYPE operator()(const FLT_TYPE x) const
+
+  template <typename T>
+  void setMean(const T& mean)
   {
-    return a_ * expf(-x * x / sq2_);
+    mean_.resize(mean.size());
+    for (size_t i = 0; i < mean.size(); ++i)
+    {
+      mean_[i] = mean[i];
+    }
+  }
+  const std::vector<FLT_TYPE>& getMean() const
+  {
+    return mean_;
+  }
+  size_t getDimension() const
+  {
+    return mean_.size();
   }
 
 protected:
-  FLT_TYPE a_;
-  FLT_TYPE sq2_;
+  std::vector<FLT_TYPE> mean_;
 };
 
-template <typename FLT_TYPE = float, size_t DIMENSION = 6>
-class NormalLikelihoodNd
-{
-public:
-  using Matrix = Eigen::Matrix<FLT_TYPE, DIMENSION, DIMENSION>;
-  using Vector = Eigen::Matrix<FLT_TYPE, DIMENSION, 1>;
 
-  explicit NormalLikelihoodNd(const Matrix sigma)
-  {
-    a_ = 1.0 / (std::pow(2.0 * M_PI, 0.5 * DIMENSION) * std::sqrt(sigma.determinant()));
-    sigma_inv_ = sigma.inverse();
-  }
-  FLT_TYPE operator()(const Vector x) const
-  {
-    return a_ * std::exp(static_cast<FLT_TYPE>(-0.5 * x.transpose() * sigma_inv_ * x));
-  }
-
-protected:
-  FLT_TYPE a_;
-  Matrix sigma_inv_;
-};
 }  // namespace mcl_3dl
 
-#endif  // MCL_3DL_ND_H
+#endif  // MCL_3DL_NOISE_GENERATOR_BASE_H

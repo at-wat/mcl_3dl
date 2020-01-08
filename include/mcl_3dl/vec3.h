@@ -30,6 +30,8 @@
 #ifndef MCL_3DL_VEC3_H
 #define MCL_3DL_VEC3_H
 
+#include <cmath>
+
 namespace mcl_3dl
 {
 class Vec3
@@ -148,7 +150,7 @@ public:
   }
   float norm() const
   {
-    return sqrtf(dot(*this));
+    return std::sqrt(dot(*this));
   }
   Vec3 normalized() const
   {

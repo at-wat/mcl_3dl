@@ -29,16 +29,21 @@
 
 #include <algorithm>
 #include <limits>
+#include <cassert>
+#include <cmath>
 #include <map>
 #include <memory>
 #include <string>
 #include <utility>
 #include <vector>
 
+#include <Eigen/Core>
+
 #include <boost/chrono.hpp>
 #include <boost/shared_ptr.hpp>
 
 #include <ros/ros.h>
+
 #include <sensor_msgs/PointCloud.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/point_cloud_conversion.h>
@@ -67,8 +72,6 @@
 #include <pcl/kdtree/kdtree.h>
 #include <pcl/kdtree/kdtree_flann.h>
 
-#include <Eigen/Core>
-
 #include <pcl18_backports/voxel_grid.h>
 
 #include <mcl_3dl/chunked_kdtree.h>
@@ -89,6 +92,7 @@
 #include <mcl_3dl/raycast.h>
 #include <mcl_3dl/state_6dof.h>
 #include <mcl_3dl/vec3.h>
+#include <mcl_3dl/noise_generators/multivariate_noise_generator.h>
 
 #include <mcl_3dl_compat/compatibility.h>
 
@@ -98,7 +102,7 @@ class MCL3dlNode
 {
 protected:
   using PointType = mcl_3dl::PointXYZIL;
-  std::shared_ptr<pf::ParticleFilter<State6DOF, float, ParticleWeightedMeanQuat>> pf_;
+  std::shared_ptr<pf::ParticleFilter<State6DOF, float, ParticleWeightedMeanQuat, std::default_random_engine>> pf_;
 
   class MyPointRepresentation : public pcl::PointRepresentation<PointType>
   {
@@ -173,20 +177,14 @@ protected:
     {
       return;
     }
-    pf_->init(
-        State6DOF(
-            Vec3(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z),
-            Quat(pose.pose.orientation.x,
-                 pose.pose.orientation.y,
-                 pose.pose.orientation.z,
-                 pose.pose.orientation.w)),
-        State6DOF(
-            Vec3(msg->pose.covariance[0],
-                 msg->pose.covariance[6 * 1 + 1],
-                 msg->pose.covariance[6 * 2 + 2]),
-            Vec3(msg->pose.covariance[6 * 3 + 3],
-                 msg->pose.covariance[6 * 4 + 4],
-                 msg->pose.covariance[6 * 5 + 5])));
+    const State6DOF mean(Vec3(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z),
+                         Quat(pose.pose.orientation.x,
+                              pose.pose.orientation.y,
+                              pose.pose.orientation.z,
+                              pose.pose.orientation.w));
+    const MultivariateNoiseGenerator<float> noise_gen(mean, msg->pose.covariance);
+    pf_->initUsingNoiseGenerator(noise_gen);
+
     pc_update_.reset();
     auto integ_reset_func = [](State6DOF& s)
     {
@@ -701,8 +699,8 @@ protected:
     if (status_.convergence_status != mcl_3dl_msgs::Status::CONVERGENCE_STATUS_LARGE_STD_VALUE)
     {
       Vec3 fix_axis;
-      const float fix_ang = sqrtf(cov[3][3] + cov[4][4] + cov[5][5]);
-      const float fix_dist = sqrtf(cov[0][0] + cov[1][1] + cov[2][2]);
+      const float fix_ang = std::sqrt(cov[3][3] + cov[4][4] + cov[5][5]);
+      const float fix_dist = std::sqrt(cov[0][0] + cov[1][1] + cov[2][2]);
       ROS_DEBUG("cov: lin %0.3f ang %0.3f", fix_dist, fix_ang);
       if (fix_dist < params_.fix_dist_ &&
           fabs(fix_ang) < params_.fix_ang_)
@@ -853,7 +851,7 @@ protected:
         pf_->resizeParticle(params_.num_particles_);
       }
       // wait 99.7% fix (three-sigma)
-      global_localization_fix_cnt_ = 1 + ceil(params_.lpf_step_) * 3.0;
+      global_localization_fix_cnt_ = 1 + std::ceil(params_.lpf_step_) * 3.0;
     }
     if (global_localization_fix_cnt_)
     {
@@ -1251,10 +1249,13 @@ public:
     pnh_.param("global_localization_grid_lin", params_.global_localization_grid_, 0.3);
     double grid_ang;
     pnh_.param("global_localization_grid_ang", grid_ang, 0.524);
-    params_.global_localization_div_yaw_ = lroundf(2 * M_PI / grid_ang);
+    params_.global_localization_div_yaw_ = std::lround(2 * M_PI / grid_ang);
 
     pnh_.param("num_particles", params_.num_particles_, 64);
-    pf_.reset(new pf::ParticleFilter<State6DOF, float, ParticleWeightedMeanQuat>(params_.num_particles_));
+    pf_.reset(new pf::ParticleFilter<State6DOF,
+                                     float,
+                                     ParticleWeightedMeanQuat,
+                                     std::default_random_engine>(params_.num_particles_));
 
     pnh_.param("resample_var_x", params_.resample_var_x_, 0.05);
     pnh_.param("resample_var_y", params_.resample_var_y_, 0.05);

@@ -68,7 +68,7 @@ std::pair<float, float> getMean(const std::vector<geometry_msgs::Pose>& poses)
   float root_mean = 0;
   for (const geometry_msgs::Pose p : poses)
   {
-    root_mean += std::pow(p.position.y - mean, 2.0f);
+    root_mean += std::pow(p.position.y - mean, 2);
   }
   root_mean /= poses.size();
 
@@ -112,7 +112,7 @@ TEST(Landmark, Measurement)
   ASSERT_NEAR(mean_init.second, 1.0f, 0.1f);
 
   poses = nullptr;
-  pub_landmark.publish(generatePoseWithCov(2.6, 1.0, 1000.0));
+  pub_landmark.publish(generatePoseWithCov(2.6, 1.0, 1000.0 * 1000.0));
   ros::Duration(0.1).sleep();
   ros::spinOnce();
 

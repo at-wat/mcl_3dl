@@ -27,8 +27,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <cstddef>
 #include <cmath>
+#include <cstddef>
+
 #include <Eigen/Geometry>
 
 #include <gtest/gtest.h>
@@ -41,7 +42,7 @@ TEST(NormalLiklihood, Normality)
   {
     // Check distribution
     mcl_3dl::NormalLikelihood<double> nl(sigma);
-    const double likelihood0 = 1.0 / sqrtf(M_PI * 2.0 * sigma * sigma);
+    const double likelihood0 = 1.0 / std::sqrt(M_PI * 2.0 * sigma * sigma);
     ASSERT_NEAR(nl(0.0), likelihood0, 1e-6);
     ASSERT_NEAR(nl(sigma), likelihood0 * 0.60653066, 1e-6);
     ASSERT_NEAR(nl(-sigma), likelihood0 * 0.60653066, 1e-6);

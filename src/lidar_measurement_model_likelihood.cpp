@@ -28,6 +28,7 @@
  */
 
 #include <algorithm>
+#include <cmath>
 #include <string>
 #include <vector>
 
@@ -143,7 +144,7 @@ LidarMeasurementResult LidarMeasurementModelLikelihood::measure(
   {
     if (kdtree->radiusSearch(p, match_dist_min_, id, sqdist, 1))
     {
-      const float dist = match_dist_min_ - std::max(sqrtf(sqdist[0]), match_dist_flat_);
+      const float dist = match_dist_min_ - std::max(std::sqrt(sqdist[0]), match_dist_flat_);
       if (dist < 0.0)
         continue;
 

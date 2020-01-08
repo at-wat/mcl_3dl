@@ -149,12 +149,12 @@ inline geometry_msgs::PoseWithCovarianceStamped generateInitialPose()
   pose.header.frame_id = "map";
   pose.header.stamp = ros::Time::now();
   pose.pose.pose.orientation.w = 1.0;
-  pose.pose.covariance[6 * 0 + 0] = 0.05;
-  pose.pose.covariance[6 * 1 + 1] = 0.05;
-  pose.pose.covariance[6 * 2 + 2] = 0.05;
+  pose.pose.covariance[6 * 0 + 0] = 0.05 * 0.05;
+  pose.pose.covariance[6 * 1 + 1] = 0.05 * 0.05;
+  pose.pose.covariance[6 * 2 + 2] = 0.05 * 0.05;
   pose.pose.covariance[6 * 3 + 3] = 0.0;
   pose.pose.covariance[6 * 4 + 4] = 0.0;
-  pose.pose.covariance[6 * 5 + 5] = 0.05;
+  pose.pose.covariance[6 * 5 + 5] = 0.05 * 0.05;
   return pose;
 }
 }  // namespace
