@@ -688,8 +688,8 @@ protected:
 
     if (!global_localization_fix_cnt_)
     {
-      if (std::sqrt(cov[0][0]) > std_warn_thresh_[0] ||
-          std::sqrt(cov[1][1]) > std_warn_thresh_[1] ||
+      if (std::sqrt(cov[0][0] + cov[1][1]) > std_warn_thresh_[0] ||
+          std::sqrt(cov[2][2]) > std_warn_thresh_[1] ||
           std::sqrt(cov[5][5]) > std_warn_thresh_[2])
       {
         status_.convergence_status = mcl_3dl_msgs::Status::CONVERGENCE_STATUS_LARGE_STD_VALUE;
@@ -1346,8 +1346,8 @@ public:
     pnh_.param("output_pcd", output_pcd_, false);
 
     const float float_max = std::numeric_limits<float>::max();
-    pnh_.param("std_warn_thresh_x", std_warn_thresh_[0], float_max);
-    pnh_.param("std_warn_thresh_y", std_warn_thresh_[1], float_max);
+    pnh_.param("std_warn_thresh_xy", std_warn_thresh_[0], float_max);
+    pnh_.param("std_warn_thresh_z", std_warn_thresh_[1], float_max);
     pnh_.param("std_warn_thresh_yaw", std_warn_thresh_[2], float_max);
 
     imu_quat_ = Quat(0.0, 0.0, 0.0, 1.0);
