@@ -247,7 +247,7 @@ protected:
   void cbCloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
   {
     mcl_3dl_msgs::Status status_msg;
-    status_ = status_msg;
+    status_ = mcl_3dl_msgs::Status();
     status_.header.stamp = ros::Time::now();
     status_.status = mcl_3dl_msgs::Status::NORMAL;
     status_.error = mcl_3dl_msgs::Status::ERROR_NORMAL;
