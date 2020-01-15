@@ -246,7 +246,6 @@ protected:
   }
   void cbCloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
   {
-    mcl_3dl_msgs::Status status_msg;
     status_ = mcl_3dl_msgs::Status();
     status_.header.stamp = ros::Time::now();
     status_.status = mcl_3dl_msgs::Status::NORMAL;
@@ -1478,7 +1477,6 @@ protected:
   bool has_map_;
   bool has_odom_;
   bool has_imu_;
-  bool has_points_;
   State6DOF odom_;
   State6DOF odom_prev_;
   std::map<std::string, bool> frames_;
