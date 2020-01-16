@@ -30,6 +30,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <limits>
 #include <map>
 #include <memory>
 #include <string>
@@ -55,6 +56,7 @@
 #include <mcl_3dl_msgs/ResizeParticle.h>
 #include <mcl_3dl_msgs/Status.h>
 #include <std_srvs/Trigger.h>
+#include <diagnostic_updater/diagnostic_updater.h>
 
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/transform_broadcaster.h>
@@ -244,9 +246,11 @@ protected:
   }
   void cbCloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
   {
-    mcl_3dl_msgs::Status status;
-    status.header.stamp = ros::Time::now();
-    status.status = mcl_3dl_msgs::Status::NORMAL;
+    status_ = mcl_3dl_msgs::Status();
+    status_.header.stamp = ros::Time::now();
+    status_.status = mcl_3dl_msgs::Status::NORMAL;
+    status_.error = mcl_3dl_msgs::Status::ERROR_NORMAL;
+    status_.convergence_status = mcl_3dl_msgs::Status::CONVERGENCE_STATUS_NORMAL;
 
     if (!has_map_)
       return;
@@ -272,7 +276,9 @@ protected:
     }
     pcl::PointCloud<PointType>::Ptr pc_tmp(new pcl::PointCloud<PointType>);
     if (!mcl_3dl::fromROSMsg(pc_bl, *pc_tmp))
+    {
       return;
+    }
 
     for (auto& p : pc_tmp->points)
     {
@@ -368,8 +374,11 @@ protected:
     if (pc_locals["likelihood"]->size() == 0)
     {
       ROS_ERROR("All points are filtered out. Failed to localize.");
+      status_.error = mcl_3dl_msgs::Status::ERROR_POINTS_NOT_FOUND;
+      diag_updater_.force_update();
       return;
     }
+
     if (pc_locals["beam"] && pc_locals["beam"]->size() == 0)
     {
       ROS_DEBUG("All beam points are filtered out. Skipping beam model.");
@@ -676,8 +685,18 @@ protected:
     }
     pub_pose_.publish(pose);
 
+    if (!global_localization_fix_cnt_)
     {
-      bool fix = false;
+      if (std::sqrt(cov[0][0] + cov[1][1]) > std_warn_thresh_[0] ||
+          std::sqrt(cov[2][2]) > std_warn_thresh_[1] ||
+          std::sqrt(cov[5][5]) > std_warn_thresh_[2])
+      {
+        status_.convergence_status = mcl_3dl_msgs::Status::CONVERGENCE_STATUS_LARGE_STD_VALUE;
+      }
+    }
+
+    if (status_.convergence_status != mcl_3dl_msgs::Status::CONVERGENCE_STATUS_LARGE_STD_VALUE)
+    {
       Vec3 fix_axis;
       const float fix_ang = std::sqrt(cov[3][3] + cov[4][4] + cov[5][5]);
       const float fix_dist = std::sqrt(cov[0][0] + cov[1][1] + cov[2][2]);
@@ -685,11 +704,9 @@ protected:
       if (fix_dist < params_.fix_dist_ &&
           fabs(fix_ang) < params_.fix_ang_)
       {
-        fix = true;
-      }
-
-      if (fix)
         ROS_DEBUG("Localization fixed");
+        status_.convergence_status = mcl_3dl_msgs::Status::CONVERGENCE_STATUS_CONVERGED;
+      }
     }
 
     if (output_pcd_)
@@ -807,7 +824,7 @@ protected:
           Vec3(params_.expansion_var_roll_,
                params_.expansion_var_pitch_,
                params_.expansion_var_yaw_)));
-      status.status = mcl_3dl_msgs::Status::EXPANSION_RESETTING;
+      status_.status = mcl_3dl_msgs::Status::EXPANSION_RESETTING;
     }
     pc_local_accum_.reset(new pcl::PointCloud<PointType>);
     pc_accum_header_.clear();
@@ -838,12 +855,12 @@ protected:
     if (global_localization_fix_cnt_)
     {
       global_localization_fix_cnt_--;
-      status.status = mcl_3dl_msgs::Status::GLOBAL_LOCALIZATION;
+      status_.status = mcl_3dl_msgs::Status::GLOBAL_LOCALIZATION;
     }
 
-    status.match_ratio = match_ratio_max;
-    status.particle_size = pf_->getParticleSize();
-    pub_status_.publish(status);
+    status_.match_ratio = match_ratio_max;
+    status_.particle_size = pf_->getParticleSize();
+    diag_updater_.force_update();
   }
   void cbLandmark(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg)
   {
@@ -1077,6 +1094,43 @@ protected:
     pub_particle_.publish(pa);
   }
 
+  float getEntropy()
+  {
+    float sum = 0.0f;
+    for (auto& particle : *pf_)
+    {
+      sum += particle.probability_;
+    }
+
+    float entropy = 0.0f;
+    for (auto& particle : *pf_)
+    {
+      if (particle.probability_ / sum > 0.0)
+        entropy += particle.probability_ / sum * std::log(particle.probability_ / sum);
+    }
+
+    return -entropy;
+  }
+
+  void diagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper& stat)
+  {
+    if (status_.error == mcl_3dl_msgs::Status::ERROR_POINTS_NOT_FOUND)
+    {
+      stat.summary(diagnostic_msgs::DiagnosticStatus::ERROR, "Valid points does not found.");
+    }
+    else if (status_.convergence_status == mcl_3dl_msgs::Status::CONVERGENCE_STATUS_LARGE_STD_VALUE)
+    {
+      stat.summary(diagnostic_msgs::DiagnosticStatus::ERROR, "Too Large Standard Deviation.");
+    }
+
+    stat.add("Map Availability", has_map_ ? "true" : "false");
+    stat.add("Odometry Availability", has_odom_ ? "true" : "false");
+    stat.add("IMU Availability", has_imu_ ? "true" : "false");
+
+    status_.entropy = getEntropy();
+    pub_status_.publish(status_);
+  }
+
 public:
   MCL3dlNode()
     : nh_("")
@@ -1290,6 +1344,11 @@ public:
     pnh_.param("publish_tf", publish_tf_, true);
     pnh_.param("output_pcd", output_pcd_, false);
 
+    const float float_max = std::numeric_limits<float>::max();
+    pnh_.param("std_warn_thresh_xy", std_warn_thresh_[0], float_max);
+    pnh_.param("std_warn_thresh_z", std_warn_thresh_[1], float_max);
+    pnh_.param("std_warn_thresh_yaw", std_warn_thresh_[2], float_max);
+
     imu_quat_ = Quat(0.0, 0.0, 0.0, 1.0);
 
     has_odom_ = has_map_ = has_imu_ = false;
@@ -1327,6 +1386,9 @@ public:
     map_update_timer_ = nh_.createTimer(
         *params_.map_update_interval_,
         &MCL3dlNode::cbMapUpdateTimer, this);
+
+    diag_updater_.setHardwareID("none");
+    diag_updater_.add("Status", this, &MCL3dlNode::diagnoseStatus);
 
     return true;
   }
@@ -1407,6 +1469,7 @@ protected:
   std::map<std::string, std::string> frame_ids_;
   bool output_pcd_;
   bool publish_tf_;
+  std::array<float, 3> std_warn_thresh_;
 
   bool fake_imu_, fake_odom_;
   ros::Time match_output_last_;
@@ -1425,6 +1488,8 @@ protected:
   int cnt_accum_;
   Quat imu_quat_;
   size_t global_localization_fix_cnt_;
+  diagnostic_updater::Updater diag_updater_;
+  mcl_3dl_msgs::Status status_;
 
   MyPointRepresentation point_rep_;
 
