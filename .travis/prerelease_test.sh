@@ -35,7 +35,7 @@ git clone \
   -b apt-get-us-east-1 \
   https://github.com/at-wat/ros_buildfarm.git ros_buildfarm
 
-sudo pip3 install ros_buildfarm
+sudo pip3 install ./ros_buildfarm
 
 
 generate_prerelease_script.py \
