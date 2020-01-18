@@ -2,8 +2,9 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-0.2.0 (2020-01-16)
-------------------
+Forthcoming
+-----------
+* Install consistent version of ros_buildfarm (`#281 <https://github.com/at-wat/mcl_3dl/issues/281>`_)
 * Run prerelease test with latest msgs package (`#278 <https://github.com/at-wat/mcl_3dl/issues/278>`_)
 * Expose internal errors and convergence status (`#265 <https://github.com/at-wat/mcl_3dl/issues/265>`_)
 * Document motion prediction model parameters (`#277 <https://github.com/at-wat/mcl_3dl/issues/277>`_)
