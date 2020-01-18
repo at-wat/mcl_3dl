@@ -2,8 +2,8 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.0 (2020-01-18)
+------------------
 * Install consistent version of ros_buildfarm (`#281 <https://github.com/at-wat/mcl_3dl/issues/281>`_)
 * Run prerelease test with latest msgs package (`#278 <https://github.com/at-wat/mcl_3dl/issues/278>`_)
 * Expose internal errors and convergence status (`#265 <https://github.com/at-wat/mcl_3dl/issues/265>`_)
