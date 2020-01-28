@@ -1122,6 +1122,10 @@ protected:
     {
       stat.summary(diagnostic_msgs::DiagnosticStatus::ERROR, "Too Large Standard Deviation.");
     }
+    else
+    {
+      stat.summary(diagnostic_msgs::DiagnosticStatus::OK, "OK");
+    }
 
     stat.add("Map Availability", has_map_ ? "true" : "false");
     stat.add("Odometry Availability", has_odom_ ? "true" : "false");
