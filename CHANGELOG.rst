@@ -2,8 +2,8 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.1 (2020-02-03)
+------------------
 * Set DiagnosticStatus::OK as default (`#283 <https://github.com/at-wat/mcl_3dl/issues/283>`_)
 * Update assets to v0.0.7 (`#282 <https://github.com/at-wat/mcl_3dl/issues/282>`_)
 * Contributors: Atsushi Watanabe, Daiki Maekawa
