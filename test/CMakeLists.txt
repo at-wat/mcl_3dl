@@ -64,10 +64,10 @@ add_dependencies(test_transform_failure mcl_3dl)
 if(MCL_3DL_EXTRA_TESTS)
 
   catkin_download_test_data(
-      ${PROJECT_NAME}_short_test.bag
-      https://openspur.org/~atsushi.w/dataset/mcl_3dl/short_test.bag
-      MD5 664ecb2824d81247ce4b26c599d99230
-      FILENAME test/short_test.bag)
+      ${PROJECT_NAME}_short_test2.bag
+      https://openspur.org/~atsushi.w/dataset/mcl_3dl/short_test2.bag
+      MD5 bc0635de46138275a2ccaad3b5b517f3
+      FILENAME test/short_test2.bag)
 
   catkin_download_test_data(
       ${PROJECT_NAME}_short_test_ref.topic
