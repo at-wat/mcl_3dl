@@ -254,6 +254,48 @@ protected:
     if (!has_map_)
       return;
 
+    // If total count of the accumulated cloud exceeds limit,
+    // skip checking frame_id and force processing.
+    if (pc_accum_header_.size() <
+        static_cast<size_t>(params_.total_accum_cloud_max_))
+    {
+      if (pc_accum_header_.size() == 0 ||
+          pc_accum_header_.front().frame_id.compare(msg->header.frame_id) != 0)
+      {
+        accumCloud(msg);
+        return;
+      }
+
+      // Count number of clouds with the frame_id which was arrived
+      // at first in this accumulation.
+      if (cnt_accum_ < static_cast<size_t>(params_.accum_cloud_))
+      {
+        cnt_accum_++;
+        accumCloud(msg);
+        return;
+      }
+
+      // Received (accum_cloud_ + 1) of clouds now.
+      // Process already accumulated data and start next accumulation.
+    }
+    else
+    {
+      ROS_WARN(
+          "Number of the accumulated cloud exceeds limit. "
+          "Sensor with frame_id of %s may have been stopped.",
+          pc_accum_header_.front().frame_id.c_str());
+    }
+
+    measure();
+
+    pc_local_accum_.reset(new pcl::PointCloud<PointType>);
+    pc_accum_header_.clear();
+    cnt_accum_ = 1;
+
+    accumCloud(msg);
+  }
+  void accumCloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
+  {
     sensor_msgs::PointCloud2 pc_bl;
     try
     {
@@ -271,6 +313,7 @@ protected:
     pcl::PointCloud<PointType>::Ptr pc_tmp(new pcl::PointCloud<PointType>);
     if (!mcl_3dl::fromROSMsg(pc_bl, *pc_tmp))
     {
+      ROS_INFO("Failed to convert pointcloud");
       return;
     }
 
@@ -281,43 +324,24 @@ protected:
     *pc_local_accum_ += *pc_tmp;
     pc_local_accum_->header.frame_id = frame_ids_["odom"];
     pc_accum_header_.push_back(msg->header);
+  }
 
-    // If total count of the accumulated cloud exceeds limit,
-    // skip checking frame_id and force processing.
-    if (pc_accum_header_.size() <
-        static_cast<size_t>(params_.total_accum_cloud_max_))
-    {
-      if (pc_accum_header_[0].frame_id.compare(msg->header.frame_id) != 0)
-        return;
-
-      // Count number of clouds with the frame_id which was arrived
-      // at first in this accumulation.
-      cnt_accum_++;
-      if (cnt_accum_ % static_cast<size_t>(params_.accum_cloud_) != 0)
-        return;
-    }
-    else
-    {
-      ROS_WARN(
-          "Number of the accumulated cloud exceeds limit. "
-          "Sensor with frame_id of %s may have been stopped.",
-          pc_accum_header_[0].frame_id.c_str());
-    }
-
+  void measure()
+  {
     cnt_measure_++;
     if (cnt_measure_ % static_cast<size_t>(params_.skip_measure_) != 0)
     {
-      pc_local_accum_.reset(new pcl::PointCloud<PointType>);
-      pc_accum_header_.clear();
       return;
     }
+
+    const std_msgs::Header& header = pc_accum_header_.back();
 
     try
     {
       const geometry_msgs::TransformStamped trans = tfbuf_.lookupTransform(
           frame_ids_["base_link"],
           pc_local_accum_->header.frame_id,
-          pcl_conversions::fromPCL(pc_local_accum_->header.stamp), ros::Duration(0.1));
+          header.stamp, ros::Duration(0.1));
 
       const Eigen::Affine3f trans_eigen =
           Eigen::Translation3f(
@@ -334,8 +358,6 @@ protected:
     catch (tf2::TransformException& e)
     {
       ROS_INFO("Failed to transform pointcloud: %s", e.what());
-      pc_local_accum_.reset(new pcl::PointCloud<PointType>);
-      pc_accum_header_.clear();
       return;
     }
     std::vector<Vec3> origins;
@@ -344,7 +366,7 @@ protected:
       try
       {
         const geometry_msgs::TransformStamped trans = tfbuf_.lookupTransform(
-            frame_ids_["base_link"], msg->header.stamp, h.frame_id, h.stamp, frame_ids_["odom"]);
+            frame_ids_["base_link"], header.stamp, h.frame_id, h.stamp, frame_ids_["odom"]);
         origins.push_back(Vec3(trans.transform.translation.x,
                                trans.transform.translation.y,
                                trans.transform.translation.z));
@@ -352,8 +374,6 @@ protected:
       catch (tf2::TransformException& e)
       {
         ROS_INFO("Failed to transform pointcloud: %s", e.what());
-        pc_local_accum_.reset(new pcl::PointCloud<PointType>);
-        pc_accum_header_.clear();
         return;
       }
     }
@@ -468,7 +488,7 @@ protected:
 
         visualization_msgs::Marker marker;
         marker.header.frame_id = frame_ids_["map"];
-        marker.header.stamp = msg->header.stamp;
+        marker.header.stamp = header.stamp;
         marker.ns = "Rays";
         marker.id = markers.markers.size();
         marker.type = visualization_msgs::Marker::LINE_STRIP;
@@ -520,7 +540,7 @@ protected:
           {
             visualization_msgs::Marker marker;
             marker.header.frame_id = frame_ids_["map"];
-            marker.header.stamp = msg->header.stamp;
+            marker.header.stamp = header.stamp;
             marker.ns = "Ray collisions";
             marker.id = markers.markers.size();
             marker.type = visualization_msgs::Marker::CUBE;
@@ -556,7 +576,7 @@ protected:
       {
         visualization_msgs::Marker marker;
         marker.header.frame_id = frame_ids_["map"];
-        marker.header.stamp = msg->header.stamp;
+        marker.header.stamp = header.stamp;
         marker.ns = "Sample points";
         marker.id = markers.markers.size();
         marker.type = visualization_msgs::Marker::SPHERE;
@@ -673,7 +693,7 @@ protected:
             0.1f, static_cast<float>(params_.num_particles_) / pf_->getParticleSize()));
 
     geometry_msgs::PoseWithCovarianceStamped pose;
-    pose.header.stamp = msg->header.stamp;
+    pose.header.stamp = header.stamp;
     pose.header.frame_id = trans.header.frame_id;
     pose.pose.pose.position.x = e.pos_.x_;
     pose.pose.pose.position.y = e.pos_.y_;
@@ -720,17 +740,17 @@ protected:
       *pc_all_accum_ += *pc_particle;
     }
 
-    if ((msg->header.stamp - match_output_last_ > *params_.match_output_interval_ ||
-         msg->header.stamp < match_output_last_ - ros::Duration(1.0)) &&
+    if ((header.stamp - match_output_last_ > *params_.match_output_interval_ ||
+         header.stamp < match_output_last_ - ros::Duration(1.0)) &&
         (pub_matched_.getNumSubscribers() > 0 || pub_unmatched_.getNumSubscribers() > 0))
     {
-      match_output_last_ = msg->header.stamp;
+      match_output_last_ = header.stamp;
 
       sensor_msgs::PointCloud pc_match;
-      pc_match.header.stamp = msg->header.stamp;
+      pc_match.header.stamp = header.stamp;
       pc_match.header.frame_id = frame_ids_["map"];
       sensor_msgs::PointCloud pc_unmatch;
-      pc_unmatch.header.stamp = msg->header.stamp;
+      pc_unmatch.header.stamp = header.stamp;
       pc_unmatch.header.frame_id = frame_ids_["map"];
 
       pcl::PointCloud<PointType>::Ptr pc_local(new pcl::PointCloud<PointType>);
@@ -829,8 +849,6 @@ protected:
                params_.expansion_var_yaw_)));
       status_.status = mcl_3dl_msgs::Status::EXPANSION_RESETTING;
     }
-    pc_local_accum_.reset(new pcl::PointCloud<PointType>);
-    pc_accum_header_.clear();
 
     ros::Time localized_current = ros::Time::now();
     float dt = (localized_current - localized_last_).toSec();
