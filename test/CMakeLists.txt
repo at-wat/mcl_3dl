@@ -84,21 +84,21 @@ if(MCL_3DL_EXTRA_TESTS)
       src/compare_pose.cpp)
   target_link_libraries(compare_pose ${catkin_LIBRARIES} ${GTEST_LIBRARIES})
   add_dependencies(compare_pose 
-        ${PROJECT_NAME}_short_test.bag
+        ${PROJECT_NAME}_short_test2.bag
         ${PROJECT_NAME}_short_test_ref.topic
         mcl_3dl)
 
   add_rostest(${PROJECT_BINARY_DIR}/test/tests/localization_rostest.test
     DEPENDENCIES
       compare_pose
-      ${PROJECT_NAME}_short_test.bag
+      ${PROJECT_NAME}_short_test2.bag
       ${PROJECT_NAME}_short_test_ref.topic
       mcl_3dl)
   add_rostest(${PROJECT_BINARY_DIR}/test/tests/localization_rostest.test
     ARGS without_imu:=true
     DEPENDENCIES
       compare_pose
-      ${PROJECT_NAME}_short_test.bag
+      ${PROJECT_NAME}_short_test2.bag
       ${PROJECT_NAME}_short_test_ref.topic
       mcl_3dl)
 
@@ -106,7 +106,7 @@ if(MCL_3DL_EXTRA_TESTS)
       src/compare_tf.cpp)
   target_link_libraries(compare_tf ${catkin_LIBRARIES})
   add_dependencies(compare_tf 
-        ${PROJECT_NAME}_short_test.bag
+        ${PROJECT_NAME}_short_test2.bag
         ${PROJECT_NAME}_short_test_ref.topic
         mcl_3dl
       )
