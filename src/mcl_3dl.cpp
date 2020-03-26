@@ -140,7 +140,6 @@ protected:
     ds.filter(*pc_map_);
     pc_local_accum_.reset(new pcl::PointCloud<PointType>);
     pc_all_accum_.reset(new pcl::PointCloud<PointType>);
-    frame_num_ = 0;
     has_map_ = true;
 
     ROS_INFO("map original: %d points", (int)pc_tmp->points.size());
@@ -254,11 +253,6 @@ protected:
 
     if (!has_map_)
       return;
-    if (frames_.find(msg->header.frame_id) == frames_.end())
-    {
-      frames_[msg->header.frame_id] = true;
-      frames_v_.push_back(msg->header.frame_id);
-    }
 
     sensor_msgs::PointCloud2 pc_bl;
     try
@@ -288,21 +282,30 @@ protected:
     pc_local_accum_->header.frame_id = frame_ids_["odom"];
     pc_accum_header_.push_back(msg->header);
 
-    if (frames_v_[frame_num_].compare(msg->header.frame_id) != 0)
-      return;
-    frame_num_++;
-    if (frame_num_ >= frames_v_.size())
-      frame_num_ = 0;
+    // If total count of the accumulated cloud exceeds limit,
+    // skip checking frame_id and force processing.
+    if (pc_accum_header_.size() <
+        static_cast<size_t>(params_.total_accum_cloud_max_))
+    {
+      if (pc_accum_header_[0].frame_id.compare(msg->header.frame_id) != 0)
+        return;
 
-    if (frame_num_ != 0)
-      return;
-
-    cnt_accum_++;
-    if (cnt_accum_ % params_.accum_cloud_ != 0)
-      return;
+      // Count number of clouds with the frame_id which was arrived
+      // at first in this accumulation.
+      cnt_accum_++;
+      if (cnt_accum_ % static_cast<size_t>(params_.accum_cloud_) != 0)
+        return;
+    }
+    else
+    {
+      ROS_WARN(
+          "Number of the accumulated cloud exceeds limit. "
+          "Sensor with frame_id of %s may have been stopped.",
+          pc_accum_header_[0].frame_id.c_str());
+    }
 
     cnt_measure_++;
-    if (cnt_measure_ % params_.skip_measure_ != 0)
+    if (cnt_measure_ % static_cast<size_t>(params_.skip_measure_) != 0)
     {
       pc_local_accum_.reset(new pcl::PointCloud<PointType>);
       pc_accum_header_.clear();
@@ -1142,6 +1145,8 @@ public:
     , tfl_(tfbuf_)
     , global_localization_fix_cnt_(0)
     , engine_(seed_gen_())
+    , cnt_measure_(0)
+    , cnt_accum_(0)
   {
   }
   bool configure()
@@ -1331,9 +1336,8 @@ public:
     pnh_.param("bias_var_ang", params_.bias_var_ang_, 1.57);
 
     pnh_.param("skip_measure", params_.skip_measure_, 1);
-    cnt_measure_ = 0;
     pnh_.param("accum_cloud", params_.accum_cloud_, 1);
-    cnt_accum_ = 0;
+    pnh_.param("total_accum_cloud_max", params_.total_accum_cloud_max_, params_.accum_cloud_ * 10);
 
     pnh_.param("match_output_dist", params_.match_output_dist_, 0.1);
     pnh_.param("unmatch_output_dist", params_.unmatch_output_dist_, 0.5);
@@ -1483,13 +1487,10 @@ protected:
   bool has_imu_;
   State6DOF odom_;
   State6DOF odom_prev_;
-  std::map<std::string, bool> frames_;
-  std::vector<std::string> frames_v_;
-  size_t frame_num_;
   State6DOF state_prev_;
   ros::Time imu_last_;
-  int cnt_measure_;
-  int cnt_accum_;
+  size_t cnt_measure_;
+  size_t cnt_accum_;
   Quat imu_quat_;
   size_t global_localization_fix_cnt_;
   diagnostic_updater::Updater diag_updater_;

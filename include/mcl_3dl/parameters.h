@@ -72,6 +72,7 @@ public:
   int num_particles_;
   int skip_measure_;
   int accum_cloud_;
+  int total_accum_cloud_max_;
   double match_output_dist_;
   double unmatch_output_dist_;
   double bias_var_dist_;
