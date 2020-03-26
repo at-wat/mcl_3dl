@@ -11,7 +11,7 @@ pid=$!
 
 sleep 5
 rosrun tf tf_echo map base_link 1 | grep --line-buffered Translation | tee /tmp/pos.dat &
-rosbag play --clock -r 2.5 /short_test.bag &
+rosbag play --clock -r 2.5 /short_test2.bag &
 pid_bag=$!
 
 while true

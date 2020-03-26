@@ -2,7 +2,7 @@
 <launch>
   <param name="use_sim_time" value="true" />
 
-  <node pkg="rosbag" type="play" name="playback" args="--clock -r 3.0 -d 4.0 @PROJECT_BINARY_DIR@/test/short_test.bag" />
+  <node pkg="rosbag" type="play" name="playback" args="--clock -r 3.0 -d 4.0 @PROJECT_BINARY_DIR@/test/short_test2.bag" />
 
   <test test-name="compare_tf" pkg="mcl_3dl" type="compare_tf" time-limit="30.0">
   </test>
