@@ -1143,10 +1143,10 @@ public:
     : nh_("")
     , pnh_("~")
     , tfl_(tfbuf_)
-    , global_localization_fix_cnt_(0)
-    , engine_(seed_gen_())
     , cnt_measure_(0)
     , cnt_accum_(0)
+    , global_localization_fix_cnt_(0)
+    , engine_(seed_gen_())
   {
   }
   bool configure()
