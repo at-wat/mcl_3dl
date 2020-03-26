@@ -2,8 +2,8 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.2 (2020-03-26)
+------------------
 * Fix cloud accumulation logic (`#290 <https://github.com/at-wat/mcl_3dl/issues/290>`_)
 * Contributors: Atsushi Watanabe
 
