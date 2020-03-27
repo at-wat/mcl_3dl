@@ -1,5 +1,7 @@
 catkin_add_gtest(test_chunked_kdtree src/test_chunked_kdtree.cpp)
 target_link_libraries(test_chunked_kdtree ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+catkin_add_gtest(test_cloud_accum src/test_cloud_accum.cpp ../src/cloud_accum.cpp)
+target_link_libraries(test_cloud_accum ${catkin_LIBRARIES})
 catkin_add_gtest(test_filter src/test_filter.cpp)
 target_link_libraries(test_filter ${catkin_LIBRARIES})
 catkin_add_gtest(test_nd src/test_nd.cpp)

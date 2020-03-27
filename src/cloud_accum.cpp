@@ -46,8 +46,8 @@ void CloudAccumulationLogicPassThrough::push(
     std::function<void()> clear)
 {
   clear();
-  accumulate(msg);
-  process();
+  if (accumulate(msg))
+    process();
 }
 
 void CloudAccumulationLogic::push(
@@ -65,8 +65,11 @@ void CloudAccumulationLogic::push(
     {
       if (accumulate(msg))
       {
-        cnt_cloud_++;
+        if (keys_.size() == 0)
+          cnt_accum_ = 1;
+
         keys_.push_back(key);
+        cnt_cloud_++;
       }
       else
       {
