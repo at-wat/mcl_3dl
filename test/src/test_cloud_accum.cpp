@@ -156,6 +156,9 @@ TEST(CloudAccumulationLogic, Accumulate)
   // Exceeds accum_max_. Force processing and start next accumulation.
   accum.push("1", msg, process, accumulateOK, clear);
   ASSERT_EQ(std::string("aaaapcaaaaapcaa'caaaaaapca"), seq);
+
+  accum.push("1", msg, process, accumulateNG, clear);
+  ASSERT_EQ(std::string("aaaapcaaaaapcaa'caaaaaapcaa'c"), seq);
 }
 
 int main(int argc, char** argv)
