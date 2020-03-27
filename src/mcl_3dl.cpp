@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, the mcl_3dl authors
+ * Copyright (c) 2016-2020, the mcl_3dl authors
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -75,6 +75,7 @@
 #include <pcl18_backports/voxel_grid.h>
 
 #include <mcl_3dl/chunked_kdtree.h>
+#include <mcl_3dl/cloud_accum.h>
 #include <mcl_3dl/filter.h>
 #include <mcl_3dl/imu_measurement_model_base.h>
 #include <mcl_3dl/imu_measurement_models/imu_measurement_model_gravity.h>
@@ -138,9 +139,10 @@ protected:
     ds.setInputCloud(pc_tmp);
     ds.setLeafSize(params_.map_downsample_x_, params_.map_downsample_y_, params_.map_downsample_z_);
     ds.filter(*pc_map_);
-    pc_local_accum_.reset(new pcl::PointCloud<PointType>);
     pc_all_accum_.reset(new pcl::PointCloud<PointType>);
     has_map_ = true;
+
+    accumClear();
 
     ROS_INFO("map original: %d points", (int)pc_tmp->points.size());
     ROS_INFO("map reduced: %d points", (int)pc_map_->points.size());
@@ -254,47 +256,21 @@ protected:
     if (!has_map_)
       return;
 
-    // If total count of the accumulated cloud exceeds limit,
-    // skip checking frame_id and force processing.
-    if (pc_accum_header_.size() <
-        static_cast<size_t>(params_.total_accum_cloud_max_))
-    {
-      if (pc_accum_header_.size() == 0 ||
-          pc_accum_header_.front().frame_id.compare(msg->header.frame_id) != 0)
-      {
-        accumCloud(msg);
-        return;
-      }
+    accum_->push(
+        msg->header.frame_id,
+        msg,
+        std::bind(&MCL3dlNode::measure, this),
+        std::bind(&MCL3dlNode::accumCloud, this, std::placeholders::_1),
+        std::bind(&MCL3dlNode::accumClear, this));
+  }
 
-      // Count number of clouds with the frame_id which was arrived
-      // at first in this accumulation.
-      if (cnt_accum_ < static_cast<size_t>(params_.accum_cloud_))
-      {
-        cnt_accum_++;
-        accumCloud(msg);
-        return;
-      }
-
-      // Received (accum_cloud_ + 1) of clouds now.
-      // Process already accumulated data and start next accumulation.
-    }
-    else
-    {
-      ROS_WARN(
-          "Number of the accumulated cloud exceeds limit. "
-          "Sensor with frame_id of %s may have been stopped.",
-          pc_accum_header_.front().frame_id.c_str());
-    }
-
-    measure();
-
+  void accumClear()
+  {
     pc_local_accum_.reset(new pcl::PointCloud<PointType>);
     pc_accum_header_.clear();
-    cnt_accum_ = 1;
-
-    accumCloud(msg);
   }
-  void accumCloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
+
+  bool accumCloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
   {
     sensor_msgs::PointCloud2 pc_bl;
     try
@@ -306,15 +282,13 @@ protected:
     catch (tf2::TransformException& e)
     {
       ROS_INFO("Failed to transform pointcloud: %s", e.what());
-      pc_local_accum_.reset(new pcl::PointCloud<PointType>);
-      pc_accum_header_.clear();
-      return;
+      return false;
     }
     pcl::PointCloud<PointType>::Ptr pc_tmp(new pcl::PointCloud<PointType>);
     if (!mcl_3dl::fromROSMsg(pc_bl, *pc_tmp))
     {
       ROS_INFO("Failed to convert pointcloud");
-      return;
+      return false;
     }
 
     for (auto& p : pc_tmp->points)
@@ -324,6 +298,7 @@ protected:
     *pc_local_accum_ += *pc_tmp;
     pc_local_accum_->header.frame_id = frame_ids_["odom"];
     pc_accum_header_.push_back(msg->header);
+    return true;
   }
 
   void measure()
@@ -1162,7 +1137,6 @@ public:
     , pnh_("~")
     , tfl_(tfbuf_)
     , cnt_measure_(0)
-    , cnt_accum_(0)
     , global_localization_fix_cnt_(0)
     , engine_(seed_gen_())
   {
@@ -1354,8 +1328,15 @@ public:
     pnh_.param("bias_var_ang", params_.bias_var_ang_, 1.57);
 
     pnh_.param("skip_measure", params_.skip_measure_, 1);
-    pnh_.param("accum_cloud", params_.accum_cloud_, 1);
-    pnh_.param("total_accum_cloud_max", params_.total_accum_cloud_max_, params_.accum_cloud_ * 10);
+
+    int accum_cloud, total_accum_cloud_max;
+    pnh_.param("accum_cloud", accum_cloud, 1);
+    pnh_.param("total_accum_cloud_max", total_accum_cloud_max, accum_cloud * 10);
+
+    if (accum_cloud == 0)
+      accum_.reset(new CloudAccumulationLogicPassThrough());
+    else
+      accum_.reset(new CloudAccumulationLogic(accum_cloud, total_accum_cloud_max));
 
     pnh_.param("match_output_dist", params_.match_output_dist_, 0.1);
     pnh_.param("unmatch_output_dist", params_.unmatch_output_dist_, 0.5);
@@ -1508,7 +1489,6 @@ protected:
   State6DOF state_prev_;
   ros::Time imu_last_;
   size_t cnt_measure_;
-  size_t cnt_accum_;
   Quat imu_quat_;
   size_t global_localization_fix_cnt_;
   diagnostic_updater::Updater diag_updater_;
@@ -1520,8 +1500,10 @@ protected:
   pcl::PointCloud<PointType>::Ptr pc_map2_;
   pcl::PointCloud<PointType>::Ptr pc_update_;
   pcl::PointCloud<PointType>::Ptr pc_all_accum_;
-  pcl::PointCloud<PointType>::Ptr pc_local_accum_;
   ChunkedKdtree<PointType>::Ptr kdtree_;
+
+  CloudAccumulationLogicBase::Ptr accum_;
+  pcl::PointCloud<PointType>::Ptr pc_local_accum_;
   std::vector<std_msgs::Header> pc_accum_header_;
 
   std::map<

@@ -72,6 +72,7 @@ add_definitions(-DPCL_NO_PRECOMPILE)
 
 
 add_executable(mcl_3dl
+  src/cloud_accum.cpp
   src/lidar_measurement_model_beam.cpp
   src/lidar_measurement_model_likelihood.cpp
   src/mcl_3dl.cpp
