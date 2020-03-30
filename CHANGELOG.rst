@@ -2,8 +2,8 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.2 (2020-03-30)
+------------------
 * Make average number of accumulated clouds accurate (`#293 <https://github.com/at-wat/mcl_3dl/issues/293>`_)
 * Fix latching flag in demo bag (`#294 <https://github.com/at-wat/mcl_3dl/issues/294>`_)
 * Fix cloud accumulation logic (`#290 <https://github.com/at-wat/mcl_3dl/issues/290>`_)
