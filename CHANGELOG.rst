@@ -2,6 +2,13 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Make average number of accumulated clouds accurate (`#293 <https://github.com/at-wat/mcl_3dl/issues/293>`_)
+* Fix latching flag in demo bag (`#294 <https://github.com/at-wat/mcl_3dl/issues/294>`_)
+* Fix cloud accumulation logic (`#290 <https://github.com/at-wat/mcl_3dl/issues/290>`_)
+* Contributors: Atsushi Watanabe
+
 0.2.1 (2020-02-03)
 ------------------
 * Set DiagnosticStatus::OK as default (`#283 <https://github.com/at-wat/mcl_3dl/issues/283>`_)
