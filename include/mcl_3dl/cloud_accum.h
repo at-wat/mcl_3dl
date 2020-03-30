@@ -71,7 +71,6 @@ public:
     : accum_(accum)
     , accum_max_(accum_max)
     , cnt_accum_(0)
-    , cnt_cloud_(0)
   {
   }
 
@@ -86,7 +85,6 @@ private:
   size_t accum_;
   size_t accum_max_;
   size_t cnt_accum_;
-  size_t cnt_cloud_;
   std::vector<std::string> keys_;
 };
 }  // namespace mcl_3dl

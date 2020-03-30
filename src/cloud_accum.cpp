@@ -69,14 +69,12 @@ void CloudAccumulationLogic::push(
           cnt_accum_ = 1;
 
         keys_.push_back(key);
-        cnt_cloud_++;
       }
       else
       {
         clear();
         keys_.clear();
         cnt_accum_ = 0;
-        cnt_cloud_ = 0;
       }
       return;
     }
@@ -87,7 +85,6 @@ void CloudAccumulationLogic::push(
     {
       if (accumulate(msg))
       {
-        cnt_cloud_++;
         cnt_accum_++;
         keys_.push_back(key);
       }
@@ -96,7 +93,6 @@ void CloudAccumulationLogic::push(
         clear();
         keys_.clear();
         cnt_accum_ = 0;
-        cnt_cloud_ = 0;
       }
       return;
     }
@@ -117,12 +113,10 @@ void CloudAccumulationLogic::push(
   clear();
   keys_.clear();
   cnt_accum_ = 0;
-  cnt_cloud_ = 0;
 
   if (accumulate(msg))
   {
     keys_.push_back(key);
-    cnt_cloud_++;
     cnt_accum_++;
   }
 }
