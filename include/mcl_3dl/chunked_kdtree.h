@@ -31,6 +31,7 @@
 #define MCL_3DL_CHUNKED_KDTREE_H
 
 #include <cmath>
+#include <memory>
 #include <stdexcept>
 #include <unordered_map>
 #include <vector>
