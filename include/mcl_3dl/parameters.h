@@ -29,6 +29,8 @@
 #ifndef MCL_3DL_PARAMETERS_H
 #define MCL_3DL_PARAMETERS_H
 
+#include <memory>
+
 namespace mcl_3dl
 {
 class Parameters

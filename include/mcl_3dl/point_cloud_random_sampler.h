@@ -30,6 +30,7 @@
 #ifndef MCL_3DL_POINT_CLOUD_RANDOM_SAMPLER_H
 #define MCL_3DL_POINT_CLOUD_RANDOM_SAMPLER_H
 
+#include <memory>
 #include <random>
 
 #include <pcl/point_types.h>
