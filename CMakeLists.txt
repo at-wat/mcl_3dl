@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.1.3)
 project(mcl_3dl)
 
 set(CATKIN_DEPENDS
@@ -34,8 +34,9 @@ catkin_package(
   CATKIN_DEPENDS ${CATKIN_DEPENDS}
 )
 
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_compile_options(-std=c++11)
 include_directories(include ${catkin_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${PCL_INCLUDE_DIR})
 add_definitions(${PCL_DEFINITIONS})
 
