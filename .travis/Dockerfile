@@ -21,8 +21,9 @@ RUN sed -e \
   's|http://archive\.ubuntu\.com|http://us-east-1.ec2.archive.ubuntu.com|' \
   -i /etc/apt/sources.list
 
-RUN apt-get -qq update \
-  && apt-get upgrade -y \
+COPY --from=cloner /repos-manifests/src /catkin_ws/src
+RUN rosdep update \
+  && apt-get -qq update \
   && apt-get install -y --no-install-recommends \
     curl \
     libxml2-utils \
@@ -30,12 +31,6 @@ RUN apt-get -qq update \
     python3-setuptools \
     sudo \
     wget \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
-
-COPY --from=cloner /repos-manifests/src /catkin_ws/src
-RUN rosdep update \
-  && apt-get -qq update \
   && rosdep install --from-paths /catkin_ws/src --ignore-src --rosdistro=${ROS_DISTRO} -y \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*

@@ -7,11 +7,15 @@ addons:
       - python3-pip
       - python3-setuptools
 cache:
+  apt: true
   directories:
-    - /home/travis/docker/dataset
+    - ${HOME}/.local/bin
+    - ${HOME}/.local/lib
+    - ${HOME}/docker
 env:
   global:
     - PACKAGE_NAME=mcl_3dl
+    - DOCKER_CACHE=${HOME}/docker/cache.tar
     - DATASET_CACHE_DIR=/home/travis/docker/dataset
     - DATASET_FILE=short_test3.bag
     - DATASET_REF_FILE=short_test_ref.topic
@@ -24,6 +28,7 @@ branches:
 
 before_install:
   - .travis/cache_dataset.sh
+  - test -f ${DOCKER_CACHE} && docker load -i ${DOCKER_CACHE} || true
   - python3 -m pip install --user gh-pr-comment
 
 script:
@@ -45,6 +50,9 @@ script:
       $(bash <(curl -s https://codecov.io/env)) \
       ${PACKAGE_NAME}:${ROS_DISTRO_TARGET} \
       /catkin_ws/src/${PACKAGE_NAME}/.travis/test.sh
+
+before_cache:
+  - docker save $(docker history -q ${PACKAGE_NAME}:${ROS_DISTRO_TARGET} | grep -v "<missing>") -o ${DOCKER_CACHE}
 
 jobs:
   include:
