@@ -14,6 +14,9 @@ case ${ROS_DISTRO_TARGET} in
   melodic )
     UBUNTU_DIST_TARGET=bionic
     ;;
+  noetic )
+    UBUNTU_DIST_TARGET=focal
+    ;;
   * )
     echo "Unknown ROS_DISTRO_TARGET: ${ROS_DISTRO_TARGET}"
     exit 1
