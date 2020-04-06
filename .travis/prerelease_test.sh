@@ -2,7 +2,7 @@
 
 set -eu
 
-if [[ ! "${TRAVIS_PULL_REQUEST_BRANCH}" =~ ^(release-.*|ci-for-noetic)$ ]]; then
+if [[ ! "${TRAVIS_PULL_REQUEST_BRANCH}" =~ ^release-.*$ ]]; then
   echo "Skipping prerelease test"
   exit 0
 fi
