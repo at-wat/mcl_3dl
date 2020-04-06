@@ -30,9 +30,10 @@
 #ifndef MCL_3DL_CLOUD_ACCUM_H
 #define MCL_3DL_CLOUD_ACCUM_H
 
-#include <vector>
-#include <string>
 #include <functional>
+#include <memory>
+#include <string>
+#include <vector>
 
 #include <sensor_msgs/PointCloud2.h>
 

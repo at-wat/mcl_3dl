@@ -30,6 +30,7 @@
 #ifndef MCL_3DL_LIDAR_MEASUREMENT_MODEL_BASE_H
 #define MCL_3DL_LIDAR_MEASUREMENT_MODEL_BASE_H
 
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
