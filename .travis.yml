@@ -53,15 +53,16 @@ jobs:
     - stage: test
       env:
         - ROS_DISTRO_TARGET=noetic
-      script: |
-        BUILD_LINK="[[#${TRAVIS_BUILD_NUMBER}](${TRAVIS_BUILD_WEB_URL})]"
-        docker run -it --rm \
-          -v $(pwd):/src/$(basename $(pwd)):ro \
-          alpineros/ros-abuild:3.11-noetic \
-          && gh-pr-comment "${BUILD_LINK} PASSED on ${ROS_DISTRO_TARGET}" \
-            "Tested on Alpine ROS" \
-          || (gh-pr-comment "${BUILD_LINK} FAILED on ${ROS_DISTRO_TARGET}" \
-            "Tested on Alpine ROS"; false) \
+      script:
+        - BUILD_LINK="[[#${TRAVIS_BUILD_NUMBER}](${TRAVIS_BUILD_WEB_URL})]"
+        - |
+          docker run -it --rm \
+            -v $(pwd):/src/$(basename $(pwd)):ro \
+            alpineros/ros-abuild:3.11-noetic \
+            && gh-pr-comment "${BUILD_LINK} PASSED on ${ROS_DISTRO_TARGET}" \
+              "Tested on Alpine ROS" \
+            || (gh-pr-comment "${BUILD_LINK} FAILED on ${ROS_DISTRO_TARGET}" \
+              "Tested on Alpine ROS"; false) \
     - stage: prerelease-test
       if: head_branch =~ ^release-.*$
       env:
