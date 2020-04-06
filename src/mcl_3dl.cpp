@@ -267,6 +267,7 @@ protected:
   void accumClear()
   {
     pc_local_accum_.reset(new pcl::PointCloud<PointType>);
+    pc_local_accum_->header.frame_id = frame_ids_["odom"];
     pc_accum_header_.clear();
   }
 
@@ -296,7 +297,6 @@ protected:
       p.label = pc_accum_header_.size();
     }
     *pc_local_accum_ += *pc_tmp;
-    pc_local_accum_->header.frame_id = frame_ids_["odom"];
     pc_accum_header_.push_back(msg->header);
     return true;
   }
