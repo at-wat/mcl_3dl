@@ -2,8 +2,9 @@ mcl_3dl:
   map_frame: "map"
   accum_cloud: 2
   lpf_step: 1.0
+  dist_weight_z: 2.0
   likelihood:
-    match_dist_min: 0.3
+    match_dist_min: 0.5
     match_output_dist: 0.3
 obj_to_pointcloud:
   frame_id: "map"
