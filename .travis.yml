@@ -5,6 +5,7 @@ addons:
   apt:
     packages:
       - python3-pip
+      - python3-setuptools
 cache:
   directories:
     - /home/travis/docker/dataset
