@@ -27,21 +27,21 @@ before_install:
   - python3 -m pip install --user gh-pr-comment
 
 script:
+  - BUILD_LINK="[[#${TRAVIS_BUILD_NUMBER}](${TRAVIS_BUILD_WEB_URL})]"
   - |
     docker build \
       -t ${PACKAGE_NAME}:${ROS_DISTRO_TARGET} \
       -f .travis/Dockerfile \
       --build-arg ROS_DISTRO=${ROS_DISTRO_TARGET} \
       --pull=true ${TRAVIS_BUILD_DIR} \
-      || (gh-pr-comment "[[#${TRAVIS_BUILD_NUMBER}](${TRAVIS_BUILD_WEB_URL})] FAILED on ${ROS_DISTRO_TARGET}" "docker build failed"; false)
+      || (gh-pr-comment "${BUILD_LINK} FAILED on ${ROS_DISTRO_TARGET}" "docker build failed"; false)
   - |
-    docker run --rm -it
-      -e TRAVIS_PULL_REQUEST
-      -e TRAVIS_REPO_SLUG
-      -e TRAVIS_BOT_GITHUB_TOKEN
-      -e GITHUB_API_URL_BASE
-      -e TRAVIS_BUILD_NUMBER
-      -e TRAVIS_BUILD_WEB_URL
+    docker run --rm -it \
+      -e TRAVIS_PULL_REQUEST \
+      -e TRAVIS_REPO_SLUG \
+      -e TRAVIS_BOT_GITHUB_TOKEN \
+      -e GITHUB_API_URL_BASE \
+      -e BUILD_LINK=${BUILD_LINK} \
       $(bash <(curl -s https://codecov.io/env))
       ${PACKAGE_NAME}:${ROS_DISTRO_TARGET} \
       /catkin_ws/src/${PACKAGE_NAME}/.travis/test.sh
