@@ -321,6 +321,7 @@ int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
   ros::init(argc, argv, "test_global_localization");
+  ros::NodeHandle nh;  // workaround to keep the test node during the process life time
 
   return RUN_ALL_TESTS();
 }

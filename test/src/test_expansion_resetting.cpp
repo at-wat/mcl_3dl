@@ -208,9 +208,15 @@ protected:
     return found_true_positive;
   }
 
+  void SetUp()
+  {
+    ASSERT_TRUE(src_expansion_resetting_.waitForExistence(ros::Duration(10)));
+
+    pub_init_.publish(generateInitialPose());
+  }
+
 public:
   ExpansionResetting()
-    : nh_()
   {
     sub_pose_ = nh_.subscribe("mcl_3dl/particles", 1, &ExpansionResetting::cbPose, this);
     sub_status_ = nh_.subscribe("mcl_3dl/status", 1, &ExpansionResetting::cbStatus, this);
@@ -226,9 +232,6 @@ public:
     src_expansion_resetting_ =
         nh_.serviceClient<std_srvs::TriggerRequest, std_srvs::TriggerResponse>(
             "expansion_resetting");
-    src_expansion_resetting_.waitForExistence(ros::Duration(10));
-
-    pub_init_.publish(generateInitialPose());
   }
 };
 
@@ -309,6 +312,7 @@ int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
   ros::init(argc, argv, "test_expansion_resetting");
+  ros::NodeHandle nh;  // workaround to keep the test node during the process life time
 
   return RUN_ALL_TESTS();
 }
