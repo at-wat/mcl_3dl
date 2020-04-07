@@ -2,8 +2,8 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.3 (2020-04-07)
+------------------
 * Update assets to v0.0.8 (`#303 <https://github.com/at-wat/mcl_3dl/issues/303>`_)
 * Fix flaky rostest nodes (`#302 <https://github.com/at-wat/mcl_3dl/issues/302>`_)
 * Update E2E test parameters (`#301 <https://github.com/at-wat/mcl_3dl/issues/301>`_)
