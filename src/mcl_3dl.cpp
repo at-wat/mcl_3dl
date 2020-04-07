@@ -171,7 +171,7 @@ protected:
     try
     {
       const geometry_msgs::TransformStamped trans = tfbuf_.lookupTransform(
-          frame_ids_["map"], pose_in.header.frame_id, pose_in.header.stamp, ros::Duration(1.0));
+          params_.frame_ids_["map"], pose_in.header.frame_id, pose_in.header.stamp, ros::Duration(1.0));
       tf2::doTransform(pose_in, pose, trans);
     }
     catch (tf2::TransformException& e)
@@ -267,7 +267,7 @@ protected:
   void accumClear()
   {
     pc_local_accum_.reset(new pcl::PointCloud<PointType>);
-    pc_local_accum_->header.frame_id = frame_ids_["odom"];
+    pc_local_accum_->header.frame_id = params_.frame_ids_["odom"];
     pc_accum_header_.clear();
   }
 
@@ -277,7 +277,7 @@ protected:
     try
     {
       const geometry_msgs::TransformStamped trans = tfbuf_.lookupTransform(
-          frame_ids_["odom"], msg->header.frame_id, msg->header.stamp, ros::Duration(0.1));
+          params_.frame_ids_["odom"], msg->header.frame_id, msg->header.stamp, ros::Duration(0.1));
       tf2::doTransform(*msg, pc_bl, trans);
     }
     catch (tf2::TransformException& e)
@@ -314,7 +314,7 @@ protected:
     try
     {
       const geometry_msgs::TransformStamped trans = tfbuf_.lookupTransform(
-          frame_ids_["base_link"],
+          params_.frame_ids_["base_link"],
           pc_local_accum_->header.frame_id,
           header.stamp, ros::Duration(0.1));
 
@@ -341,7 +341,7 @@ protected:
       try
       {
         const geometry_msgs::TransformStamped trans = tfbuf_.lookupTransform(
-            frame_ids_["base_link"], header.stamp, h.frame_id, h.stamp, frame_ids_["odom"]);
+            params_.frame_ids_["base_link"], header.stamp, h.frame_id, h.stamp, params_.frame_ids_["odom"]);
         origins.push_back(Vec3(trans.transform.translation.x,
                                trans.transform.translation.y,
                                trans.transform.translation.z));
@@ -462,7 +462,7 @@ protected:
         const Vec3 end(p.x, p.y, p.z);
 
         visualization_msgs::Marker marker;
-        marker.header.frame_id = frame_ids_["map"];
+        marker.header.frame_id = params_.frame_ids_["map"];
         marker.header.stamp = header.stamp;
         marker.ns = "Rays";
         marker.id = markers.markers.size();
@@ -514,7 +514,7 @@ protected:
           if (point.collision_)
           {
             visualization_msgs::Marker marker;
-            marker.header.frame_id = frame_ids_["map"];
+            marker.header.frame_id = params_.frame_ids_["map"];
             marker.header.stamp = header.stamp;
             marker.ns = "Ray collisions";
             marker.id = markers.markers.size();
@@ -550,7 +550,7 @@ protected:
       for (auto& p : pc_particle->points)
       {
         visualization_msgs::Marker marker;
-        marker.header.frame_id = frame_ids_["map"];
+        marker.header.frame_id = params_.frame_ids_["map"];
         marker.header.stamp = header.stamp;
         marker.ns = "Sample points";
         marker.id = markers.markers.size();
@@ -614,8 +614,8 @@ protected:
       trans.header.stamp = odom_last_ + tf_tolerance_base_ + *params_.tf_tolerance_;
     else
       trans.header.stamp = ros::Time::now() + tf_tolerance_base_ + *params_.tf_tolerance_;
-    trans.header.frame_id = frame_ids_["map"];
-    trans.child_frame_id = frame_ids_["odom"];
+    trans.header.frame_id = params_.frame_ids_["map"];
+    trans.child_frame_id = params_.frame_ids_["odom"];
     auto rpy = map_rot.getRPY();
     if (jump)
     {
@@ -650,14 +650,14 @@ protected:
     assert(std::isfinite(e.rot_.z_));
     assert(std::isfinite(e.rot_.w_));
 
-    trans.header.frame_id = frame_ids_["map"];
-    trans.child_frame_id = frame_ids_["floor"];
+    trans.header.frame_id = params_.frame_ids_["map"];
+    trans.child_frame_id = params_.frame_ids_["floor"];
     trans.transform.translation = tf2::toMsg(tf2::Vector3(0.0, 0.0, e.pos_.z_));
     trans.transform.rotation = tf2::toMsg(tf2::Quaternion(0.0, 0.0, 0.0, 1.0));
 
     transforms.push_back(trans);
 
-    if (publish_tf_)
+    if (params_.publish_tf_)
       tfb_.sendTransform(transforms);
 
     // Calculate covariance from sampled particles to reduce calculation cost on global localization.
@@ -685,9 +685,9 @@ protected:
 
     if (!global_localization_fix_cnt_)
     {
-      if (std::sqrt(cov[0][0] + cov[1][1]) > std_warn_thresh_[0] ||
-          std::sqrt(cov[2][2]) > std_warn_thresh_[1] ||
-          std::sqrt(cov[5][5]) > std_warn_thresh_[2])
+      if (std::sqrt(cov[0][0] + cov[1][1]) > params_.std_warn_thresh_[0] ||
+          std::sqrt(cov[2][2]) > params_.std_warn_thresh_[1] ||
+          std::sqrt(cov[5][5]) > params_.std_warn_thresh_[2])
       {
         status_.convergence_status = mcl_3dl_msgs::Status::CONVERGENCE_STATUS_LARGE_STD_VALUE;
       }
@@ -707,7 +707,7 @@ protected:
       }
     }
 
-    if (output_pcd_)
+    if (params_.output_pcd_)
     {
       pcl::PointCloud<PointType>::Ptr pc_particle(new pcl::PointCloud<PointType>);
       *pc_particle = *pc_locals["likelihood"];
@@ -723,10 +723,10 @@ protected:
 
       sensor_msgs::PointCloud pc_match;
       pc_match.header.stamp = header.stamp;
-      pc_match.header.frame_id = frame_ids_["map"];
+      pc_match.header.frame_id = params_.frame_ids_["map"];
       sensor_msgs::PointCloud pc_unmatch;
       pc_unmatch.header.stamp = header.stamp;
-      pc_unmatch.header.frame_id = frame_ids_["map"];
+      pc_unmatch.header.frame_id = params_.frame_ids_["map"];
 
       pcl::PointCloud<PointType>::Ptr pc_local(new pcl::PointCloud<PointType>);
       *pc_local = *pc_local_full;
@@ -935,7 +935,7 @@ protected:
         in.z = acc_measure.z_;
         // assuming imu frame is regit on base_link
         const geometry_msgs::TransformStamped trans = tfbuf_.lookupTransform(
-            frame_ids_["base_link"], msg->header.frame_id, ros::Time(0));
+            params_.frame_ids_["base_link"], msg->header.frame_id, ros::Time(0));
         tf2::doTransform(in, out, trans);
         acc_measure = Vec3(out.x, out.y, out.z);
 
@@ -970,7 +970,7 @@ protected:
       if (fake_odom_)
       {
         nav_msgs::Odometry::Ptr odom(new nav_msgs::Odometry);
-        odom->header.frame_id = frame_ids_["base_link"];
+        odom->header.frame_id = params_.frame_ids_["base_link"];
         odom->header.stamp = msg->header.stamp;
         odom->pose.pose.orientation.x = imu_quat_.x_;
         odom->pose.pose.orientation.y = imu_quat_.y_;
@@ -1072,7 +1072,7 @@ protected:
       pa.header.stamp = odom_last_ + tf_tolerance_base_ + *params_.tf_tolerance_;
     else
       pa.header.stamp = ros::Time::now() + tf_tolerance_base_ + *params_.tf_tolerance_;
-    pa.header.frame_id = frame_ids_["map"];
+    pa.header.frame_id = params_.frame_ids_["map"];
     for (size_t i = 0; i < pf_->getParticleSize(); i++)
     {
       geometry_msgs::Pose pm;
@@ -1199,88 +1199,14 @@ public:
         nh_, "expansion_resetting",
         pnh_, "expansion_resetting", &MCL3dlNode::cbExpansionReset, this);
 
-    pnh_.param("map_frame", frame_ids_["map"], std::string("map"));
-    pnh_.param("robot_frame", frame_ids_["base_link"], std::string("base_link"));
-    pnh_.param("odom_frame", frame_ids_["odom"], std::string("odom"));
-    pnh_.param("floor_frame", frame_ids_["floor"], std::string("floor"));
+    params_.load(pnh_);
 
-    mcl_3dl_compat::paramRename<double>(pnh_, "likelihood/clip_near", "clip_near");
-    mcl_3dl_compat::paramRename<double>(pnh_, "likelihood/clip_far", "clip_far");
-    mcl_3dl_compat::paramRename<double>(pnh_, "likelihood/clip_z_min", "clip_z_min");
-    mcl_3dl_compat::paramRename<double>(pnh_, "likelihood/clip_z_max", "clip_z_max");
-    mcl_3dl_compat::paramRename<double>(pnh_, "likelihood/match_dist_min", "match_dist_min");
-    mcl_3dl_compat::paramRename<double>(pnh_, "likelihood/match_dist_flat", "match_dist_flat");
-    mcl_3dl_compat::paramRename<double>(pnh_, "likelihood/match_weight", "match_weight");
-    mcl_3dl_compat::paramRename<double>(pnh_, "likelihood/num_points", "num_points");
-    mcl_3dl_compat::paramRename<double>(pnh_, "likelihood/num_points_global", "num_points_global");
+    point_rep_.setRescaleValues(params_.dist_weight_.data());
 
-    mcl_3dl_compat::paramRename<double>(pnh_, "beam/clip_near", "clip_beam_near");
-    mcl_3dl_compat::paramRename<double>(pnh_, "beam/clip_far", "clip_beam_far");
-    mcl_3dl_compat::paramRename<double>(pnh_, "beam/clip_z_min", "clip_beam_z_min");
-    mcl_3dl_compat::paramRename<double>(pnh_, "beam/clip_z_max", "clip_beam_z_max");
-    mcl_3dl_compat::paramRename<double>(pnh_, "beam/num_points", "num_points_beam");
-    mcl_3dl_compat::paramRename<double>(pnh_, "beam/beam_likelihood", "beam_likelihood");
-    mcl_3dl_compat::paramRename<double>(pnh_, "beam/ang_total_ref", "ang_total_ref");
-
-    pnh_.param("map_downsample_x", params_.map_downsample_x_, 0.1);
-    pnh_.param("map_downsample_y", params_.map_downsample_y_, 0.1);
-    pnh_.param("map_downsample_z", params_.map_downsample_z_, 0.1);
-    pnh_.param("downsample_x", params_.downsample_x_, 0.1);
-    pnh_.param("downsample_y", params_.downsample_y_, 0.1);
-    pnh_.param("downsample_z", params_.downsample_z_, 0.05);
-    params_.map_grid_min_ = std::min(std::min(params_.map_downsample_x_, params_.map_downsample_y_),
-                                     params_.map_downsample_z_);
-    params_.map_grid_max_ = std::max(std::max(params_.map_downsample_x_, params_.map_downsample_y_),
-                                     params_.map_downsample_z_);
-    pnh_.param("update_downsample_x", params_.update_downsample_x_, 0.3);
-    pnh_.param("update_downsample_y", params_.update_downsample_y_, 0.3);
-    pnh_.param("update_downsample_z", params_.update_downsample_z_, 0.3);
-    double map_update_interval_t;
-    pnh_.param("map_update_interval_interval", map_update_interval_t, 2.0);
-    params_.map_update_interval_.reset(new ros::Duration(map_update_interval_t));
-
-    float weight_f[4];
-    pnh_.param("dist_weight_x", weight_f[0], 1.0f);
-    pnh_.param("dist_weight_y", weight_f[1], 1.0f);
-    pnh_.param("dist_weight_z", weight_f[2], 5.0f);
-    weight_f[3] = 0.0;
-    point_rep_.setRescaleValues(weight_f);
-
-    pnh_.param("global_localization_grid_lin", params_.global_localization_grid_, 0.3);
-    double grid_ang;
-    pnh_.param("global_localization_grid_ang", grid_ang, 0.524);
-    params_.global_localization_div_yaw_ = std::lround(2 * M_PI / grid_ang);
-
-    pnh_.param("num_particles", params_.num_particles_, 64);
     pf_.reset(new pf::ParticleFilter<State6DOF,
                                      float,
                                      ParticleWeightedMeanQuat,
                                      std::default_random_engine>(params_.num_particles_));
-
-    pnh_.param("resample_var_x", params_.resample_var_x_, 0.05);
-    pnh_.param("resample_var_y", params_.resample_var_y_, 0.05);
-    pnh_.param("resample_var_z", params_.resample_var_z_, 0.05);
-    pnh_.param("resample_var_roll", params_.resample_var_roll_, 0.05);
-    pnh_.param("resample_var_pitch", params_.resample_var_pitch_, 0.05);
-    pnh_.param("resample_var_yaw", params_.resample_var_yaw_, 0.05);
-    pnh_.param("expansion_var_x", params_.expansion_var_x_, 0.2);
-    pnh_.param("expansion_var_y", params_.expansion_var_y_, 0.2);
-    pnh_.param("expansion_var_z", params_.expansion_var_z_, 0.2);
-    pnh_.param("expansion_var_roll", params_.expansion_var_roll_, 0.05);
-    pnh_.param("expansion_var_pitch", params_.expansion_var_pitch_, 0.05);
-    pnh_.param("expansion_var_yaw", params_.expansion_var_yaw_, 0.05);
-    pnh_.param("match_ratio_thresh", params_.match_ratio_thresh_, 0.0);
-
-    pnh_.param("odom_err_lin_lin", params_.odom_err_lin_lin_, 0.10);
-    pnh_.param("odom_err_lin_ang", params_.odom_err_lin_ang_, 0.05);
-    pnh_.param("odom_err_ang_lin", params_.odom_err_ang_lin_, 0.05);
-    pnh_.param("odom_err_ang_ang", params_.odom_err_ang_ang_, 0.05);
-
-    pnh_.param("odom_err_integ_lin_tc", params_.odom_err_integ_lin_tc_, 10.0);
-    pnh_.param("odom_err_integ_lin_sigma", params_.odom_err_integ_lin_sigma_, 100.0);
-    pnh_.param("odom_err_integ_ang_tc", params_.odom_err_integ_ang_tc_, 10.0);
-    pnh_.param("odom_err_integ_ang_sigma", params_.odom_err_integ_ang_sigma_, 100.0);
-
     double x, y, z;
     double roll, pitch, yaw;
     double v_x, v_y, v_z;
@@ -1305,7 +1231,6 @@ public:
             Vec3(v_x, v_y, v_z),
             Vec3(v_roll, v_pitch, v_yaw)));
 
-    pnh_.param("lpf_step", params_.lpf_step_, 16.0);
     f_pos_[0].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step_, 0.0));
     f_pos_[1].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step_, 0.0));
     f_pos_[2].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step_, 0.0));
@@ -1313,48 +1238,15 @@ public:
     f_ang_[1].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step_, 0.0, true));
     f_ang_[2].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step_, 0.0, true));
 
-    double acc_lpf_step;
-    pnh_.param("acc_lpf_step", acc_lpf_step, 128.0);
-    f_acc_[0].reset(new Filter(Filter::FILTER_LPF, acc_lpf_step, 0.0));
-    f_acc_[1].reset(new Filter(Filter::FILTER_LPF, acc_lpf_step, 0.0));
-    f_acc_[2].reset(new Filter(Filter::FILTER_LPF, acc_lpf_step, 0.0));
-    pnh_.param("acc_var", params_.acc_var_, M_PI / 4.0);  // 45 deg
+    f_acc_[0].reset(new Filter(Filter::FILTER_LPF, params_.acc_lpf_step_, 0.0));
+    f_acc_[1].reset(new Filter(Filter::FILTER_LPF, params_.acc_lpf_step_, 0.0));
+    f_acc_[2].reset(new Filter(Filter::FILTER_LPF, params_.acc_lpf_step_, 0.0));
 
-    pnh_.param("jump_dist", params_.jump_dist_, 1.0);
-    pnh_.param("jump_ang", params_.jump_ang_, 1.57);
-    pnh_.param("fix_dist", params_.fix_dist_, 0.2);
-    pnh_.param("fix_ang", params_.fix_ang_, 0.1);
-    pnh_.param("bias_var_dist", params_.bias_var_dist_, 2.0);
-    pnh_.param("bias_var_ang", params_.bias_var_ang_, 1.57);
-
-    pnh_.param("skip_measure", params_.skip_measure_, 1);
-
-    int accum_cloud, total_accum_cloud_max;
-    pnh_.param("accum_cloud", accum_cloud, 1);
-    pnh_.param("total_accum_cloud_max", total_accum_cloud_max, accum_cloud * 10);
-
-    if (accum_cloud == 0)
+    if (params_.accum_cloud_ == 0)
       accum_.reset(new CloudAccumulationLogicPassThrough());
     else
-      accum_.reset(new CloudAccumulationLogic(accum_cloud, total_accum_cloud_max));
-
-    pnh_.param("match_output_dist", params_.match_output_dist_, 0.1);
-    pnh_.param("unmatch_output_dist", params_.unmatch_output_dist_, 0.5);
-    double match_output_interval_t;
-    pnh_.param("match_output_interval_interval", match_output_interval_t, 0.2);
-    params_.match_output_interval_.reset(new ros::Duration(match_output_interval_t));
-
-    double tf_tolerance_t;
-    pnh_.param("tf_tolerance", tf_tolerance_t, 0.05);
-    params_.tf_tolerance_.reset(new ros::Duration(tf_tolerance_t));
-
-    pnh_.param("publish_tf", publish_tf_, true);
-    pnh_.param("output_pcd", output_pcd_, false);
-
-    const float float_max = std::numeric_limits<float>::max();
-    pnh_.param("std_warn_thresh_xy", std_warn_thresh_[0], float_max);
-    pnh_.param("std_warn_thresh_z", std_warn_thresh_[1], float_max);
-    pnh_.param("std_warn_thresh_yaw", std_warn_thresh_[2], float_max);
+      accum_.reset(
+          new CloudAccumulationLogic(params_.accum_cloud_, params_.total_accum_cloud_max_));
 
     imu_quat_ = Quat(0.0, 0.0, 0.0, 1.0);
 
@@ -1380,10 +1272,8 @@ public:
       max_search_radius = std::max(max_search_radius, lm.second->getMaxSearchRange());
     }
 
-    double map_chunk;
-    pnh_.param("map_chunk", map_chunk, 20.0);
     ROS_DEBUG("max_search_radius: %0.3f", max_search_radius);
-    kdtree_.reset(new ChunkedKdtree<PointType>(map_chunk, max_search_radius));
+    kdtree_.reset(new ChunkedKdtree<PointType>(params_.map_chunk_, max_search_radius));
     kdtree_->setEpsilon(params_.map_grid_min_ / 16);
     kdtree_->setPointRepresentation(
         boost::dynamic_pointer_cast<
@@ -1401,7 +1291,7 @@ public:
   }
   ~MCL3dlNode()
   {
-    if (output_pcd_ && pc_all_accum_)
+    if (params_.output_pcd_ && pc_all_accum_)
     {
       std::cerr << "mcl_3dl: saving pcd file.";
       std::cerr << " (" << pc_all_accum_->points.size() << " points)" << std::endl;
@@ -1473,10 +1363,6 @@ protected:
   ros::Duration tf_tolerance_base_;
 
   Parameters params_;
-  std::map<std::string, std::string> frame_ids_;
-  bool output_pcd_;
-  bool publish_tf_;
-  std::array<float, 3> std_warn_thresh_;
 
   bool fake_imu_, fake_odom_;
   ros::Time match_output_last_;

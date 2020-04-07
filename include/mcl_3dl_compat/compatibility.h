@@ -52,14 +52,14 @@ STATIC_ASSERT(supported_level <= current_level && current_level <= supported_lev
 STATIC_ASSERT(supported_level <= default_level && default_level <= current_level);
 #endif
 
-int getCompat()
+inline int getCompat()
 {
   int compat(default_level);
   ros::NodeHandle("~").param("compatible", compat, compat);
 
   return compat;
 }
-void checkCompatMode()
+inline void checkCompatMode()
 {
   if (getCompat() < supported_level)
   {
@@ -88,7 +88,7 @@ void checkCompatMode()
         ros::this_node::getName().c_str(), current_level);
   }
 }
-std::string getSimplifiedNamespace(ros::NodeHandle& nh)
+inline std::string getSimplifiedNamespace(ros::NodeHandle& nh)
 {
   if (nh.getUnresolvedNamespace() == ros::this_node::getName())
     return std::string("~/");

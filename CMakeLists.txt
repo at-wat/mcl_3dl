@@ -77,6 +77,7 @@ add_executable(mcl_3dl
   src/lidar_measurement_model_beam.cpp
   src/lidar_measurement_model_likelihood.cpp
   src/mcl_3dl.cpp
+  src/parameters.cpp
   src/point_types.cpp
 )
 target_link_libraries(mcl_3dl ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${PCL_LIBRARIES})
