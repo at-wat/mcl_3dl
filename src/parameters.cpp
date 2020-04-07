@@ -42,6 +42,14 @@ namespace mcl_3dl
 {
 bool Parameters::load(ros::NodeHandle& pnh)
 {
+  pnh.param("fake_imu", fake_imu_, false);
+  pnh.param("fake_odom", fake_odom_, false);
+  if (fake_imu_ && fake_odom_)
+  {
+    ROS_ERROR("One of IMU and Odometry must be enabled");
+    return false;
+  }
+
   pnh.param("map_frame", frame_ids_["map"], std::string("map"));
   pnh.param("robot_frame", frame_ids_["base_link"], std::string("base_link"));
   pnh.param("odom_frame", frame_ids_["odom"], std::string("odom"));
@@ -160,5 +168,7 @@ bool Parameters::load(ros::NodeHandle& pnh)
   pnh.param("std_warn_thresh_yaw", std_warn_thresh_[2], float_max);
 
   pnh.param("map_chunk", map_chunk_, 20.0);
+
+  return true;
 }
 }  // namespace mcl_3dl

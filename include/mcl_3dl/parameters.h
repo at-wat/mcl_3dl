@@ -42,6 +42,7 @@ class Parameters
 public:
   bool load(ros::NodeHandle& nh);
 
+  bool fake_imu_, fake_odom_;
   double map_downsample_x_;
   double map_downsample_y_;
   double map_downsample_z_;

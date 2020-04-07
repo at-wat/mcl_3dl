@@ -233,7 +233,7 @@ protected:
       odom_last_ = msg->header.stamp;
       odom_prev_ = odom_;
     }
-    if (fake_imu_)
+    if (params_.fake_imu_)
     {
       const Vec3 accel = odom_.rot_ * Vec3(0.0, 0.0, 1.0);
       sensor_msgs::Imu::Ptr imu(new sensor_msgs::Imu);
@@ -967,7 +967,7 @@ protected:
 
       imu_last_ = msg->header.stamp;
 
-      if (fake_odom_)
+      if (params_.fake_odom_)
       {
         nav_msgs::Odometry::Ptr odom(new nav_msgs::Odometry);
         odom->header.frame_id = params_.frame_ids_["base_link"];
@@ -1145,20 +1145,19 @@ public:
   {
     mcl_3dl_compat::checkCompatMode();
 
-    pnh_.param("fake_imu", fake_imu_, false);
-    pnh_.param("fake_odom", fake_odom_, false);
-    if (fake_imu_ && fake_odom_)
+    if (!params_.load(pnh_))
     {
-      ROS_ERROR("One of IMU and Odometry must be enabled");
+      ROS_ERROR("Failed to load parameters");
       return false;
     }
-    if (!fake_odom_)
+
+    if (!params_.fake_odom_)
     {
       sub_odom_ = mcl_3dl_compat::subscribe(
           nh_, "odom",
           pnh_, "odom", 200, &MCL3dlNode::cbOdom, this);
     }
-    if (!fake_imu_)
+    if (!params_.fake_imu_)
     {
       sub_imu_ = mcl_3dl_compat::subscribe(
           nh_, "imu/data",
@@ -1198,8 +1197,6 @@ public:
     srv_expansion_reset_ = mcl_3dl_compat::advertiseService(
         nh_, "expansion_resetting",
         pnh_, "expansion_resetting", &MCL3dlNode::cbExpansionReset, this);
-
-    params_.load(pnh_);
 
     point_rep_.setRescaleValues(params_.dist_weight_.data());
 
@@ -1364,7 +1361,6 @@ protected:
 
   Parameters params_;
 
-  bool fake_imu_, fake_odom_;
   ros::Time match_output_last_;
   ros::Time odom_last_;
   bool has_map_;
