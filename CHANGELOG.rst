@@ -2,6 +2,17 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Update assets to v0.0.8 (`#303 <https://github.com/at-wat/mcl_3dl/issues/303>`_)
+* Fix flaky rostest nodes (`#302 <https://github.com/at-wat/mcl_3dl/issues/302>`_)
+* Update E2E test parameters (`#301 <https://github.com/at-wat/mcl_3dl/issues/301>`_)
+* Refactor CI scripts (`#300 <https://github.com/at-wat/mcl_3dl/issues/300>`_)
+* Add Noetic CI job (`#296 <https://github.com/at-wat/mcl_3dl/issues/296>`_)
+* Fix initialization of accumulated cloud header (`#299 <https://github.com/at-wat/mcl_3dl/issues/299>`_)
+* Support Noetic (`#297 <https://github.com/at-wat/mcl_3dl/issues/297>`_)
+* Contributors: Atsushi Watanabe
+
 0.2.2 (2020-03-30)
 ------------------
 * Make average number of accumulated clouds accurate (`#293 <https://github.com/at-wat/mcl_3dl/issues/293>`_)
