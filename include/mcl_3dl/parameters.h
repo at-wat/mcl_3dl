@@ -29,13 +29,24 @@
 #ifndef MCL_3DL_PARAMETERS_H
 #define MCL_3DL_PARAMETERS_H
 
+#include <map>
 #include <memory>
+#include <string>
+
+#include <ros/ros.h>
+
+#include <mcl_3dl/quat.h>
+#include <mcl_3dl/state_6dof.h>
+#include <mcl_3dl/vec3.h>
 
 namespace mcl_3dl
 {
 class Parameters
 {
 public:
+  bool load(ros::NodeHandle& nh);
+
+  bool fake_imu_, fake_odom_;
   double map_downsample_x_;
   double map_downsample_y_;
   double map_downsample_z_;
@@ -87,6 +98,15 @@ public:
   std::shared_ptr<ros::Duration> match_output_interval_;
   std::shared_ptr<ros::Duration> tf_tolerance_;
   double lpf_step_;
+  double acc_lpf_step_;
+  std::array<float, 4> dist_weight_;
+  bool output_pcd_;
+  bool publish_tf_;
+  double map_chunk_;
+  std::map<std::string, std::string> frame_ids_;
+  std::array<float, 3> std_warn_thresh_;
+  State6DOF initial_pose_;
+  State6DOF initial_pose_std_;
 };
 }  // namespace mcl_3dl
 
