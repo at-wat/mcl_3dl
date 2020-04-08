@@ -1133,8 +1133,7 @@ protected:
 
 public:
   MCL3dlNode()
-    : nh_("")
-    , pnh_("~")
+    : pnh_("~")
     , tfl_(tfbuf_)
     , cnt_measure_(0)
     , global_localization_fix_cnt_(0)
@@ -1204,29 +1203,7 @@ public:
                                      float,
                                      ParticleWeightedMeanQuat,
                                      std::default_random_engine>(params_.num_particles_));
-    double x, y, z;
-    double roll, pitch, yaw;
-    double v_x, v_y, v_z;
-    double v_roll, v_pitch, v_yaw;
-    pnh_.param("init_x", x, 0.0);
-    pnh_.param("init_y", y, 0.0);
-    pnh_.param("init_z", z, 0.0);
-    pnh_.param("init_roll", roll, 0.0);
-    pnh_.param("init_pitch", pitch, 0.0);
-    pnh_.param("init_yaw", yaw, 0.0);
-    pnh_.param("init_var_x", v_x, 2.0);
-    pnh_.param("init_var_y", v_y, 2.0);
-    pnh_.param("init_var_z", v_z, 0.5);
-    pnh_.param("init_var_roll", v_roll, 0.1);
-    pnh_.param("init_var_pitch", v_pitch, 0.1);
-    pnh_.param("init_var_yaw", v_yaw, 0.5);
-    pf_->init(
-        State6DOF(
-            Vec3(x, y, z),
-            Quat(Vec3(roll, pitch, yaw))),
-        State6DOF(
-            Vec3(v_x, v_y, v_z),
-            Vec3(v_roll, v_pitch, v_yaw)));
+    pf_->init(params_.initial_pose_, params_.initial_pose_std_);
 
     f_pos_[0].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step_, 0.0));
     f_pos_[1].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step_, 0.0));

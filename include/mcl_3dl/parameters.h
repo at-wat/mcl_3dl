@@ -35,6 +35,10 @@
 
 #include <ros/ros.h>
 
+#include <mcl_3dl/quat.h>
+#include <mcl_3dl/state_6dof.h>
+#include <mcl_3dl/vec3.h>
+
 namespace mcl_3dl
 {
 class Parameters
@@ -101,6 +105,8 @@ public:
   double map_chunk_;
   std::map<std::string, std::string> frame_ids_;
   std::array<float, 3> std_warn_thresh_;
+  State6DOF initial_pose_;
+  State6DOF initial_pose_std_;
 };
 }  // namespace mcl_3dl
 

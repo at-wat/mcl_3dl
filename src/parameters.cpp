@@ -169,6 +169,29 @@ bool Parameters::load(ros::NodeHandle& pnh)
 
   pnh.param("map_chunk", map_chunk_, 20.0);
 
+  double x, y, z;
+  double roll, pitch, yaw;
+  double v_x, v_y, v_z;
+  double v_roll, v_pitch, v_yaw;
+  pnh.param("init_x", x, 0.0);
+  pnh.param("init_y", y, 0.0);
+  pnh.param("init_z", z, 0.0);
+  pnh.param("init_roll", roll, 0.0);
+  pnh.param("init_pitch", pitch, 0.0);
+  pnh.param("init_yaw", yaw, 0.0);
+  pnh.param("init_var_x", v_x, 2.0);
+  pnh.param("init_var_y", v_y, 2.0);
+  pnh.param("init_var_z", v_z, 0.5);
+  pnh.param("init_var_roll", v_roll, 0.1);
+  pnh.param("init_var_pitch", v_pitch, 0.1);
+  pnh.param("init_var_yaw", v_yaw, 0.5);
+  initial_pose_ = State6DOF(
+      Vec3(x, y, z),
+      Quat(Vec3(roll, pitch, yaw)));
+  initial_pose_std_ = State6DOF(
+      Vec3(v_x, v_y, v_z),
+      Vec3(v_roll, v_pitch, v_yaw));
+
   return true;
 }
 }  // namespace mcl_3dl
