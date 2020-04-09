@@ -30,6 +30,8 @@
 #ifndef MCL_3DL_POINT_TYPES_H
 #define MCL_3DL_POINT_TYPES_H
 
+#include <cstdint>
+
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 
@@ -55,6 +57,10 @@ struct EIGEN_ALIGN16 PointXYZIL
 
 POINT_CLOUD_REGISTER_POINT_STRUCT(
     mcl_3dl::PointXYZIL,
-    (float, x, x)(float, y, y)(float, z, z)(float, intensity, intensity)(uint32_t, label, label))
+    (float, x, x)                  //
+    (float, y, y)                  //
+    (float, z, z)                  //
+    (float, intensity, intensity)  //
+    (std::uint32_t, label, label))
 
 #endif  // MCL_3DL_POINT_TYPES_H
