@@ -77,6 +77,7 @@
 #include <mcl_3dl/chunked_kdtree.h>
 #include <mcl_3dl/cloud_accum.h>
 #include <mcl_3dl/filter.h>
+#include <mcl_3dl/filter_nd.h>
 #include <mcl_3dl/imu_measurement_model_base.h>
 #include <mcl_3dl/imu_measurement_models/imu_measurement_model_gravity.h>
 #include <mcl_3dl/lidar_measurement_model_base.h>
@@ -616,23 +617,14 @@ protected:
       trans.header.stamp = ros::Time::now() + tf_tolerance_base_ + *params_.tf_tolerance_;
     trans.header.frame_id = params_.frame_ids_["map"];
     trans.child_frame_id = params_.frame_ids_["odom"];
-    auto rpy = map_rot.getRPY();
+    const auto rpy = map_rot.getRPY();
     if (jump)
     {
-      f_ang_[0]->set(rpy.x_);
-      f_ang_[1]->set(rpy.y_);
-      f_ang_[2]->set(rpy.z_);
-      f_pos_[0]->set(map_pos.x_);
-      f_pos_[1]->set(map_pos.y_);
-      f_pos_[2]->set(map_pos.z_);
+      f_ang_->set(rpy);
+      f_pos_->set(map_pos);
     }
-    rpy.x_ = f_ang_[0]->in(rpy.x_);
-    rpy.y_ = f_ang_[1]->in(rpy.y_);
-    rpy.z_ = f_ang_[2]->in(rpy.z_);
-    map_rot.setRPY(rpy);
-    map_pos.x_ = f_pos_[0]->in(map_pos.x_);
-    map_pos.y_ = f_pos_[1]->in(map_pos.y_);
-    map_pos.z_ = f_pos_[2]->in(map_pos.z_);
+    map_rot.setRPY(f_ang_->in(rpy));
+    map_pos = f_pos_->in(map_pos);
     trans.transform.translation = tf2::toMsg(tf2::Vector3(map_pos.x_, map_pos.y_, map_pos.z_));
     trans.transform.rotation = tf2::toMsg(tf2::Quaternion(map_rot.x_, map_rot.y_, map_rot.z_, map_rot.w_));
 
@@ -902,16 +894,14 @@ protected:
   }
   void cbImu(const sensor_msgs::Imu::ConstPtr& msg)
   {
-    Vec3 acc;
-    acc.x_ = f_acc_[0]->in(msg->linear_acceleration.x);
-    acc.y_ = f_acc_[1]->in(msg->linear_acceleration.y);
-    acc.z_ = f_acc_[2]->in(msg->linear_acceleration.z);
+    const Vec3 acc = f_acc_->in(Vec3(
+        msg->linear_acceleration.x,
+        msg->linear_acceleration.y,
+        msg->linear_acceleration.z));
 
     if (!has_imu_)
     {
-      f_acc_[0]->set(0.0);
-      f_acc_[1]->set(0.0);
-      f_acc_[2]->set(0.0);
+      f_acc_->set(Vec3());
       imu_last_ = msg->header.stamp;
       has_imu_ = true;
       return;
@@ -926,7 +916,7 @@ protected:
     }
     else if (dt > 0.05)
     {
-      Vec3 acc_measure = acc / acc.norm();
+      Vec3 acc_measure = acc.normalized();
       try
       {
         geometry_msgs::Vector3 in, out;
@@ -1205,16 +1195,18 @@ public:
                                      std::default_random_engine>(params_.num_particles_));
     pf_->init(params_.initial_pose_, params_.initial_pose_std_);
 
-    f_pos_[0].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step_, 0.0));
-    f_pos_[1].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step_, 0.0));
-    f_pos_[2].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step_, 0.0));
-    f_ang_[0].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step_, 0.0, true));
-    f_ang_[1].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step_, 0.0, true));
-    f_ang_[2].reset(new Filter(Filter::FILTER_LPF, params_.lpf_step_, 0.0, true));
-
-    f_acc_[0].reset(new Filter(Filter::FILTER_LPF, params_.acc_lpf_step_, 0.0));
-    f_acc_[1].reset(new Filter(Filter::FILTER_LPF, params_.acc_lpf_step_, 0.0));
-    f_acc_[2].reset(new Filter(Filter::FILTER_LPF, params_.acc_lpf_step_, 0.0));
+    f_pos_.reset(new FilterVec3(
+        Filter::FILTER_LPF,
+        Vec3(params_.lpf_step_, params_.lpf_step_, params_.lpf_step_),
+        Vec3()));
+    f_ang_.reset(new FilterVec3(
+        Filter::FILTER_LPF,
+        Vec3(params_.lpf_step_, params_.lpf_step_, params_.lpf_step_),
+        Vec3(), true));
+    f_acc_.reset(new FilterVec3(
+        Filter::FILTER_LPF,
+        Vec3(params_.acc_lpf_step_, params_.acc_lpf_step_, params_.acc_lpf_step_),
+        Vec3()));
 
     if (params_.accum_cloud_ == 0)
       accum_.reset(new CloudAccumulationLogicPassThrough());
@@ -1329,9 +1321,9 @@ protected:
   tf2_ros::TransformListener tfl_;
   tf2_ros::TransformBroadcaster tfb_;
 
-  std::shared_ptr<Filter> f_pos_[3];
-  std::shared_ptr<Filter> f_ang_[3];
-  std::shared_ptr<Filter> f_acc_[3];
+  std::shared_ptr<FilterVec3> f_pos_;
+  std::shared_ptr<FilterVec3> f_ang_;
+  std::shared_ptr<FilterVec3> f_acc_;
   std::shared_ptr<Filter> localize_rate_;
   ros::Time localized_last_;
   ros::Duration tf_tolerance_base_;
