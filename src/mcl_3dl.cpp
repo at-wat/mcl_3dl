@@ -77,7 +77,7 @@
 #include <mcl_3dl/chunked_kdtree.h>
 #include <mcl_3dl/cloud_accum.h>
 #include <mcl_3dl/filter.h>
-#include <mcl_3dl/filter_nd.h>
+#include <mcl_3dl/filter_vec3.h>
 #include <mcl_3dl/imu_measurement_model_base.h>
 #include <mcl_3dl/imu_measurement_models/imu_measurement_model_gravity.h>
 #include <mcl_3dl/lidar_measurement_model_base.h>

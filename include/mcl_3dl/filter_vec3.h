@@ -27,8 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef MCL_3DL_FILTER_ND_H
-#define MCL_3DL_FILTER_ND_H
+#ifndef MCL_3DL_FILTER_VEC3_H
+#define MCL_3DL_FILTER_VEC3_H
 
 #include <array>
 
@@ -74,4 +74,4 @@ public:
 };
 }  // namespace mcl_3dl
 
-#endif  // MCL_3DL_FILTER_ND_H
+#endif  // MCL_3DL_FILTER_VEC3_H
