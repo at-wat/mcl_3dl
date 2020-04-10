@@ -97,12 +97,6 @@ public:
     return out_;
   }
 };
-
-template <int N>
-class FilterNd
-{
-public:
-};
 }  // namespace mcl_3dl
 
 #endif  // MCL_3DL_FILTER_H
