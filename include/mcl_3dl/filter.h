@@ -45,46 +45,41 @@ public:
   };
 
 protected:
-  type_t type_;
-  float time_const_;
+  bool angle_;
   float x_;
   float out_;
   float k_[4];
-  bool angle_;
 
 public:
-  Filter(const enum type_t type, const float tc, const float out0, const bool angle = false)
+  inline Filter(const enum type_t type, const float time_const, const float out0, const bool angle = false)
+    : angle_(angle)
+    , out_(out0)
   {
-    angle_ = angle;
-    time_const_ = tc;
-    type_ = type;
-    switch (type_)
+    switch (type)
     {
       case FILTER_LPF:
-        k_[3] = -1 / (1.0 + 2 * time_const_);
+        k_[3] = -1 / (1.0 + 2 * time_const);
         k_[2] = -k_[3];
-        k_[1] = (1.0 - 2 * time_const_) * k_[3];
+        k_[1] = (1.0 - 2 * time_const) * k_[3];
         k_[0] = -k_[1] - 1.0;
         x_ = (1 - k_[2]) * out0 / k_[3];
         break;
       case FILTER_HPF:
-        k_[3] = -1 / (1.0 + 2 * time_const_);
-        k_[2] = -k_[3] * 2 * time_const_;
-        k_[1] = (1.0 - 2 * time_const_) * k_[3];
-        k_[0] = 2 * time_const_ * (-k_[1] + 1.0);
+        k_[3] = -1 / (1.0 + 2 * time_const);
+        k_[2] = -k_[3] * 2 * time_const;
+        k_[1] = (1.0 - 2 * time_const) * k_[3];
+        k_[0] = 2 * time_const * (-k_[1] + 1.0);
         x_ = (1 - k_[2]) * out0 / k_[3];
         break;
     }
-    out_ = out0;
   }
-  void set(const float& out0)
+  inline void set(const float out0)
   {
     x_ = (1 - k_[2]) * out0 / k_[3];
     out_ = out0;
   }
-  float in(const float& i)
+  inline float in(float in)
   {
-    float in = i;
     assert(std::isfinite(in));
 
     if (angle_)
@@ -97,10 +92,16 @@ public:
     assert(std::isfinite(out_));
     return out_;
   }
-  float get()
+  inline float get() const
   {
     return out_;
   }
+};
+
+template <int N>
+class FilterNd
+{
+public:
 };
 }  // namespace mcl_3dl
 

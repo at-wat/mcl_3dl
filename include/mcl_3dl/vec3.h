@@ -40,35 +40,19 @@ public:
   float x_;
   float y_;
   float z_;
-  Vec3(const float x, const float y, const float z)
+  inline constexpr Vec3(const float x, const float y, const float z)
+    : x_(x)
+    , y_(y)
+    , z_(z)
   {
-    x_ = x;
-    y_ = y;
-    z_ = z;
   }
-  Vec3()
+  inline constexpr Vec3()
+    : x_(0)
+    , y_(0)
+    , z_(0)
   {
-    x_ = y_ = z_ = 0.0;
   }
-  float& operator[](const size_t i)
-  {
-    switch (i)
-    {
-      case 0:
-        return x_;
-        break;
-      case 1:
-        return y_;
-        break;
-      case 2:
-        return z_;
-        break;
-      default:
-        break;
-    }
-    return x_;
-  }
-  float operator[](const size_t i) const
+  inline float& operator[](const size_t i)
   {
     switch (i)
     {
@@ -86,73 +70,91 @@ public:
     }
     return x_;
   }
-  bool operator==(const Vec3& q) const
+  inline float operator[](const size_t i) const
+  {
+    switch (i)
+    {
+      case 0:
+        return x_;
+        break;
+      case 1:
+        return y_;
+        break;
+      case 2:
+        return z_;
+        break;
+      default:
+        break;
+    }
+    return x_;
+  }
+  inline constexpr bool operator==(const Vec3& q) const
   {
     return x_ == q.x_ && y_ == q.y_ && z_ == q.z_;
   }
-  bool operator!=(const Vec3& q) const
+  inline constexpr bool operator!=(const Vec3& q) const
   {
     return !operator==(q);
   }
-  Vec3 operator+(const Vec3& q) const
+  inline constexpr Vec3 operator+(const Vec3& q) const
   {
     return Vec3(x_ + q.x_, y_ + q.y_, z_ + q.z_);
   }
-  Vec3 operator-(const Vec3& q) const
+  inline constexpr Vec3 operator-(const Vec3& q) const
   {
     return Vec3(x_ - q.x_, y_ - q.y_, z_ - q.z_);
   }
-  Vec3 operator-() const
+  inline constexpr Vec3 operator-() const
   {
     return Vec3(-x_, -y_, -z_);
   }
-  Vec3 operator*(const float& s) const
+  inline constexpr Vec3 operator*(const float s) const
   {
     return Vec3(x_ * s, y_ * s, z_ * s);
   }
-  Vec3 operator/(const float& s) const
+  inline constexpr Vec3 operator/(const float s) const
   {
     return Vec3(x_ / s, y_ / s, z_ / s);
   }
-  Vec3& operator+=(const Vec3& q)
+  inline Vec3& operator+=(const Vec3& q)
   {
     *this = *this + q;
     return *this;
   }
-  Vec3& operator-=(const Vec3& q)
+  inline Vec3& operator-=(const Vec3& q)
   {
     *this = *this - q;
     return *this;
   }
-  Vec3& operator*=(const float& s)
+  inline Vec3& operator*=(const float& s)
   {
     *this = *this * s;
     return *this;
   }
-  Vec3& operator/=(const float& s)
+  inline Vec3& operator/=(const float& s)
   {
     *this = *this / s;
     return *this;
   }
-  float dot(const Vec3& q) const
+  inline constexpr float dot(const Vec3& q) const
   {
     return x_ * q.x_ + y_ * q.y_ + z_ * q.z_;
   }
-  Vec3 cross(const Vec3& q) const
+  inline constexpr Vec3 cross(const Vec3& q) const
   {
     return Vec3(y_ * q.z_ - z_ * q.y_,
                 z_ * q.x_ - x_ * q.z_,
                 x_ * q.y_ - y_ * q.x_);
   }
-  Vec3 times(const Vec3& q) const
+  inline constexpr Vec3 times(const Vec3& q) const
   {
     return Vec3(x_ * q.x_, y_ * q.y_, z_ * q.z_);
   }
-  float norm() const
+  inline float norm() const
   {
     return std::sqrt(dot(*this));
   }
-  Vec3 normalized() const
+  inline Vec3 normalized() const
   {
     return *this / norm();
   }
