@@ -2,8 +2,8 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.4 (2020-05-08)
+------------------
 * Fix resampling failure of last particle (`#313 <https://github.com/at-wat/mcl_3dl/issues/313>`_)
 * Retry gpg keyserver on prerelease test (`#312 <https://github.com/at-wat/mcl_3dl/issues/312>`_)
 * Add filter class for Vec3 (`#311 <https://github.com/at-wat/mcl_3dl/issues/311>`_)
