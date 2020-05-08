@@ -227,6 +227,7 @@ TEST(Pf, ResampleFirstAndLastParticle)
 {
   const float small_prob = 1.0e-06f;
   {
+    SCOPED_TRACE("ResampleFirstParticle");
     const std::vector<float> probs =
         {
             small_prob, 0.2f, 0.2f, 0.2f, 0.4f - small_prob
@@ -242,6 +243,7 @@ TEST(Pf, ResampleFirstAndLastParticle)
     testResample(probs, states, expected_resampled_states);
   }
   {
+    SCOPED_TRACE("ResampleLastParticle");
     const std::vector<float> probs =
         {
             0.2f, 0.2f, 0.2f, 0.4f - small_prob, small_prob};
