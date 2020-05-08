@@ -2,6 +2,16 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix resampling failure of last particle (`#313 <https://github.com/at-wat/mcl_3dl/issues/313>`_)
+* Retry gpg keyserver on prerelease test (`#312 <https://github.com/at-wat/mcl_3dl/issues/312>`_)
+* Add filter class for Vec3 (`#311 <https://github.com/at-wat/mcl_3dl/issues/311>`_)
+* Refactor math functions (`#310 <https://github.com/at-wat/mcl_3dl/issues/310>`_)
+* Fix deprecation warning (`#309 <https://github.com/at-wat/mcl_3dl/issues/309>`_)
+* Split parameter loader code (`#307 <https://github.com/at-wat/mcl_3dl/issues/307>`_)
+* Contributors: Atsushi Watanabe, Naotaka Hatao
+
 0.2.3 (2020-04-07)
 ------------------
 * Update assets to v0.0.8 (`#303 <https://github.com/at-wat/mcl_3dl/issues/303>`_)
