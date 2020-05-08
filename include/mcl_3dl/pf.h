@@ -156,8 +156,9 @@ template <typename T, typename FLT_TYPE = float, typename MEAN = ParticleWeighte
 class ParticleFilter
 {
 public:
-  explicit ParticleFilter(const int num_particles)
-    : engine_(seed_gen_())
+  // random_seed is used to generate same results in tests.
+  explicit ParticleFilter(const int num_particles, const unsigned int random_seed = std::random_device()())
+    : engine_(random_seed)
   {
     particles_.resize(num_particles);
   }
@@ -190,15 +191,15 @@ public:
 
     particles_dup_ = particles_;
     std::sort(particles_dup_.begin(), particles_dup_.end());
-
     const FLT_TYPE pstep = accum / particles_.size();
+    const FLT_TYPE initial_p = std::uniform_real_distribution<FLT_TYPE>(0.0, pstep)(engine_);
     auto it = particles_dup_.begin();
     auto it_prev = particles_dup_.begin();
     const FLT_TYPE prob = 1.0 / particles_.size();
     for (size_t i = 0; i < particles_.size(); ++i)
     {
       auto& p = particles_[i];
-      const FLT_TYPE pscan = std::nextafter(pstep * (i + 1), static_cast<FLT_TYPE>(0.0));
+      const FLT_TYPE pscan = pstep * i + initial_p;
       it = std::lower_bound(it, particles_dup_.end(), Particle<T, FLT_TYPE>(pscan));
       p.probability_ = prob;
       if (it == particles_dup_.end())
@@ -440,7 +441,6 @@ public:
 protected:
   std::vector<Particle<T, FLT_TYPE>> particles_;
   std::vector<Particle<T, FLT_TYPE>> particles_dup_;
-  std::random_device seed_gen_;
   RANDOM_ENGINE engine_;
   T ie_;
 };

@@ -31,8 +31,8 @@
 #include <cstddef>
 #include <vector>
 
-#include <mcl_3dl/pf.h>
 #include <mcl_3dl/nd.h>
+#include <mcl_3dl/pf.h>
 
 #include <gtest/gtest.h>
 
@@ -40,7 +40,7 @@ class State : public mcl_3dl::pf::ParticleBase<float>
 {
 public:
   float x;
-  float& operator[](const size_t i)override
+  float& operator[](const size_t i) override
   {
     switch (i)
     {
@@ -80,7 +80,7 @@ TEST(Pf, BayesianEstimation)
   mcl_3dl::pf::ParticleFilter<State, float> pf(1024);
   const float center_list[] =
       {
-        10.0, 11.0, 9.5
+          10.0, 11.0, 9.5
       };
 
   const float abs_error = 2e-1;
@@ -150,7 +150,7 @@ TEST(Pf, VariableParticleSize)
   const size_t size_num = 3;
   const size_t size[size_num] =
       {
-        1024, 2048, 900
+          1024, 2048, 900
       };
   mcl_3dl::pf::ParticleFilter<State, float> pf(size[0]);
 
@@ -203,23 +203,11 @@ TEST(Pf, ResampleFlatLikelihood)
     ASSERT_EQ(pf.getParticle(i)[0], orig[i]);
 }
 
-TEST(Pf, ResampleFirstParticle)
+void testResample(const std::vector<float>& probs, const std::vector<float>& states,
+                  const std::vector<float>& expected_resampled_states)
 {
-  const std::vector<float> probs =
-      {
-        0.0001f, 0.2f, 0.2f, 0.2f, 0.3999f
-      };
-  const std::vector<float> states =
-      {
-        0.0f, 1.0f, 2.0f, 3.0f, 4.0f
-      };
-  const std::vector<float> expected_resampled_states =
-      {
-        1.0f, 2.0f, 3.0f, 4.0f, 4.0f
-      };
   const size_t particle_num = probs.size();
-
-  mcl_3dl::pf::ParticleFilter<State, float> pf(particle_num);
+  mcl_3dl::pf::ParticleFilter<State, float> pf(particle_num, 12345);
   auto it = pf.begin();
   for (size_t i = 0; i < particle_num; ++i, ++it)
   {
@@ -232,6 +220,42 @@ TEST(Pf, ResampleFirstParticle)
   for (size_t i = 0; i < pf.getParticleSize(); ++i)
   {
     EXPECT_FLOAT_EQ(expected_resampled_states.at(i), pf.getParticle(i)[0]);
+  }
+}
+
+TEST(Pf, ResampleFirstAndLastParticle)
+{
+  const float small_prob = 1.0e-06f;
+  {
+    SCOPED_TRACE("ResampleFirstParticle");
+    const std::vector<float> probs =
+        {
+            small_prob, 0.2f, 0.2f, 0.2f, 0.4f - small_prob
+        };
+    const std::vector<float> states =
+        {
+            0.0f, 1.0f, 2.0f, 3.0f, 4.0f
+        };
+    const std::vector<float> expected_resampled_states =
+        {
+            1.0f, 2.0f, 3.0f, 4.0f, 4.0f
+        };
+    testResample(probs, states, expected_resampled_states);
+  }
+  {
+    SCOPED_TRACE("ResampleLastParticle");
+    const std::vector<float> probs =
+        {
+            0.2f, 0.2f, 0.2f, 0.4f - small_prob, small_prob};
+    const std::vector<float> states =
+        {
+            0.0f, 1.0f, 2.0f, 3.0f, 4.0f
+        };
+    const std::vector<float> expected_resampled_states =
+        {
+            0.0f, 1.0f, 2.0f, 3.0f, 3.0f
+        };
+    testResample(probs, states, expected_resampled_states);
   }
 }
 
