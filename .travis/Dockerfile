@@ -22,8 +22,7 @@ RUN sed -e \
   -i /etc/apt/sources.list
 
 COPY --from=cloner /repos-manifests/src /catkin_ws/src
-RUN rosdep update \
-  && apt-get -qq update \
+RUN apt-get -qq update \
   && apt-get install -y --no-install-recommends \
     curl \
     libxml2-utils \
@@ -32,6 +31,8 @@ RUN rosdep update \
     python-rosdep \
     sudo \
     wget \
+  && rosdep init \
+  && rosdep update \
   && rosdep install --from-paths /catkin_ws/src --ignore-src --rosdistro=${ROS_DISTRO} -y \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
