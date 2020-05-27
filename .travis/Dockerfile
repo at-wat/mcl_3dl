@@ -29,7 +29,7 @@ RUN rosdep update \
     libxml2-utils \
     python3-pip \
     python3-setuptools \
-    python3-rosdep \
+    python-rosdep \
     sudo \
     wget \
   && rosdep install --from-paths /catkin_ws/src --ignore-src --rosdistro=${ROS_DISTRO} -y \
