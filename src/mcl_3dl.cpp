@@ -166,6 +166,17 @@ protected:
 
   void cbPosition(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg)
   {
+    const double len2 =
+        msg->pose.pose.orientation.x * msg->pose.pose.orientation.x +
+        msg->pose.pose.orientation.y * msg->pose.pose.orientation.y +
+        msg->pose.pose.orientation.z * msg->pose.pose.orientation.z +
+        msg->pose.pose.orientation.w * msg->pose.pose.orientation.w;
+    if (std::abs(len2 - 1.0) > 0.1)
+    {
+      ROS_ERROR("Discarded invalid initialpose. The orientation must be unit quaternion.");
+      return;
+    }
+
     geometry_msgs::PoseStamped pose_in, pose;
     pose_in.header = msg->header;
     pose_in.pose = msg->pose.pose;
