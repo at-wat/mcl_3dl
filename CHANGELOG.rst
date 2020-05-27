@@ -2,6 +2,12 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add validation for orientation of initial pose (`#317 <https://github.com/at-wat/mcl_3dl/issues/317>`_)
+* Update CI scripts (`#318 <https://github.com/at-wat/mcl_3dl/issues/318>`_)
+* Contributors: Atsushi Watanabe, Yuta Koga
+
 0.2.4 (2020-05-08)
 ------------------
 * Fix resampling failure of last particle (`#313 <https://github.com/at-wat/mcl_3dl/issues/313>`_)
