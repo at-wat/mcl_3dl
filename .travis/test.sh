@@ -54,7 +54,7 @@ $result_text</details>"; false)
 
 (cd src/mcl_3dl/;
   cp -r /catkin_ws/build ./;
-  bash <(curl -s https://codecov.io/bash) -y .codecov.yml 2> /dev/null)
+  bash <(curl -s https://codecov.io/bash) -y .codecov.yml -X gcovout)
 
 gh-pr-comment "${BUILD_LINK} PASSED on ${ROS_DISTRO}" "<details><summary>All tests passed</summary>
 

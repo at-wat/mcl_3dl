@@ -39,7 +39,7 @@ script:
       --pull=true ${TRAVIS_BUILD_DIR} \
       || (gh-pr-comment "${BUILD_LINK} FAILED on ${ROS_DISTRO_TARGET}" "docker build failed"; false)
   - |
-    docker run --rm -it \
+    docker run --rm \
       -e TRAVIS_PULL_REQUEST \
       -e TRAVIS_REPO_SLUG \
       -e TRAVIS_BOT_GITHUB_TOKEN \
