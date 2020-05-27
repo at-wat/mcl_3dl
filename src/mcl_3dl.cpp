@@ -173,7 +173,7 @@ protected:
         msg->pose.pose.orientation.w * msg->pose.pose.orientation.w;
     if (std::abs(len2 - 1.0) > 0.1)
     {
-      ROS_ERROR("Invalid pose is set. The orientation must be unit quaternion.");
+      ROS_ERROR("Discarded invalid initialpose. The orientation must be unit quaternion.");
       return;
     }
 
