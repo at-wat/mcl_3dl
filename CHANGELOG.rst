@@ -2,8 +2,8 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.5 (2020-05-27)
+------------------
 * Add validation for orientation of initial pose (`#317 <https://github.com/at-wat/mcl_3dl/issues/317>`_)
 * Update CI scripts (`#318 <https://github.com/at-wat/mcl_3dl/issues/318>`_)
 * Contributors: Atsushi Watanabe, Yuta Koga
