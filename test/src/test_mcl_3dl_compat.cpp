@@ -27,10 +27,21 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <cstdlib>
+
 #include <ros/ros.h>
+#include <std_msgs/Bool.h>
 
 #include <gtest/gtest.h>
 
+#define UNDEF_COMPATIBILITY_LEVEL
+
+namespace mcl_3dl_compat
+{
+int current_level;
+int supported_level;
+int default_level;
+}  // namespace mcl_3dl_compat
 #include <mcl_3dl_compat/compatibility.h>
 
 TEST(Mcl3DlCompat, ParamRename)
@@ -62,6 +73,131 @@ TEST(Mcl3DlCompat, ParamRename)
   ASSERT_EQ(param2, 3.0);
   // Only new paramter is provided for param3.
   ASSERT_EQ(param3, 4.0);
+}
+
+TEST(Mcl3DlCompat, CompatMode)
+{
+  mcl_3dl_compat::supported_level = 2;
+  mcl_3dl_compat::current_level = 3;
+  mcl_3dl_compat::default_level = mcl_3dl_compat::supported_level;
+
+  ros::NodeHandle("~").setParam("compatible", 2);
+  ASSERT_NO_THROW(
+      {
+        mcl_3dl_compat::checkCompatMode();
+      });  // NOLINT(whitespace/braces)
+
+  ros::NodeHandle("~").setParam("compatible", 3);
+  ASSERT_NO_THROW(
+      {
+        mcl_3dl_compat::checkCompatMode();
+      });  // NOLINT(whitespace/braces)
+
+  ros::NodeHandle("~").setParam("compatible", 4);
+  ASSERT_THROW(
+      {
+        mcl_3dl_compat::checkCompatMode();
+      },  // NOLINT(whitespace/braces)
+      std::runtime_error);
+
+  ros::NodeHandle("~").setParam("compatible", 1);
+  ASSERT_THROW(
+      {
+        mcl_3dl_compat::checkCompatMode();
+      },  // NOLINT(whitespace/braces)
+      std::runtime_error);
+}
+
+class Mcl3DlCompatSubscribe
+{
+public:
+  ros::NodeHandle nh_;
+  ros::NodeHandle pnh_;
+  std_msgs::Bool::ConstPtr msg_;
+  mutable std_msgs::Bool::ConstPtr msg_const_;
+
+  void cb(const std_msgs::Bool::ConstPtr& msg)
+  {
+    msg_ = msg;
+  }
+  void cbConst(const std_msgs::Bool::ConstPtr& msg) const
+  {
+    msg_const_ = msg;
+  }
+
+  Mcl3DlCompatSubscribe()
+    : pnh_("~")
+  {
+  }
+};
+
+TEST(Mcl3DlCompat, Subscribe)
+{
+  mcl_3dl_compat::supported_level = 2;
+  mcl_3dl_compat::current_level = 3;
+  mcl_3dl_compat::default_level = mcl_3dl_compat::supported_level;
+
+  Mcl3DlCompatSubscribe cls;
+
+  ros::Publisher pub_old = cls.pnh_.advertise<std_msgs::Bool>("test_old", 1, true);
+  ros::Publisher pub_new = cls.nh_.advertise<std_msgs::Bool>("test_new", 1, true);
+  std_msgs::Bool msg;
+  msg.data = false;
+  pub_old.publish(msg);
+  msg.data = true;
+  pub_new.publish(msg);
+
+  {
+    cls.pnh_.setParam("compatible", 2);
+    cls.msg_ = nullptr;
+    ros::Subscriber sub = mcl_3dl_compat::subscribe(
+        cls.nh_, "test_new",
+        cls.pnh_, "test_old",
+        1,
+        &Mcl3DlCompatSubscribe::cb, &cls);
+    ros::spinOnce();
+    ASSERT_TRUE(static_cast<bool>(cls.msg_));
+    ASSERT_EQ(false, static_cast<bool>(cls.msg_->data));
+  }
+
+  {
+    cls.pnh_.setParam("compatible", 3);
+    cls.msg_ = nullptr;
+    ros::Subscriber sub = mcl_3dl_compat::subscribe(
+        cls.nh_, "test_new",
+        cls.pnh_, "test_old",
+        1,
+        &Mcl3DlCompatSubscribe::cb, &cls);
+    ros::spinOnce();
+    ASSERT_TRUE(static_cast<bool>(cls.msg_));
+    ASSERT_EQ(true, static_cast<bool>(cls.msg_->data));
+  }
+
+  {
+    cls.pnh_.setParam("compatible", 2);
+    cls.msg_ = nullptr;
+    ros::Subscriber sub = mcl_3dl_compat::subscribe(
+        cls.nh_, "test_new",
+        cls.pnh_, "test_old",
+        1,
+        &Mcl3DlCompatSubscribe::cbConst, &cls);
+    ros::spinOnce();
+    ASSERT_TRUE(static_cast<bool>(cls.msg_const_));
+    ASSERT_EQ(false, static_cast<bool>(cls.msg_const_->data));
+  }
+
+  {
+    cls.pnh_.setParam("compatible", 3);
+    cls.msg_ = nullptr;
+    ros::Subscriber sub = mcl_3dl_compat::subscribe(
+        cls.nh_, "test_new",
+        cls.pnh_, "test_old",
+        1,
+        &Mcl3DlCompatSubscribe::cbConst, &cls);
+    ros::spinOnce();
+    ASSERT_TRUE(static_cast<bool>(cls.msg_const_));
+    ASSERT_EQ(true, static_cast<bool>(cls.msg_const_->data));
+  }
 }
 
 int main(int argc, char** argv)
