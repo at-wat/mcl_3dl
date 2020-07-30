@@ -54,9 +54,19 @@ add_rostest_gtest(test_mcl_3dl_compat tests/mcl_3dl_compat_rostest.test
     src/test_mcl_3dl_compat.cpp)
 target_link_libraries(test_mcl_3dl_compat ${catkin_LIBRARIES})
 
-add_rostest_gtest(test_mcl_3dl_compat_incompatible tests/mcl_3dl_compat_incompatible_rostest.test
+add_executable(test_mcl_3dl_compat_incompatible
     src/test_mcl_3dl_compat_incompatible.cpp)
-target_link_libraries(test_mcl_3dl_compat_incompatible ${catkin_LIBRARIES})
+target_link_libraries(test_mcl_3dl_compat_incompatible ${catkin_LIBRARIES} ${GTEST_LIBRARIES})
+
+add_rostest(tests/mcl_3dl_compat_incompatible_rostest.test
+  ARGS compat_level:=0
+  DEPENDENCIES test_mcl_3dl_compat_incompatible
+)
+
+add_rostest(tests/mcl_3dl_compat_incompatible_rostest.test
+  ARGS compat_level:=1
+  DEPENDENCIES test_mcl_3dl_compat_incompatible
+)
 
 add_rostest_gtest(test_transform_failure tests/transform_rostest.test
     src/test_transform_failure.cpp)
