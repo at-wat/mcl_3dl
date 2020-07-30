@@ -1,4 +1,6 @@
 <?xml version="1.0"?>
 <launch>
+  <env name="GCOV_PREFIX" value="/tmp/gcov/compat" />
+
   <test test-name="test_mcl_3dl_compat" pkg="mcl_3dl" type="test_mcl_3dl_compat" />
 </launch>

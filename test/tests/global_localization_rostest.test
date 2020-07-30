@@ -1,5 +1,7 @@
 <?xml version="1.0"?>
 <launch>
+  <env name="GCOV_PREFIX" value="/tmp/gcov/global_localization" />
+
   <test test-name="test_global_localization" pkg="mcl_3dl" type="test_global_localization" time-limit="90" />
 
   <node pkg="mcl_3dl" type="mcl_3dl" name="mcl_3dl" output="screen">

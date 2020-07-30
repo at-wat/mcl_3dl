@@ -1,5 +1,7 @@
 <?xml version="1.0"?>
 <launch>
+  <env name="GCOV_PREFIX" value="/tmp/gcov/transform" />
+
   <test test-name="test_transform_failure" pkg="mcl_3dl" type="test_transform_failure" />
   
   <node pkg="mcl_3dl" type="mcl_3dl" name="mcl_3dl" output="log" required="true">
