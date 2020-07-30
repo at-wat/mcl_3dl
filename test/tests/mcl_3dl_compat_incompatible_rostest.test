@@ -1,5 +1,7 @@
 <?xml version="1.0"?>
 <launch>
+  <env name="GCOV_PREFIX" value="/tmp/gcov/compat_incompatible" />
+
   <test test-name="test_mcl_3dl_compat_incompatible" pkg="mcl_3dl" type="test_mcl_3dl_compat_incompatible" args="0" />
   <test test-name="test_mcl_3dl_compat_incompatible2" pkg="mcl_3dl" type="test_mcl_3dl_compat_incompatible" args="1" />
 </launch>
