@@ -43,8 +43,6 @@ int default_level;
 }  // namespace mcl_3dl_compat
 #include <mcl_3dl_compat/compatibility.h>
 
-int test_mode = 0;
-
 TEST(Mcl3DlCompat, CompatMode)
 {
   mcl_3dl_compat::supported_level = 2;
@@ -63,7 +61,14 @@ TEST(Mcl3DlCompat, CompatMode)
         mcl_3dl_compat::checkCompatMode();
       });  // NOLINT(whitespace/braces)
 
-  ros::NodeHandle("~").setParam("compatible", test_mode ? 4 : 1);
+  ros::NodeHandle("~").setParam("compatible", 4);
+  ASSERT_THROW(
+      {
+        mcl_3dl_compat::checkCompatMode();
+      },  // NOLINT(whitespace/braces)
+      std::runtime_error);
+
+  ros::NodeHandle("~").setParam("compatible", 1);
   ASSERT_THROW(
       {
         mcl_3dl_compat::checkCompatMode();
@@ -75,13 +80,5 @@ int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
   ros::init(argc, argv, "test_mcl_3dl_compat_incompatible");
-
-  if (argc != 2)
-  {
-    std::cerr << "test_mcl_3dl_compat_incompatible must have one argument (0 or 1)" << std::endl;
-    return 1;
-  }
-  test_mode = std::atoi(argv[1]);
-
   return RUN_ALL_TESTS();
 }
