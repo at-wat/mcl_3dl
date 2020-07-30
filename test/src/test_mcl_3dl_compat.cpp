@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, the mcl_3dl authors
+ * Copyright (c) 2018-2020, the mcl_3dl authors
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@
 
 #include <ros/ros.h>
 #include <std_msgs/Bool.h>
+#include <std_srvs/Empty.h>
 
 #include <gtest/gtest.h>
 
@@ -108,13 +109,14 @@ TEST(Mcl3DlCompat, CompatMode)
       std::runtime_error);
 }
 
-class Mcl3DlCompatSubscribe
+class Mcl3DlCompatCallbacks
 {
 public:
   ros::NodeHandle nh_;
   ros::NodeHandle pnh_;
   std_msgs::Bool::ConstPtr msg_;
   mutable std_msgs::Bool::ConstPtr msg_const_;
+  bool srv_called_;
 
   void cb(const std_msgs::Bool::ConstPtr& msg)
   {
@@ -125,8 +127,15 @@ public:
     msg_const_ = msg;
   }
 
-  Mcl3DlCompatSubscribe()
+  bool cbSrv(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
+  {
+    srv_called_ = true;
+    return true;
+  }
+
+  Mcl3DlCompatCallbacks()
     : pnh_("~")
+    , srv_called_(false)
   {
   }
 };
@@ -137,7 +146,7 @@ TEST(Mcl3DlCompat, Subscribe)
   mcl_3dl_compat::current_level = 3;
   mcl_3dl_compat::default_level = mcl_3dl_compat::supported_level;
 
-  Mcl3DlCompatSubscribe cls;
+  Mcl3DlCompatCallbacks cls;
 
   ros::Publisher pub_old = cls.pnh_.advertise<std_msgs::Bool>("test_old", 1, true);
   ros::Publisher pub_new = cls.nh_.advertise<std_msgs::Bool>("test_new", 1, true);
@@ -149,12 +158,11 @@ TEST(Mcl3DlCompat, Subscribe)
 
   {
     cls.pnh_.setParam("compatible", 2);
-    cls.msg_ = nullptr;
     ros::Subscriber sub = mcl_3dl_compat::subscribe(
         cls.nh_, "test_new",
         cls.pnh_, "test_old",
         1,
-        &Mcl3DlCompatSubscribe::cb, &cls);
+        &Mcl3DlCompatCallbacks::cb, &cls);
     ros::Duration(0.1).sleep();
     ros::spinOnce();
     ASSERT_TRUE(static_cast<bool>(cls.msg_));
@@ -168,7 +176,7 @@ TEST(Mcl3DlCompat, Subscribe)
         cls.nh_, "test_new",
         cls.pnh_, "test_old",
         1,
-        &Mcl3DlCompatSubscribe::cb, &cls);
+        &Mcl3DlCompatCallbacks::cb, &cls);
     ros::Duration(0.1).sleep();
     ros::spinOnce();
     ASSERT_TRUE(static_cast<bool>(cls.msg_));
@@ -182,7 +190,7 @@ TEST(Mcl3DlCompat, Subscribe)
         cls.nh_, "test_new",
         cls.pnh_, "test_old",
         1,
-        &Mcl3DlCompatSubscribe::cbConst, &cls);
+        &Mcl3DlCompatCallbacks::cbConst, &cls);
     ros::Duration(0.1).sleep();
     ros::spinOnce();
     ASSERT_TRUE(static_cast<bool>(cls.msg_const_));
@@ -196,12 +204,52 @@ TEST(Mcl3DlCompat, Subscribe)
         cls.nh_, "test_new",
         cls.pnh_, "test_old",
         1,
-        &Mcl3DlCompatSubscribe::cbConst, &cls);
+        &Mcl3DlCompatCallbacks::cbConst, &cls);
     ros::Duration(0.1).sleep();
     ros::spinOnce();
     ASSERT_TRUE(static_cast<bool>(cls.msg_const_));
     ASSERT_EQ(true, static_cast<bool>(cls.msg_const_->data));
   }
+}
+
+TEST(Mcl3DlCompat, AdvertiseService)
+{
+  mcl_3dl_compat::supported_level = 2;
+  mcl_3dl_compat::current_level = 3;
+  mcl_3dl_compat::default_level = mcl_3dl_compat::supported_level;
+
+  Mcl3DlCompatCallbacks cls;
+  ros::ServiceClient cli_new = cls.nh_.serviceClient<std_srvs::Empty>("srv_new");
+  ros::ServiceClient cli_old = cls.pnh_.serviceClient<std_srvs::Empty>("srv_old");
+
+  ros::AsyncSpinner spinner(1);
+  spinner.start();
+
+  {
+    cls.pnh_.setParam("compatible", 2);
+
+    ros::ServiceServer srv = mcl_3dl_compat::advertiseService(
+        cls.nh_, "srv_new",
+        cls.pnh_, "srv_old",
+        &Mcl3DlCompatCallbacks::cbSrv, &cls);
+    ros::Duration(0.1).sleep();
+    std_srvs::Empty empty;
+    ASSERT_TRUE(cli_old.call(empty.request, empty.response));
+  }
+
+  {
+    cls.pnh_.setParam("compatible", 3);
+
+    ros::ServiceServer srv = mcl_3dl_compat::advertiseService(
+        cls.nh_, "srv_new",
+        cls.pnh_, "srv_old",
+        &Mcl3DlCompatCallbacks::cbSrv, &cls);
+    ros::Duration(0.1).sleep();
+    std_srvs::Empty empty;
+    ASSERT_TRUE(cli_new.call(empty.request, empty.response));
+  }
+
+  spinner.stop();
 }
 
 int main(int argc, char** argv)
