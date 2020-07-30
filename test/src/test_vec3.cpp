@@ -89,12 +89,6 @@ TEST(Vec3, Operators)
   ASSERT_TRUE(a / 2.0 == a * 0.5);
   ASSERT_TRUE(a * 0.5 == a_mul);
   ASSERT_TRUE(a / 2.0 == a_div);
-
-  // Test [] operator
-  ASSERT_EQ(1.0, a[0]);
-  ASSERT_EQ(2.0, a[1]);
-  ASSERT_EQ(3.0, a[2]);
-  ASSERT_EQ(1.0, a[3]);  // exceeded index points 0
 }
 
 TEST(Vec3, Times)
