@@ -155,6 +155,7 @@ TEST(Mcl3DlCompat, Subscribe)
         cls.pnh_, "test_old",
         1,
         &Mcl3DlCompatSubscribe::cb, &cls);
+    ros::Duration(0.1).sleep();
     ros::spinOnce();
     ASSERT_TRUE(static_cast<bool>(cls.msg_));
     ASSERT_EQ(false, static_cast<bool>(cls.msg_->data));
@@ -168,6 +169,7 @@ TEST(Mcl3DlCompat, Subscribe)
         cls.pnh_, "test_old",
         1,
         &Mcl3DlCompatSubscribe::cb, &cls);
+    ros::Duration(0.1).sleep();
     ros::spinOnce();
     ASSERT_TRUE(static_cast<bool>(cls.msg_));
     ASSERT_EQ(true, static_cast<bool>(cls.msg_->data));
@@ -181,6 +183,7 @@ TEST(Mcl3DlCompat, Subscribe)
         cls.pnh_, "test_old",
         1,
         &Mcl3DlCompatSubscribe::cbConst, &cls);
+    ros::Duration(0.1).sleep();
     ros::spinOnce();
     ASSERT_TRUE(static_cast<bool>(cls.msg_const_));
     ASSERT_EQ(false, static_cast<bool>(cls.msg_const_->data));
@@ -194,6 +197,7 @@ TEST(Mcl3DlCompat, Subscribe)
         cls.pnh_, "test_old",
         1,
         &Mcl3DlCompatSubscribe::cbConst, &cls);
+    ros::Duration(0.1).sleep();
     ros::spinOnce();
     ASSERT_TRUE(static_cast<bool>(cls.msg_const_));
     ASSERT_EQ(true, static_cast<bool>(cls.msg_const_->data));
