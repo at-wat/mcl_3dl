@@ -28,6 +28,7 @@ branches:
 before_install:
   - .travis/cache_dataset.sh
   - python3 -m pip install --upgrade --user gh-pr-comment
+  - travis_retry wget --timeout=10 -O /tmp/codecovenv https://codecov.io/env
 
 script:
   - BUILD_LINK="[[#${TRAVIS_BUILD_NUMBER}](${TRAVIS_BUILD_WEB_URL})]"
@@ -45,7 +46,7 @@ script:
       -e TRAVIS_BOT_GITHUB_TOKEN \
       -e GITHUB_API_URL_BASE \
       -e BUILD_LINK=${BUILD_LINK} \
-      $(bash <(curl -s https://codecov.io/env)) \
+      $(bash /tmp/codecovenv) \
       ${PACKAGE_NAME}:${ROS_DISTRO_TARGET} \
       /catkin_ws/src/${PACKAGE_NAME}/.travis/test.sh
 
