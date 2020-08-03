@@ -274,16 +274,28 @@ TEST_F(ExpansionResetting, ManualExpand)
   pub_mapcloud_.publish(generateMapMsg(offset_x, offset_y, offset_z));
 
   ASSERT_TRUE(ros::ok());
+  ros::Rate rate(10);
 
-  ros::Duration(2.0).sleep();
-  ros::spinOnce();
+  // Ensure that the node is not in expansion resetting mode
+  for (int i = 0; i < 40; ++i)
+  {
+    rate.sleep();
+    ros::spinOnce();
+    if (i > 5 && status_ && status_->status != mcl_3dl_msgs::Status::EXPANSION_RESETTING)
+      break;
+
+    pub_cloud_.publish(generateCloudMsg());
+    pub_imu_.publish(generateImuMsg());
+    pub_odom_.publish(generateOdomMsg());
+  }
+  ASSERT_TRUE(ros::ok());
+
   status_ = nullptr;
   std_srvs::TriggerRequest req;
   std_srvs::TriggerResponse res;
   ASSERT_TRUE(src_expansion_resetting_.call(req, res));
   ros::Duration(0.2).sleep();
 
-  ros::Rate rate(10);
   // Wait until finishing expansion resetting
   for (int i = 0; i < 40; ++i)
   {
