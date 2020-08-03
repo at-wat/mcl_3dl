@@ -19,6 +19,7 @@
     <param name="odom_err_integ_lin_sigma" value="2.5" />
     <param name="odom_err_integ_ang_tc" value="120.0" />
     <param name="odom_err_integ_ang_sigma" value="0.1" />
+    <param name="global_localization_grid_lin" value="0.1" />
   </node>
 
   <node pkg="tf2_ros" type="static_transform_publisher" name="stf_base_link" args="0 5 0 0 0 0 odom base_link" />
