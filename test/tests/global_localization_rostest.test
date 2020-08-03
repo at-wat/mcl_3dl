@@ -2,7 +2,7 @@
 <launch>
   <env name="GCOV_PREFIX" value="/tmp/gcov/global_localization" />
 
-  <test test-name="test_global_localization" pkg="mcl_3dl" type="test_global_localization" time-limit="90" />
+  <test test-name="test_global_localization" pkg="mcl_3dl" type="test_global_localization" time-limit="180" />
 
   <node pkg="mcl_3dl" type="mcl_3dl" name="mcl_3dl" output="screen">
     <param name="compatible" value="1" />
@@ -19,7 +19,7 @@
     <param name="odom_err_integ_lin_sigma" value="2.5" />
     <param name="odom_err_integ_ang_tc" value="120.0" />
     <param name="odom_err_integ_ang_sigma" value="0.1" />
-    <param name="global_localization_grid_lin" value="0.1" />
+    <param name="global_localization_grid_lin" value="0.15" />
   </node>
 
   <node pkg="tf2_ros" type="static_transform_publisher" name="stf_base_link" args="0 5 0 0 0 0 odom base_link" />
