@@ -26,6 +26,7 @@ before_install:
 
 script:
   - BUILD_LINK="[[#${TRAVIS_BUILD_NUMBER}](${TRAVIS_BUILD_WEB_URL})]"
+  - cp ~/.local/bin/gh-pr-comment .travis/
   - |
     docker build \
       -t ${PACKAGE_NAME}:${ROS_DISTRO_TARGET} \

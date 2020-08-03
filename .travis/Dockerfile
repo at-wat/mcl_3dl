@@ -38,11 +38,11 @@ RUN apt-get -qq update \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 RUN python3 -m pip install catkin_lint
-RUN curl -sL https://raw.githubusercontent.com/at-wat/gh-pr-comment/master/install.sh \
-  | sh -s latest /usr/local/bin
 
 COPY --from=cloner /repos/src /catkin_ws/src
 
 RUN cd /catkin_ws/src \
   && . /opt/ros/${ROS_DISTRO}/setup.sh \
   && catkin_init_workspace
+
+COPY .travis/gh-pr-comment /usr/local/bin/
