@@ -39,7 +39,7 @@ RUN apt-get -qq update \
   && rm -rf /var/lib/apt/lists/*
 RUN python3 -m pip install catkin_lint
 RUN curl -sL https://raw.githubusercontent.com/at-wat/gh-pr-comment/master/install.sh \
-  | sh -s latest /path/to/bin
+  | sh -s latest /usr/local/bin
 
 COPY --from=cloner /repos/src /catkin_ws/src
 
