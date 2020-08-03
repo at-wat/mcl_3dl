@@ -37,7 +37,9 @@ RUN apt-get -qq update \
   && rosdep install --from-paths /catkin_ws/src --ignore-src --rosdistro=${ROS_DISTRO} -y \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
-RUN python3 -m pip install gh-pr-comment catkin_lint
+RUN python3 -m pip install catkin_lint
+RUN curl -sL https://raw.githubusercontent.com/at-wat/gh-pr-comment/master/install.sh \
+  | sh -s latest /usr/local/bin
 
 COPY --from=cloner /repos/src /catkin_ws/src
 
