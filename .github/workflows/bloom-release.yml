@@ -17,6 +17,7 @@ jobs:
       - name: checkout
         uses: actions/checkout@v2
       - name: bloom release
+        id: bloom
         uses: at-wat/bloom-release-action@v0
         with:
           ros_distro: kinetic melodic noetic
@@ -27,3 +28,10 @@ jobs:
           release_repository_push_url: https://github.com/${{ github.repository }}-release.git
           tag_and_release: true
           open_pr: true
+      - name: create GitHub release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.bloom.outputs.version }}
+          release_name: Release ${{ steps.bloom.outputs.version }}
