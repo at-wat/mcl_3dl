@@ -44,7 +44,6 @@
 
 #include <ros/ros.h>
 
-#include <sensor_msgs/PointCloud.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/point_cloud_conversion.h>
 #include <nav_msgs/Odometry.h>
@@ -724,12 +723,8 @@ protected:
     {
       match_output_last_ = header.stamp;
 
-      sensor_msgs::PointCloud pc_match;
-      pc_match.header.stamp = header.stamp;
-      pc_match.header.frame_id = params_.frame_ids_["map"];
-      sensor_msgs::PointCloud pc_unmatch;
-      pc_unmatch.header.stamp = header.stamp;
-      pc_unmatch.header.frame_id = params_.frame_ids_["map"];
+      pcl::PointCloud<pcl::PointXYZ>::Ptr pc_match(new pcl::PointCloud<pcl::PointXYZ>);
+      pcl::PointCloud<pcl::PointXYZ>::Ptr pc_unmatch(new pcl::PointCloud<pcl::PointXYZ>);
 
       pcl::PointCloud<PointType>::Ptr pc_local(new pcl::PointCloud<PointType>);
       *pc_local = *pc_local_full;
@@ -741,30 +736,29 @@ protected:
       const double match_dist_sq = params_.match_output_dist_ * params_.match_output_dist_;
       for (auto& p : pc_local->points)
       {
-        geometry_msgs::Point32 pp;
-        pp.x = p.x;
-        pp.y = p.y;
-        pp.z = p.z;
-
         if (!kdtree_->radiusSearch(p, params_.unmatch_output_dist_, id, sqdist, 1))
         {
-          pc_unmatch.points.push_back(pp);
+          pc_unmatch->points.emplace_back(p.x, p.y, p.z);
         }
         else if (sqdist[0] < match_dist_sq)
         {
-          pc_match.points.push_back(pp);
+          pc_match->points.emplace_back(p.x, p.y, p.z);
         }
       }
       if (pub_matched_.getNumSubscribers() > 0)
       {
         sensor_msgs::PointCloud2 pc2;
-        sensor_msgs::convertPointCloudToPointCloud2(pc_match, pc2);
+        pcl::toROSMsg(*pc_match, pc2);
+        pc2.header.stamp = header.stamp;
+        pc2.header.frame_id = params_.frame_ids_["map"];
         pub_matched_.publish(pc2);
       }
       if (pub_unmatched_.getNumSubscribers() > 0)
       {
         sensor_msgs::PointCloud2 pc2;
-        sensor_msgs::convertPointCloudToPointCloud2(pc_unmatch, pc2);
+        pcl::toROSMsg(*pc_unmatch, pc2);
+        pc2.header.stamp = header.stamp;
+        pc2.header.frame_id = params_.frame_ids_["map"];
         pub_unmatched_.publish(pc2);
       }
     }
