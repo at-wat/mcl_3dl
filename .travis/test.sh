@@ -21,9 +21,9 @@ mkdir -p /catkin_ws/build/mcl_3dl/test/
 mv /catkin_ws/src/mcl_3dl/.cached-dataset/* /catkin_ws/build/mcl_3dl/test/
 ls -lh /catkin_ws/build/mcl_3dl/test/
 
-sed -i -e '5a set(CMAKE_C_FLAGS "-Wall -Werror -O1 -coverage")' \
+sed -i -e "/set(CATKIN_TOPLEVEL TRUE)/a set(CMAKE_C_FLAGS \"-Wall -Werror -O2 ${COVERAGE_OPTION}\")" \
   /opt/ros/${ROS_DISTRO}/share/catkin/cmake/toplevel.cmake
-sed -i -e '5a set(CMAKE_CXX_FLAGS "-Wall -Werror -O1 -coverage")' \
+sed -i -e "/set(CATKIN_TOPLEVEL TRUE)/a set(CMAKE_CXX_FLAGS \"-Wall -Werror -O2 ${COVERAGE_OPTION}\")" \
   /opt/ros/${ROS_DISTRO}/share/catkin/cmake/toplevel.cmake
 
 CM_OPTIONS=''
