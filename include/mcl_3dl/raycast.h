@@ -48,11 +48,13 @@ public:
     Vec3 pos_;
     bool collision_;
     float sin_angle_;
+    const POINT_TYPE* point_;
 
-    CastResult(const Vec3 pos, bool collision, float sin_angle)
+    CastResult(const Vec3& pos, bool collision, float sin_angle, const POINT_TYPE* point)
       : pos_(pos)
       , collision_(collision)
       , sin_angle_(sin_angle)
+      , point_(point)
     {
     }
   };
@@ -94,6 +96,7 @@ public:
       bool collision(false);
       float sin_ang(0.0);
 
+      const POINT_TYPE* point = nullptr;
       POINT_TYPE center;
       center.x = pos_.x_;
       center.y = pos_.y_;
@@ -105,6 +108,7 @@ public:
               std::sqrt(2.0) * grid_max_ / 2.0, id, sqdist, 1))
       {
         collision = true;
+        point = &(kdtree_->getInputCloud()->points[id[0]]);
 
         const float d0 = std::sqrt(sqdist[0]);
         const Vec3 pos_prev = pos_ - (inc_ * 2.0);
@@ -124,7 +128,7 @@ public:
           sin_ang = 1.0;
         }
       }
-      return CastResult(pos_, collision, sin_ang);
+      return CastResult(pos_, collision, sin_ang, point);
     }
     bool operator!=(const Iterator& a) const
     {

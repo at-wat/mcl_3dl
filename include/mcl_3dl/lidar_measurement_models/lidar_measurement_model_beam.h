@@ -62,6 +62,7 @@ private:
   float sin_total_ref_;
   float map_grid_min_;
   float map_grid_max_;
+  uint32_t use_label_leq_;
 
   PointCloudRandomSampler sampler_;
 
