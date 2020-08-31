@@ -40,6 +40,11 @@ add_rostest_gtest(test_expansion_resetting tests/expansion_resetting_rostest.tes
 target_link_libraries(test_expansion_resetting ${catkin_LIBRARIES})
 add_dependencies(test_expansion_resetting mcl_3dl)
 
+add_rostest_gtest(test_beam_label tests/beam_label_rostest.test
+    src/test_beam_label.cpp)
+target_link_libraries(test_beam_label ${catkin_LIBRARIES})
+add_dependencies(test_beam_label mcl_3dl)
+
 add_rostest_gtest(test_global_localization tests/global_localization_rostest.test
     src/test_global_localization.cpp)
 target_link_libraries(test_global_localization ${catkin_LIBRARIES})
