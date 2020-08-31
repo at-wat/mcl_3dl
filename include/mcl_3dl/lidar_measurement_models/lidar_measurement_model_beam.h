@@ -77,6 +77,10 @@ public:
   {
     return sin_total_ref_;
   }
+  inline uint32_t getUseLabelLeq() const
+  {
+    return use_label_leq_;
+  }
 
   void loadConfig(
       const ros::NodeHandle& nh,
