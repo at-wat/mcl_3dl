@@ -12,7 +12,7 @@
     <param name="likelihood/clip_near" value="0.0" />
     <param name="likelihood/num_points" value="10" />
     <param name="beam/clip_near" value="0.0" />
-    <param name="beam/use_label_leq" value="1" />
+    <param name="beam/filter_label_max" value="1" />
     <param name="beam/num_points" value="10" />
     <param name="lpf_step" value="0" />
     <param name="dist_weight_z" value="1.0" />
