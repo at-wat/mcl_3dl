@@ -62,7 +62,7 @@ private:
   float sin_total_ref_;
   float map_grid_min_;
   float map_grid_max_;
-  uint32_t use_label_leq_;
+  uint32_t filter_label_max_;
 
   PointCloudRandomSampler sampler_;
 
@@ -77,9 +77,9 @@ public:
   {
     return sin_total_ref_;
   }
-  inline uint32_t getUseLabelLeq() const
+  inline uint32_t getFilterLabelMax() const
   {
-    return use_label_leq_;
+    return filter_label_max_;
   }
 
   void loadConfig(

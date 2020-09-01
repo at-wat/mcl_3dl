@@ -512,7 +512,7 @@ protected:
           std::dynamic_pointer_cast<LidarMeasurementModelBeam>(
               lidar_measurements_["beam"]);
       const float sin_total_ref = beam_model->getSinTotalRef();
-      const uint32_t use_label_leq = beam_model->getUseLabelLeq();
+      const uint32_t filter_label_max = beam_model->getFilterLabelMax();
       for (auto& p : pc_particle_beam->points)
       {
         const int beam_header_id = p.label;
@@ -525,7 +525,7 @@ protected:
         {
           if (!point.collision_)
             continue;
-          if (point.point_->label > use_label_leq)
+          if (point.point_->label > filter_label_max)
             continue;
 
           visualization_msgs::Marker marker;

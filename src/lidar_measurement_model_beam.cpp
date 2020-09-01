@@ -88,9 +88,9 @@ void LidarMeasurementModelBeam::loadConfig(
   pnh.param("ang_total_ref", ang_total_ref, M_PI / 6.0);
   sin_total_ref_ = sinf(ang_total_ref);
 
-  int use_label_leq;
-  pnh.param("use_label_leq", use_label_leq, static_cast<int>(0xFFFFFFFF));
-  use_label_leq_ = use_label_leq;
+  int filter_label_max;
+  pnh.param("filter_label_max", filter_label_max, static_cast<int>(0xFFFFFFFF));
+  filter_label_max_ = filter_label_max;
 }
 
 void LidarMeasurementModelBeam::setGlobalLocalizationStatus(
@@ -164,7 +164,7 @@ LidarMeasurementResult LidarMeasurementModelBeam::measure(
     {
       if (!point.collision_)
         continue;
-      if (point.point_->label > use_label_leq_)
+      if (point.point_->label > filter_label_max_)
         continue;
 
       // reject total reflection
