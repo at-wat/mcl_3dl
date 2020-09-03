@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<launch>
+  <env name="GCOV_PREFIX" value="/tmp/gcov/beam_label" />
+
+  <test test-name="test_expansion_resetting" pkg="mcl_3dl" type="test_beam_label" />
+  <!--node name="test_expansion_resetting" pkg="mcl_3dl" type="test_beam_label" /-->
+
+  <node pkg="mcl_3dl" type="mcl_3dl" name="mcl_3dl" output="screen">
+    <param name="compatible" value="1" />
+    <param name="likelihood/match_dist_min" value="0.3" />
+    <param name="likelihood/match_dist_flat" value="0.05" />
+    <param name="likelihood/clip_near" value="0.0" />
+    <param name="likelihood/num_points" value="10" />
+    <param name="beam/clip_near" value="0.0" />
+    <param name="beam/filter_label_max" value="1" />
+    <param name="beam/num_points" value="10" />
+    <param name="lpf_step" value="0" />
+    <param name="dist_weight_z" value="1.0" />
+    <param name="num_particles" value="256" />
+  </node>
+
+  <node pkg="tf2_ros" type="static_transform_publisher" name="stf_base_link" args="1 0 0 0 0 0 odom base_link" />
+</launch>

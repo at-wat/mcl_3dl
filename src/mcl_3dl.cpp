@@ -512,6 +512,7 @@ protected:
           std::dynamic_pointer_cast<LidarMeasurementModelBeam>(
               lidar_measurements_["beam"]);
       const float sin_total_ref = beam_model->getSinTotalRef();
+      const uint32_t filter_label_max = beam_model->getFilterLabelMax();
       for (auto& p : pc_particle_beam->points)
       {
         const int beam_header_id = p.label;
@@ -522,36 +523,38 @@ protected:
             params_.map_grid_min_, params_.map_grid_max_);
         for (auto point : ray)
         {
-          if (point.collision_)
+          if (!point.collision_)
+            continue;
+          if (point.point_->label > filter_label_max)
+            continue;
+
+          visualization_msgs::Marker marker;
+          marker.header.frame_id = params_.frame_ids_["map"];
+          marker.header.stamp = header.stamp;
+          marker.ns = "Ray collisions";
+          marker.id = markers.markers.size();
+          marker.type = visualization_msgs::Marker::CUBE;
+          marker.action = 0;
+          marker.pose.position.x = point.pos_.x_;
+          marker.pose.position.y = point.pos_.y_;
+          marker.pose.position.z = point.pos_.z_;
+          marker.pose.orientation.x = 0.0;
+          marker.pose.orientation.y = 0.0;
+          marker.pose.orientation.z = 0.0;
+          marker.pose.orientation.w = 1.0;
+          marker.scale.x = marker.scale.y = marker.scale.z = 0.4;
+          marker.lifetime = ros::Duration(0.2);
+          marker.frame_locked = true;
+          marker.color.a = 0.8;
+          marker.color.r = 1.0;
+          marker.color.g = 0.0;
+          marker.color.b = 0.0;
+          if (point.sin_angle_ < sin_total_ref)
           {
-            visualization_msgs::Marker marker;
-            marker.header.frame_id = params_.frame_ids_["map"];
-            marker.header.stamp = header.stamp;
-            marker.ns = "Ray collisions";
-            marker.id = markers.markers.size();
-            marker.type = visualization_msgs::Marker::CUBE;
-            marker.action = 0;
-            marker.pose.position.x = point.pos_.x_;
-            marker.pose.position.y = point.pos_.y_;
-            marker.pose.position.z = point.pos_.z_;
-            marker.pose.orientation.x = 0.0;
-            marker.pose.orientation.y = 0.0;
-            marker.pose.orientation.z = 0.0;
-            marker.pose.orientation.w = 1.0;
-            marker.scale.x = marker.scale.y = marker.scale.z = 0.4;
-            marker.lifetime = ros::Duration(0.2);
-            marker.frame_locked = true;
-            marker.color.a = 0.8;
-            marker.color.r = 1.0;
-            marker.color.g = 0.0;
-            marker.color.b = 0.0;
-            if (point.sin_angle_ < sin_total_ref)
-            {
-              marker.color.a = 0.2;
-            }
-            markers.markers.push_back(marker);
-            break;
+            marker.color.a = 0.2;
           }
+          markers.markers.push_back(marker);
+          break;
         }
       }
 

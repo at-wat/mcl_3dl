@@ -117,9 +117,14 @@ public:
       chunk.second.kdtree_->setPointRepresentation(point_rep_);
     }
   }
-  void setInputCloud(
-      const typename pcl::PointCloud<POINT_TYPE>::ConstPtr cloud)
+  const typename pcl::PointCloud<POINT_TYPE>::ConstPtr& getInputCloud() const
   {
+    return input_cloud_;
+  }
+  void setInputCloud(
+      const typename pcl::PointCloud<POINT_TYPE>::ConstPtr& cloud)
+  {
+    input_cloud_ = cloud;
     if (chunks_.size())
       chunks_.clear();
     ChunkOriginalIds ids;
@@ -284,6 +289,7 @@ protected:
   using ChunkCloud = std::unordered_map<ChunkId, typename pcl::PointCloud<POINT_TYPE>, ChunkId>;
   using ChunkOriginalIds = std::unordered_map<ChunkId, std::vector<size_t>, ChunkId>;
   ChunkMap chunks_;
+  typename pcl::PointCloud<POINT_TYPE>::ConstPtr input_cloud_;
 };
 }  // namespace mcl_3dl
 

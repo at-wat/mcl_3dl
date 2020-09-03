@@ -69,6 +69,7 @@ bool fromROSMsg(
   const int y_idx = getPointCloud2FieldIndex(msg, "y");
   const int z_idx = getPointCloud2FieldIndex(msg, "z");
   const int intensity_idx = getPointCloud2FieldIndex(msg, "intensity");
+  const int label_idx = getPointCloud2FieldIndex(msg, "label");
 
   if (x_idx == -1 || y_idx == -1 || z_idx == -1)
   {
@@ -76,8 +77,17 @@ bool fromROSMsg(
     return false;
   }
   if (intensity_idx != -1)
+  {
+    if (label_idx != -1)
+    {
+      return fromROSMsgImpl<mcl_3dl::PointXYZIL, PointT>(msg, pc);
+    }
     return fromROSMsgImpl<pcl::PointXYZI, PointT>(msg, pc);
-
+  }
+  if (label_idx != -1)
+  {
+    return fromROSMsgImpl<pcl::PointXYZL, PointT>(msg, pc);
+  }
   return fromROSMsgImpl<pcl::PointXYZ, PointT>(msg, pc);
 }
 }  // namespace mcl_3dl
