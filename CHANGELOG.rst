@@ -2,6 +2,21 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Switch beam model by map label field (`#334 <https://github.com/at-wat/mcl_3dl/issues/334>`_)
+* Update test script for latest catkin (`#333 <https://github.com/at-wat/mcl_3dl/issues/333>`_)
+* Remove references to sensor_msgs::PointCloud (`#332 <https://github.com/at-wat/mcl_3dl/issues/332>`_)
+* Update assets to v0.0.9 (`#331 <https://github.com/at-wat/mcl_3dl/issues/331>`_)
+* Improve expansion resetting/global localization test stability (`#330 <https://github.com/at-wat/mcl_3dl/issues/330>`_)
+* Fix global localization test parameter (`#328 <https://github.com/at-wat/mcl_3dl/issues/328>`_)
+* Avoid rate limit when fetching gh-ph-comment (`#329 <https://github.com/at-wat/mcl_3dl/issues/329>`_)
+* Update gh-pr-comment (`#327 <https://github.com/at-wat/mcl_3dl/issues/327>`_)
+* Retry codecov script download (`#326 <https://github.com/at-wat/mcl_3dl/issues/326>`_)
+* Improve test coverage (`#325 <https://github.com/at-wat/mcl_3dl/issues/325>`_)
+* Merge rostest coverage profiles (`#324 <https://github.com/at-wat/mcl_3dl/issues/324>`_)
+* Contributors: Atsushi Watanabe, f-fl0
+
 0.2.5 (2020-05-27)
 ------------------
 * Add validation for orientation of initial pose (`#317 <https://github.com/at-wat/mcl_3dl/issues/317>`_)
