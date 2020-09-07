@@ -2,8 +2,8 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.3.0 (2020-09-07)
+------------------
 * Switch beam model by map label field (`#334 <https://github.com/at-wat/mcl_3dl/issues/334>`_)
 * Update test script for latest catkin (`#333 <https://github.com/at-wat/mcl_3dl/issues/333>`_)
 * Remove references to sensor_msgs::PointCloud (`#332 <https://github.com/at-wat/mcl_3dl/issues/332>`_)
