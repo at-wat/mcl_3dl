@@ -143,7 +143,7 @@ TEST(PointCloudSamplerWithNormal, Sampling)
     {
       sampler.setParameters(parameter.perform_weighting_ratio, parameter.max_weight_ratio, parameter.max_weight, 0.4);
       const pcl::PointCloud<PointXYZIL>::Ptr extracted_cloud = sampler.sample(pc, sample_num);
-      EXPECT_EQ(sample_num, extracted_cloud->size());
+      EXPECT_EQ(sample_num, static_cast<int>(extracted_cloud->size()));
       // count[0] : numbers of points chosen from the wall at right angles
       // count[1] : numbers of points chosen from the parallel wall
       std::vector<int> counts(2, 0);
