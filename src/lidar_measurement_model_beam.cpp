@@ -131,7 +131,7 @@ LidarMeasurementModelBeam::filter(
   pc_filtered->width = 1;
   pc_filtered->height = pc_filtered->points.size();
 
-  return sampler_.sample<LidarMeasurementModelBase::PointType>(pc_filtered, num_points_);
+  return sampler_->sample(pc_filtered, num_points_);
 }
 
 LidarMeasurementResult LidarMeasurementModelBeam::measure(
