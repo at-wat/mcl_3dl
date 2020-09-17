@@ -165,10 +165,10 @@ TEST(PointCloudSamplerWithNormal, Sampling)
   sampler.setParticleStatistics(mean, cov_matrix);
   pcl::PointCloud<PointXYZIL>::Ptr invalid_cloud(new pcl::PointCloud<PointXYZIL>());
   // Empty cloud
-  EXPECT_EQ(0, sampler.sample(invalid_cloud, 100)->size());
+  EXPECT_EQ(0u, sampler.sample(invalid_cloud, 100)->size());
   // Point cloud size is smaller than requested sample number
   invalid_cloud->push_back(PointXYZIL());
-  EXPECT_EQ(1, sampler.sample(invalid_cloud, 100)->size());
+  EXPECT_EQ(1u, sampler.sample(invalid_cloud, 100)->size());
 }
 }  // namespace test
 }  // namespace mcl_3dl
