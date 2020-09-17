@@ -173,14 +173,6 @@ public:
         }
         const double angle = std::acos(acos_angle);
         weight = 1.0 + (max_weight - 1.0) * ((M_PI / 2 - angle) / (M_PI / 2));
-        if (std::isnan(weight))
-        {
-          ROS_ERROR("Something is wrong: %f, %f, %f, %f, %f", angle, normal.normal_x,
-                    normal.normal_y, normal.normal_z, normal.normal_x * eigen_vectors_(0, 2) +
-                                                          normal.normal_y * eigen_vectors_(1, 2) +
-                                                          normal.normal_z * eigen_vectors_(2, 2));
-          weight = 1.0;
-        }
       }
       cumulative_weight[i] = weight + ((i == 0) ? 0.0 : cumulative_weight[i - 1]);
     }
