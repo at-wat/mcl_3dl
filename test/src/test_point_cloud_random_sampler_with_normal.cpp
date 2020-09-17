@@ -35,31 +35,12 @@
 #include <pcl/point_types.h>
 
 #include <mcl_3dl/point_cloud_random_samplers/point_cloud_sampler_with_normal.h>
-#include <mcl_3dl/point_cloud_random_samplers/point_cloud_uniform_sampler.h>
 #include <mcl_3dl/point_types.h>
 
 namespace mcl_3dl
 {
 namespace test
 {
-TEST(PointCloudUniformSampler, testSample)
-{
-  PointCloudUniformSampler<PointXYZIL> sampler;
-  pcl::PointCloud<PointXYZIL>::Ptr org_cloud(new pcl::PointCloud<PointXYZIL>());
-
-  const pcl::PointCloud<PointXYZIL>::Ptr empty_result = sampler.sample(org_cloud, 10);
-  ASSERT_EQ(0, empty_result->size());
-
-  for (int i = 0; i < 100; ++i)
-  {
-    PointXYZIL point;
-    point.x = static_cast<float>(i);
-    org_cloud->push_back(point);
-  }
-  const pcl::PointCloud<PointXYZIL>::Ptr result = sampler.sample(org_cloud, 10);
-  ASSERT_EQ(10, result->size());
-}
-
 std::vector<State6DOF> buildPoseCovarianceMatrix(const double yaw,
                                                  const double front_std_dev,
                                                  const double side_std_dev)
@@ -112,7 +93,7 @@ void buildWall(pcl::PointCloud<PointXYZIL>::Ptr result_points, double rotation_a
   result_points->insert(result_points->end(), points.begin(), points.end());
 }
 
-TEST(PointCloudSamplerWithNormal, testSample)
+TEST(PointCloudSamplerWithNormal, Sampling)
 {
   pcl::PointCloud<PointXYZIL>::Ptr pc(new pcl::PointCloud<PointXYZIL>());
   int wall_length = 20;
