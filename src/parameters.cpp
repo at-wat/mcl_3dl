@@ -192,6 +192,8 @@ bool Parameters::load(ros::NodeHandle& pnh)
       Vec3(v_x, v_y, v_z),
       Vec3(v_roll, v_pitch, v_yaw));
 
+  pnh.param("use_random_sampler_with_normal", use_random_sampler_with_normal_, false);
+
   return true;
 }
 }  // namespace mcl_3dl

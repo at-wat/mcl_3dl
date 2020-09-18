@@ -41,6 +41,8 @@
 #include <pcl_ros/point_cloud.h>
 
 #include <mcl_3dl/chunked_kdtree.h>
+#include <mcl_3dl/point_cloud_random_sampler.h>
+#include <mcl_3dl/point_cloud_random_samplers/point_cloud_uniform_sampler.h>
 #include <mcl_3dl/point_types.h>
 #include <mcl_3dl/state_6dof.h>
 #include <mcl_3dl/vec3.h>
@@ -64,6 +66,12 @@ class LidarMeasurementModelBase
 public:
   using Ptr = std::shared_ptr<LidarMeasurementModelBase>;
   using PointType = mcl_3dl::PointXYZIL;
+  using SamplerType = PointCloudRandomSampler<PointType>;
+
+  LidarMeasurementModelBase()
+    : sampler_(new PointCloudUniformSampler<PointType>())
+  {
+  }
 
   virtual void loadConfig(
       const ros::NodeHandle& nh,
@@ -80,6 +88,18 @@ public:
       const pcl::PointCloud<PointType>::ConstPtr&,
       const std::vector<Vec3>&,
       const State6DOF&) const = 0;
+
+  void setRandomSampler(const std::shared_ptr<SamplerType>& sampler)
+  {
+    sampler_ = sampler;
+  }
+  std::shared_ptr<SamplerType> getRandomSampler()
+  {
+    return sampler_;
+  }
+
+protected:
+  std::shared_ptr<SamplerType> sampler_;
 };
 }  // namespace mcl_3dl
 

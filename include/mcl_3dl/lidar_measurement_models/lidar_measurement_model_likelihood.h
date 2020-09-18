@@ -61,8 +61,6 @@ private:
   float match_dist_min_;
   float match_dist_flat_;
 
-  PointCloudRandomSampler sampler_;
-
 public:
   inline float getMaxSearchRange() const
   {

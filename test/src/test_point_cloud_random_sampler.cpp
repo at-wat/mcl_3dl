@@ -30,11 +30,11 @@
 #include <pcl/point_types.h>
 #include <pcl_ros/point_cloud.h>
 
-#include <mcl_3dl/point_cloud_random_sampler.h>
+#include <mcl_3dl/point_cloud_random_samplers/point_cloud_uniform_sampler.h>
 
 #include <gtest/gtest.h>
 
-TEST(PointCloudRandomSampler, Sampling)
+TEST(PointCloudUniformSampler, Sampling)
 {
   pcl::PointCloud<pcl::PointXYZ>::Ptr pc_input(new pcl::PointCloud<pcl::PointXYZ>);
   pc_input->width = 1;
@@ -53,11 +53,11 @@ TEST(PointCloudRandomSampler, Sampling)
     pc_input->push_back(pcl::PointXYZ(p_ref[0], p_ref[1], p_ref[2]));
   }
 
-  mcl_3dl::PointCloudRandomSampler sampler;
+  mcl_3dl::PointCloudUniformSampler<pcl::PointXYZ> sampler;
 
   for (size_t num = 1; num < 4; num++)
   {
-    pcl::PointCloud<pcl::PointXYZ>::Ptr pc_output = sampler.sample<pcl::PointXYZ>(pc_input, num);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr pc_output = sampler.sample(pc_input, num);
 
     // Check header and number of the points
     ASSERT_EQ(pc_output->header.frame_id, pc_input->header.frame_id);
@@ -82,7 +82,7 @@ TEST(PointCloudRandomSampler, Sampling)
   }
 
   // Make sure that the sampler returns 0 point output for 0 point input
-  pcl::PointCloud<pcl::PointXYZ>::Ptr pc_output0 = sampler.sample<pcl::PointXYZ>(pc_input, 0);
+  pcl::PointCloud<pcl::PointXYZ>::Ptr pc_output0 = sampler.sample(pc_input, 0);
   ASSERT_EQ(pc_output0->points.size(), 0u);
 }
 

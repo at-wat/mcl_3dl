@@ -85,15 +85,17 @@
 #include <mcl_3dl/motion_prediction_model_base.h>
 #include <mcl_3dl/motion_prediction_models/motion_prediction_model_differential_drive.h>
 #include <mcl_3dl/nd.h>
+#include <mcl_3dl/noise_generators/multivariate_noise_generator.h>
 #include <mcl_3dl/parameters.h>
 #include <mcl_3dl/pf.h>
+#include <mcl_3dl/point_cloud_random_samplers/point_cloud_sampler_with_normal.h>
+#include <mcl_3dl/point_cloud_random_samplers/point_cloud_uniform_sampler.h>
 #include <mcl_3dl/point_conversion.h>
 #include <mcl_3dl/point_types.h>
 #include <mcl_3dl/quat.h>
 #include <mcl_3dl/raycast.h>
 #include <mcl_3dl/state_6dof.h>
 #include <mcl_3dl/vec3.h>
-#include <mcl_3dl/noise_generators/multivariate_noise_generator.h>
 
 #include <mcl_3dl_compat/compatibility.h>
 
@@ -377,6 +379,15 @@ protected:
     {
       lm.second->setGlobalLocalizationStatus(
           params_.num_particles_, pf_->getParticleSize());
+
+      if (params_.use_random_sampler_with_normal_)
+      {
+        const State6DOF prev_mean = pf_->expectation();
+        const float cov_ratio = std::max(0.1f, static_cast<float>(params_.num_particles_) / pf_->getParticleSize());
+        const std::vector<State6DOF> prev_cov = pf_->covariance(1.0, cov_ratio);
+        auto sampler = std::dynamic_pointer_cast<PointCloudSamplerWithNormal<PointType>>(lm.second->getRandomSampler());
+        sampler->setParticleStatistics(prev_mean, prev_cov);
+      }
       pc_locals[lm.first] = lm.second->filter(pc_local_full);
     }
 
@@ -1244,6 +1255,18 @@ public:
     {
       lm.second->loadConfig(pnh_, lm.first);
       max_search_radius = std::max(max_search_radius, lm.second->getMaxSearchRange());
+
+      if (params_.use_random_sampler_with_normal_)
+      {
+        auto sampler = std::make_shared<PointCloudSamplerWithNormal<PointType>>();
+        sampler->loadConfig(pnh_);
+        lm.second->setRandomSampler(sampler);
+      }
+      else
+      {
+        auto sampler = std::make_shared<PointCloudUniformSampler<PointType>>();
+        lm.second->setRandomSampler(sampler);
+      }
     }
 
     ROS_DEBUG("max_search_radius: %0.3f", max_search_radius);

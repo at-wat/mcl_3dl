@@ -107,6 +107,7 @@ public:
   std::array<float, 3> std_warn_thresh_;
   State6DOF initial_pose_;
   State6DOF initial_pose_std_;
+  bool use_random_sampler_with_normal_;
 };
 }  // namespace mcl_3dl
 

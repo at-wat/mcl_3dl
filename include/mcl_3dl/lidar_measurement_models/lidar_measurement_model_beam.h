@@ -64,8 +64,6 @@ private:
   float map_grid_max_;
   uint32_t filter_label_max_;
 
-  PointCloudRandomSampler sampler_;
-
 public:
   LidarMeasurementModelBeam(const float x, const float y, const float z);
 

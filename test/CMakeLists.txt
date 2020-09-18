@@ -26,6 +26,8 @@ catkin_add_gtest(test_motion_prediction_model_differential_drive src/test_motion
 target_link_libraries(test_motion_prediction_model_differential_drive ${catkin_LIBRARIES})
 catkin_add_gtest(test_noise_generator src/test_noise_generator.cpp)
 target_link_libraries(test_noise_generator ${catkin_LIBRARIES})
+catkin_add_gtest(test_point_cloud_random_sampler_with_normal src/test_point_cloud_random_sampler_with_normal.cpp)
+target_link_libraries(test_point_cloud_random_sampler_with_normal ${catkin_LIBRARIES})
 
 add_executable(performance_raycast src/performance_raycast.cpp)
 target_link_libraries(performance_raycast ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${PCL_LIBRARIES})
@@ -69,7 +71,7 @@ if(MCL_3DL_EXTRA_TESTS)
   catkin_download_test_data(
       ${PROJECT_NAME}_short_test3.bag
       https://openspur.org/~atsushi.w/dataset/mcl_3dl/short_test3.bag
-      MD5 7f0f4a2c2c4d569c81cb972d7dc30ca0 
+      MD5 7f0f4a2c2c4d569c81cb972d7dc30ca0
       FILENAME test/short_test3.bag)
 
   catkin_download_test_data(
@@ -86,7 +88,7 @@ if(MCL_3DL_EXTRA_TESTS)
   add_executable(compare_pose
       src/compare_pose.cpp)
   target_link_libraries(compare_pose ${catkin_LIBRARIES} ${GTEST_LIBRARIES})
-  add_dependencies(compare_pose 
+  add_dependencies(compare_pose
         ${PROJECT_NAME}_short_test3.bag
         ${PROJECT_NAME}_short_test_ref.topic
         mcl_3dl)
@@ -108,7 +110,7 @@ if(MCL_3DL_EXTRA_TESTS)
   add_rostest_gtest(compare_tf ${PROJECT_BINARY_DIR}/test/tests/tf_rostest.test
       src/compare_tf.cpp)
   target_link_libraries(compare_tf ${catkin_LIBRARIES})
-  add_dependencies(compare_tf 
+  add_dependencies(compare_tf
         ${PROJECT_NAME}_short_test3.bag
         ${PROJECT_NAME}_short_test_ref.topic
         mcl_3dl
