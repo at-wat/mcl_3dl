@@ -128,7 +128,7 @@ public:
       return output;
     }
 
-    const double eigen_value_ratio = std::sqrt(eigen_values_[2]) / std::sqrt(eigen_values_[1]);
+    const double eigen_value_ratio = std::sqrt(eigen_values_[2] / eigen_values_[1]);
 
     double max_weight = 1.0;
     if (eigen_value_ratio < perform_weighting_ratio_)
@@ -201,7 +201,6 @@ public:
               (final_timestamp - start_timestamp).toSec(), (compute_normal_timestamp - start_timestamp).toSec());
     ROS_DEBUG("Chosen eigen vector: (%f, %f, %f), max weight: %f",
               eigen_vectors_(0, 2), eigen_vectors_(1, 2), eigen_vectors_(2, 2), max_weight);
-
     return output;
   }
 };
