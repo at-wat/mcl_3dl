@@ -42,6 +42,7 @@
 
 #include <mcl_3dl/chunked_kdtree.h>
 #include <mcl_3dl/point_cloud_random_sampler.h>
+#include <mcl_3dl/point_cloud_random_samplers/point_cloud_uniform_sampler.h>
 #include <mcl_3dl/point_types.h>
 #include <mcl_3dl/state_6dof.h>
 #include <mcl_3dl/vec3.h>
@@ -68,7 +69,7 @@ public:
   using SamplerType = PointCloudRandomSampler<PointType>;
 
   LidarMeasurementModelBase()
-    : sampler_()
+    : sampler_(new PointCloudUniformSampler<PointType>())
   {
   }
 
