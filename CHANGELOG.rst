@@ -2,6 +2,12 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix typos of license (`#340 <https://github.com/at-wat/mcl_3dl/issues/340>`_)
+* Add PointCloudSamplerWithNormal (`#339 <https://github.com/at-wat/mcl_3dl/issues/339>`_)
+* Contributors: Naotaka Hatao
+
 0.3.0 (2020-09-07)
 ------------------
 * Switch beam model by map label field (`#334 <https://github.com/at-wat/mcl_3dl/issues/334>`_)
