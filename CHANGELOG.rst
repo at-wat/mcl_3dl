@@ -2,8 +2,8 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.4.0 (2020-10-07)
+------------------
 * Fix typos of license (`#340 <https://github.com/at-wat/mcl_3dl/issues/340>`_)
 * Add PointCloudSamplerWithNormal (`#339 <https://github.com/at-wat/mcl_3dl/issues/339>`_)
 * Contributors: Naotaka Hatao
