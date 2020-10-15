@@ -2,6 +2,12 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Ease condition for test of PointCloudSamplerWithNormal (`#344 <https://github.com/at-wat/mcl_3dl/issues/344>`_)
+* Add faster raycast algorithm using DDA (`#343 <https://github.com/at-wat/mcl_3dl/issues/343>`_)
+* Contributors: Naotaka Hatao
+
 0.4.0 (2020-10-07)
 ------------------
 * Fix typos of license (`#340 <https://github.com/at-wat/mcl_3dl/issues/340>`_)
