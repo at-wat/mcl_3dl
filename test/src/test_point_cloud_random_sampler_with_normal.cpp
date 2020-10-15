@@ -127,11 +127,11 @@ TEST(PointCloudSamplerWithNormal, Sampling)
   const std::vector<ParameterSet> parameters =
       {
           // Weights of points in the wall at right angles: 10, weights of points in the parallel wall: 1
-          {2.0, 4.0, 10.0, 0.9, 1.0},  // NOLINT(whitespace/braces)
+          {2.0, 4.0, 10.0, 0.85, 1.0},  // NOLINT(whitespace/braces)
           // Weights of points in the wall at right angles: 1, weights of points in the parallel wall: 1
-          {6.0, 7.0, 10.0, 0.45, 0.55},  // NOLINT(whitespace/braces)
+          {6.0, 7.0, 10.0, 0.4, 0.6},  // NOLINT(whitespace/braces)
           // Weights of points in the wall at right angles: 3, weights of points in the parallel wall: 1
-          {2.0, 8.0, 5.0, 0.7, 0.8},  // NOLINT(whitespace/braces)
+          {2.0, 8.0, 5.0, 0.65, 0.85},  // NOLINT(whitespace/braces)
       };
 
   for (const unsigned int seed : seeds)
@@ -156,8 +156,8 @@ TEST(PointCloudSamplerWithNormal, Sampling)
         ++counts[index / std::pow(wall_length, 2)];
       }
       const double ratio = static_cast<double>(counts[0]) / (counts[0] + counts[1]);
-      EXPECT_GE(ratio, parameter.expected_ratio_min);
-      EXPECT_LE(ratio, parameter.expected_ratio_max);
+      EXPECT_GE(ratio, parameter.expected_ratio_min) << "Failed at seed #" << seed;
+      EXPECT_LE(ratio, parameter.expected_ratio_max) << "Failed at seed #" << seed;
     }
   }
 
