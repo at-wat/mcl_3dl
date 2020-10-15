@@ -212,39 +212,39 @@ private:
                            static_cast<int>((point[2] - min_p_[2]) / dda_grid_size_));
   }
 
+  Eigen::Vector3i toIndex(const POINT_TYPE* point) const
+  {
+    return Eigen::Vector3i(static_cast<int>((point->x - min_p_[0]) / dda_grid_size_),
+                           static_cast<int>((point->y - min_p_[1]) / dda_grid_size_),
+                           static_cast<int>((point->z - min_p_[2]) / dda_grid_size_));
+  }
+
   Vec3 fromIndex(const Eigen::Vector3i& index) const
   {
     return Vec3((index[0] + 0.5) * dda_grid_size_ + min_p_[0], (index[1] + 0.5) * dda_grid_size_ + min_p_[1],
                 (index[2] + 0.5) * dda_grid_size_ + min_p_[2]);
   }
 
-  size_t getArrayIndex(const size_t nx, const size_t ny, const size_t nz) const
+  size_t getArrayIndex(const Eigen::Vector3i& cell) const
   {
-    return nx + ny * map_size_[0] + nz * (map_size_[0] * map_size_[1]);
-  }
-
-  size_t getArrayIndex(const Eigen::Vector3i& point) const
-  {
-    return getArrayIndex(point.x(), point.y(), point.z());
+    return static_cast<size_t>(cell[0] + cell[1] * map_size_[0] + cell[2] * (map_size_[0] * map_size_[1]));
   }
 
   void setExists(const POINT_TYPE* point)
   {
-    const auto index = getArrayIndex(static_cast<size_t>((point->x - min_p_[0]) / dda_grid_size_),
-                                     static_cast<size_t>((point->y - min_p_[1]) / dda_grid_size_),
-                                     static_cast<size_t>((point->z - min_p_[2]) / dda_grid_size_));
-    point_exists_[index] = 1;
-    points_[index].push_back(point);
+    const size_t array_index = getArrayIndex(toIndex(point));
+    point_exists_[array_index] = 1;
+    points_[array_index].push_back(point);
   }
 
   const POINT_TYPE* hasIntersection(const Eigen::Vector3i& target_cell) const
   {
-    const auto index = getArrayIndex(target_cell);
-    if (!point_exists_[index])
+    const size_t array_index = getArrayIndex(target_cell);
+    if (!point_exists_[array_index])
     {
       return nullptr;
     }
-    for (const POINT_TYPE* target_org : points_.find(index)->second)
+    for (const POINT_TYPE* target_org : points_.find(array_index)->second)
     {
       const Vec3 target_rel(target_org->x - ray_begin_[0], target_org->y - ray_begin_[1],
                             target_org->z - ray_begin_[2]);
