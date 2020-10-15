@@ -106,6 +106,13 @@ void LidarMeasurementModelBeam::loadConfig(
     pnh.param("ray_angle_half", ray_angle_half, 0.25 * M_PI / 180.0);
     double dda_grid_size;
     pnh.param("dda_grid_size", dda_grid_size, 0.2);
+    const double grid_size_max = std::max({map_grid_x_, map_grid_y_, map_grid_z_});  // NOLINT(whitespace/braces)
+    if (dda_grid_size < grid_size_max)
+    {
+      ROS_WARN("dda_grid_size must be larger than grid size. New value: %f", grid_size_max);
+      dda_grid_size = grid_size_max;
+    }
+
     if (add_penalty_short_only_mode_)
     {
       hit_range_sq_ = 0;
