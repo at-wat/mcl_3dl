@@ -245,7 +245,7 @@ LidarMeasurementModelBeam::BeamStatus LidarMeasurementModelBeam::getBeamStatus(
     }
     else
     {
-      return BeamStatus::TOTAL_REFRECTION;
+      return BeamStatus::TOTAL_REFLECTION;
     }
   }
   return BeamStatus::LONG;

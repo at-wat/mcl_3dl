@@ -520,7 +520,7 @@ protected:
               marker.color.g = 0.0;
               marker.color.b = 0.0;
               break;
-            case LidarMeasurementModelBeam::BeamStatus::TOTAL_REFRECTION:
+            case LidarMeasurementModelBeam::BeamStatus::TOTAL_REFLECTION:
               marker.color.a = 0.2;
               marker.color.r = 0.0;
               marker.color.g = 1.0;
@@ -590,7 +590,7 @@ protected:
             marker.colors[1].g = 0.0;
             marker.colors[1].b = 1.0;
             break;
-          case LidarMeasurementModelBeam::BeamStatus::TOTAL_REFRECTION:
+          case LidarMeasurementModelBeam::BeamStatus::TOTAL_REFLECTION:
             marker.colors[0].a = 0.2;
             marker.colors[0].r = 0.0;
             marker.colors[0].g = 1.0;

@@ -77,7 +77,7 @@ public:
     SHORT,
     HIT,
     LONG,
-    TOTAL_REFRECTION
+    TOTAL_REFLECTION
   };
   LidarMeasurementModelBeam(const float grid_size_x, const float grid_size_y, const float grid_size_z);
 
