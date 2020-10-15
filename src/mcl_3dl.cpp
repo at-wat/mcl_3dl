@@ -135,7 +135,8 @@ protected:
     }
 
     pc_map_.reset(new pcl::PointCloud<PointType>);
-    pcl_conversions::toPCL(ros::Time::now(), pc_map_->header.stamp);
+    const ros::Time map_stamp = (msg->header.stamp == ros::Time()) ? ros::Time::now() : msg->header.stamp;
+    pcl_conversions::toPCL(map_stamp, pc_map_->header.stamp);
     pc_map2_.reset();
     pc_update_.reset();
     pcl::VoxelGrid18<PointType> ds;
