@@ -118,7 +118,7 @@ public:
     typename pcl::PointCloud<POINT_TYPE>::Ptr output(new pcl::PointCloud<POINT_TYPE>);
     output->header = pc->header;
 
-    if (pc->points.size() == 0)
+    if ((pc->points.size() == 0) || (num == 0))
     {
       return output;
     }

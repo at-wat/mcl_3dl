@@ -43,6 +43,7 @@
 #include <mcl_3dl/lidar_measurement_model_base.h>
 #include <mcl_3dl/pf.h>
 #include <mcl_3dl/point_cloud_random_sampler.h>
+#include <mcl_3dl/raycast.h>
 #include <mcl_3dl/vec3.h>
 
 namespace mcl_3dl
@@ -50,6 +51,7 @@ namespace mcl_3dl
 class LidarMeasurementModelBeam : public LidarMeasurementModelBase
 {
 private:
+  std::shared_ptr<Raycast<LidarMeasurementModelBase::PointType>> raycaster_;
   size_t num_points_;
   size_t num_points_default_;
   size_t num_points_global_;
@@ -60,16 +62,28 @@ private:
   float beam_likelihood_min_;
   float beam_likelihood_;
   float sin_total_ref_;
-  float map_grid_min_;
-  float map_grid_max_;
+  float map_grid_x_;
+  float map_grid_y_;
+  float map_grid_z_;
+  float search_range_;
   uint32_t filter_label_max_;
+  float additional_search_range_;
+  float hit_range_sq_;
+  bool add_penalty_short_only_mode_;
 
 public:
-  LidarMeasurementModelBeam(const float x, const float y, const float z);
+  enum class BeamStatus
+  {
+    SHORT,
+    HIT,
+    LONG,
+    TOTAL_REFRECTION
+  };
+  LidarMeasurementModelBeam(const float grid_size_x, const float grid_size_y, const float grid_size_z);
 
   inline float getMaxSearchRange() const
   {
-    return map_grid_max_ * 4;
+    return search_range_;
   }
   inline float getSinTotalRef() const
   {
@@ -79,7 +93,6 @@ public:
   {
     return filter_label_max_;
   }
-
   void loadConfig(
       const ros::NodeHandle& nh,
       const std::string& name);
@@ -93,6 +106,10 @@ public:
       const pcl::PointCloud<PointType>::ConstPtr& pc,
       const std::vector<Vec3>& origins,
       const State6DOF& s) const;
+  BeamStatus getBeamStatus(
+      ChunkedKdtree<PointType>::Ptr& kdtree,
+      const Vec3& beam_begin, const Vec3& beam_end,
+      typename mcl_3dl::Raycast<PointType>::CastResult& result) const;
 };
 }  // namespace mcl_3dl
 

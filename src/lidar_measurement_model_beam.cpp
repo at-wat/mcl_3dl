@@ -10,8 +10,8 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the copyright holder nor the names of its 
- *       contributors may be used to endorse or promote products derived from 
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -41,6 +41,8 @@
 #include <mcl_3dl/point_cloud_random_sampler.h>
 #include <mcl_3dl/point_types.h>
 #include <mcl_3dl/raycast.h>
+#include <mcl_3dl/raycasts/raycast_using_dda.h>
+#include <mcl_3dl/raycasts/raycast_using_kdtree.h>
 #include <mcl_3dl/vec3.h>
 
 #include <mcl_3dl/lidar_measurement_models/lidar_measurement_model_beam.h>
@@ -48,11 +50,13 @@
 namespace mcl_3dl
 {
 LidarMeasurementModelBeam::LidarMeasurementModelBeam(
-    const float x, const float y, const float z)
+    const float map_grid_x, const float map_grid_y, const float map_grid_z)
+  : map_grid_x_(map_grid_x)
+  , map_grid_y_(map_grid_y)
+  , map_grid_z_(map_grid_z)
 {
   // FIXME(at-wat): remove NOLINT after clang-format or roslint supports it
-  map_grid_min_ = std::min({ x, y, z });  // NOLINT(whitespace/braces)
-  map_grid_max_ = std::max({ x, y, z });  // NOLINT(whitespace/braces)
+  search_range_ = std::max({map_grid_x_, map_grid_y_, map_grid_z_}) * 4;  // NOLINT(whitespace/braces)
 }
 
 void LidarMeasurementModelBeam::loadConfig(
@@ -91,6 +95,46 @@ void LidarMeasurementModelBeam::loadConfig(
   int filter_label_max;
   pnh.param("filter_label_max", filter_label_max, static_cast<int>(0xFFFFFFFF));
   filter_label_max_ = filter_label_max;
+
+  pnh.param("add_penalty_short_only_mode", add_penalty_short_only_mode_, true);
+  bool use_raycast_using_dda;
+  pnh.param("use_raycast_using_dda", use_raycast_using_dda, false);
+  if (use_raycast_using_dda)
+  {
+    double ray_angle_half;
+    pnh.param("ray_angle_half", ray_angle_half, 0.25 * M_PI / 180.0);
+    double dda_grid_size;
+    pnh.param("dda_grid_size", dda_grid_size, 0.2);
+    if (add_penalty_short_only_mode_)
+    {
+      hit_range_sq_ = 0;
+      raycaster_ = std::make_shared<RaycastUsingDDA<PointType>>(map_grid_x_, map_grid_y_, map_grid_z_, dda_grid_size,
+                                                                ray_angle_half);
+    }
+    else
+    {
+      double hit_range;
+      pnh.param("hit_range", hit_range, 0.3);
+      hit_range_sq_ = std::pow(hit_range, 2);
+      raycaster_ = std::make_shared<RaycastUsingDDA<PointType>>(map_grid_x_, map_grid_y_, map_grid_z_, dda_grid_size,
+                                                                ray_angle_half, hit_range);
+    }
+  }
+  else
+  {
+    if (add_penalty_short_only_mode_)
+    {
+      hit_range_sq_ = 0;
+      raycaster_ = std::make_shared<RaycastUsingKDTree<PointType>>(map_grid_x_, map_grid_y_, map_grid_z_);
+    }
+    else
+    {
+      double hit_range;
+      pnh.param("hit_range", hit_range, 0.3);
+      hit_range_sq_ = std::pow(hit_range, 2);
+      raycaster_ = std::make_shared<RaycastUsingKDTree<PointType>>(map_grid_x_, map_grid_y_, map_grid_z_, hit_range);
+    }
+  }
 }
 
 void LidarMeasurementModelBeam::setGlobalLocalizationStatus(
@@ -155,24 +199,12 @@ LidarMeasurementResult LidarMeasurementModelBeam::measure(
   for (auto& p : pc_particle->points)
   {
     const int beam_header_id = p.label;
-    Raycast<LidarMeasurementModelBase::PointType> ray(
-        kdtree,
-        s.pos_ + s.rot_ * origins[beam_header_id],
-        Vec3(p.x, p.y, p.z),
-        map_grid_min_, map_grid_max_);
-    for (auto point : ray)
+    typename mcl_3dl::Raycast<PointType>::CastResult point;
+    const BeamStatus status =
+        getBeamStatus(kdtree, s.pos_ + s.rot_ * origins[beam_header_id], Vec3(p.x, p.y, p.z), point);
+    if ((status == BeamStatus::SHORT) || (!add_penalty_short_only_mode_ && (status == BeamStatus::LONG)))
     {
-      if (!point.collision_)
-        continue;
-      if (point.point_->label > filter_label_max_)
-        continue;
-
-      // reject total reflection
-      if (point.sin_angle_ > sin_total_ref_)
-      {
-        score_beam *= beam_likelihood_;
-      }
-      break;
+      score_beam *= beam_likelihood_;
     }
   }
   if (score_beam < beam_likelihood_min_)
@@ -180,4 +212,42 @@ LidarMeasurementResult LidarMeasurementModelBeam::measure(
 
   return LidarMeasurementResult(score_beam, 1.0);
 }
+
+LidarMeasurementModelBeam::BeamStatus LidarMeasurementModelBeam::getBeamStatus(
+    ChunkedKdtree<PointType>::Ptr& kdtree,
+    const Vec3& lidar_pos,
+    const Vec3& scan_pos,
+    typename mcl_3dl::Raycast<PointType>::CastResult& result) const
+{
+  raycaster_->setRay(kdtree, lidar_pos, scan_pos);
+  while (raycaster_->getNextCastResult(result))
+  {
+    if (!result.collision_)
+      continue;
+    if (result.point_->label > filter_label_max_)
+      continue;
+    // reject total reflection
+    if (result.sin_angle_ > sin_total_ref_)
+    {
+      const float distance_from_point_sq = std::pow(scan_pos[0] - result.point_->x, 2) +
+                                           std::pow(scan_pos[1] - result.point_->y, 2) +
+                                           std::pow(scan_pos[2] - result.point_->z, 2);
+
+      if (distance_from_point_sq < hit_range_sq_)
+      {
+        return BeamStatus::HIT;
+      }
+      else
+      {
+        return BeamStatus::SHORT;
+      }
+    }
+    else
+    {
+      return BeamStatus::TOTAL_REFRECTION;
+    }
+  }
+  return BeamStatus::LONG;
+}
+
 }  // namespace mcl_3dl

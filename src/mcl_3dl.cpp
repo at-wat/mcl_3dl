@@ -135,6 +135,7 @@ protected:
     }
 
     pc_map_.reset(new pcl::PointCloud<PointType>);
+    pcl_conversions::toPCL(ros::Time::now(), pc_map_->header.stamp);
     pc_map2_.reset();
     pc_update_.reset();
     pcl::VoxelGrid18<PointType> ds;
@@ -477,11 +478,59 @@ protected:
       pcl::PointCloud<PointType>::Ptr pc_particle_beam(new pcl::PointCloud<PointType>);
       *pc_particle_beam = *pc_locals["beam"];
       e.transform(*pc_particle_beam);
+      const auto beam_model = std::dynamic_pointer_cast<LidarMeasurementModelBeam>(lidar_measurements_["beam"]);
       for (auto& p : pc_particle_beam->points)
       {
         const int beam_header_id = p.label;
         const Vec3 pos = e.pos_ + e.rot_ * origins[beam_header_id];
         const Vec3 end(p.x, p.y, p.z);
+        mcl_3dl::Raycast<PointType>::CastResult point;
+        const LidarMeasurementModelBeam::BeamStatus beam_status = beam_model->getBeamStatus(kdtree_, pos, end, point);
+
+        if (beam_status != LidarMeasurementModelBeam::BeamStatus::LONG)
+        {
+          visualization_msgs::Marker marker;
+          marker.header.frame_id = params_.frame_ids_["map"];
+          marker.header.stamp = header.stamp;
+          marker.ns = "Ray collisions";
+          marker.id = markers.markers.size();
+          marker.type = visualization_msgs::Marker::CUBE;
+          marker.action = 0;
+          marker.pose.position.x = point.pos_.x_;
+          marker.pose.position.y = point.pos_.y_;
+          marker.pose.position.z = point.pos_.z_;
+          marker.pose.orientation.x = 0.0;
+          marker.pose.orientation.y = 0.0;
+          marker.pose.orientation.z = 0.0;
+          marker.pose.orientation.w = 1.0;
+          marker.scale.x = marker.scale.y = marker.scale.z = 0.2;
+          marker.lifetime = ros::Duration(0.2);
+          marker.frame_locked = true;
+          switch (beam_status)
+          {
+            case LidarMeasurementModelBeam::BeamStatus::HIT:
+              marker.color.a = 0.8;
+              marker.color.r = 0.0;
+              marker.color.g = 1.0;
+              marker.color.b = 0.0;
+              break;
+            case LidarMeasurementModelBeam::BeamStatus::SHORT:
+              marker.color.a = 0.8;
+              marker.color.r = 1.0;
+              marker.color.g = 0.0;
+              marker.color.b = 0.0;
+              break;
+            case LidarMeasurementModelBeam::BeamStatus::TOTAL_REFRECTION:
+              marker.color.a = 0.2;
+              marker.color.r = 0.0;
+              marker.color.g = 1.0;
+              marker.color.b = 0.0;
+              break;
+            default:
+              break;
+          }
+          markers.markers.push_back(marker);
+        }
 
         visualization_msgs::Marker marker;
         marker.header.frame_id = params_.frame_ids_["map"];
@@ -508,65 +557,51 @@ protected:
         marker.points[1].y = end.y_;
         marker.points[1].z = end.z_;
         marker.colors.resize(2);
-        marker.colors[0].a = 0.5;
-        marker.colors[0].r = 1.0;
-        marker.colors[0].g = 0.0;
-        marker.colors[0].b = 0.0;
-        marker.colors[1].a = 0.2;
-        marker.colors[1].r = 1.0;
-        marker.colors[1].g = 0.0;
-        marker.colors[1].b = 0.0;
 
-        markers.markers.push_back(marker);
-      }
-      const auto beam_model =
-          std::dynamic_pointer_cast<LidarMeasurementModelBeam>(
-              lidar_measurements_["beam"]);
-      const float sin_total_ref = beam_model->getSinTotalRef();
-      const uint32_t filter_label_max = beam_model->getFilterLabelMax();
-      for (auto& p : pc_particle_beam->points)
-      {
-        const int beam_header_id = p.label;
-        Raycast<PointType> ray(
-            kdtree_,
-            e.pos_ + e.rot_ * origins[beam_header_id],
-            Vec3(p.x, p.y, p.z),
-            params_.map_grid_min_, params_.map_grid_max_);
-        for (auto point : ray)
+        switch (beam_status)
         {
-          if (!point.collision_)
-            continue;
-          if (point.point_->label > filter_label_max)
-            continue;
-
-          visualization_msgs::Marker marker;
-          marker.header.frame_id = params_.frame_ids_["map"];
-          marker.header.stamp = header.stamp;
-          marker.ns = "Ray collisions";
-          marker.id = markers.markers.size();
-          marker.type = visualization_msgs::Marker::CUBE;
-          marker.action = 0;
-          marker.pose.position.x = point.pos_.x_;
-          marker.pose.position.y = point.pos_.y_;
-          marker.pose.position.z = point.pos_.z_;
-          marker.pose.orientation.x = 0.0;
-          marker.pose.orientation.y = 0.0;
-          marker.pose.orientation.z = 0.0;
-          marker.pose.orientation.w = 1.0;
-          marker.scale.x = marker.scale.y = marker.scale.z = 0.4;
-          marker.lifetime = ros::Duration(0.2);
-          marker.frame_locked = true;
-          marker.color.a = 0.8;
-          marker.color.r = 1.0;
-          marker.color.g = 0.0;
-          marker.color.b = 0.0;
-          if (point.sin_angle_ < sin_total_ref)
-          {
-            marker.color.a = 0.2;
-          }
-          markers.markers.push_back(marker);
-          break;
+          case LidarMeasurementModelBeam::BeamStatus::HIT:
+            marker.colors[0].a = 0.5;
+            marker.colors[0].r = 0.0;
+            marker.colors[0].g = 1.0;
+            marker.colors[0].b = 0.0;
+            marker.colors[1].a = 0.8;
+            marker.colors[1].r = 0.0;
+            marker.colors[1].g = 1.0;
+            marker.colors[1].b = 0.0;
+            break;
+          case LidarMeasurementModelBeam::BeamStatus::SHORT:
+            marker.colors[0].a = 0.5;
+            marker.colors[0].r = 1.0;
+            marker.colors[0].g = 0.0;
+            marker.colors[0].b = 0.0;
+            marker.colors[1].a = 0.8;
+            marker.colors[1].r = 1.0;
+            marker.colors[1].g = 0.0;
+            marker.colors[1].b = 0.0;
+            break;
+          case LidarMeasurementModelBeam::BeamStatus::LONG:
+            marker.colors[0].a = 0.5;
+            marker.colors[0].r = 0.0;
+            marker.colors[0].g = 0.0;
+            marker.colors[0].b = 1.0;
+            marker.colors[1].a = 0.8;
+            marker.colors[1].r = 0.0;
+            marker.colors[1].g = 0.0;
+            marker.colors[1].b = 1.0;
+            break;
+          case LidarMeasurementModelBeam::BeamStatus::TOTAL_REFRECTION:
+            marker.colors[0].a = 0.2;
+            marker.colors[0].r = 0.0;
+            marker.colors[0].g = 1.0;
+            marker.colors[0].b = 0.0;
+            marker.colors[1].a = 0.2;
+            marker.colors[1].r = 0.0;
+            marker.colors[1].g = 1.0;
+            marker.colors[1].b = 0.0;
+            break;
         }
+        markers.markers.push_back(marker);
       }
 
       pcl::PointCloud<PointType>::Ptr pc_particle(new pcl::PointCloud<PointType>);
@@ -1307,6 +1342,7 @@ public:
           pc_map2_.reset(new pcl::PointCloud<PointType>);
         *pc_map2_ = *pc_map_ + *pc_update_;
         pc_update_.reset();
+        pcl_conversions::toPCL(ros::Time::now(), pc_map2_->header.stamp);
       }
       else
       {
