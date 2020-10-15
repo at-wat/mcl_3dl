@@ -109,11 +109,11 @@ TEST(PointCloudSamplerWithNormal, Sampling)
   // Fix random seeds to avoid flaky results
   const std::vector<unsigned int> seeds =
       {
-          123456,
-          234567,
-          345678,
-          456789,
-          567890,
+          12345,
+          23456,
+          34567,
+          45678,
+          56789,
       };
 
   struct ParameterSet
@@ -127,11 +127,11 @@ TEST(PointCloudSamplerWithNormal, Sampling)
   const std::vector<ParameterSet> parameters =
       {
           // Weights of points in the wall at right angles: 10, weights of points in the parallel wall: 1
-          {2.0, 4.0, 10.0, 0.9, 1.0},  // NOLINT(whitespace/braces)
+          {2.0, 4.0, 10.0, 0.85, 1.0},  // NOLINT(whitespace/braces)
           // Weights of points in the wall at right angles: 1, weights of points in the parallel wall: 1
-          {6.0, 7.0, 10.0, 0.45, 0.55},  // NOLINT(whitespace/braces)
+          {6.0, 7.0, 10.0, 0.4, 0.6},  // NOLINT(whitespace/braces)
           // Weights of points in the wall at right angles: 3, weights of points in the parallel wall: 1
-          {2.0, 8.0, 5.0, 0.7, 0.8},  // NOLINT(whitespace/braces)
+          {2.0, 8.0, 5.0, 0.65, 0.85},  // NOLINT(whitespace/braces)
       };
 
   for (const unsigned int seed : seeds)
