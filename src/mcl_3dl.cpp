@@ -133,10 +133,10 @@ protected:
       has_map_ = false;
       return;
     }
+    const ros::Time map_stamp = (msg->header.stamp != ros::Time()) ? msg->header.stamp : ros::Time::now();
+    pcl_conversions::toPCL(map_stamp, pc_tmp->header.stamp);
 
     pc_map_.reset(new pcl::PointCloud<PointType>);
-    const ros::Time map_stamp = msg->header.stamp.isValid() ? msg->header.stamp : ros::Time::now();
-    pcl_conversions::toPCL(map_stamp, pc_map_->header.stamp);
     pc_map2_.reset();
     pc_update_.reset();
     pcl::VoxelGrid18<PointType> ds;

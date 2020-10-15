@@ -185,7 +185,8 @@ private:
     }
 
     points_.clear();
-    point_exists_.resize(point_total, 0);
+    point_exists_.resize(point_total);
+    std::fill(point_exists_.begin(), point_exists_.end(), 0);
     for (const auto& p : *input)
     {
       setExists(&p);
