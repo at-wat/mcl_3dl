@@ -109,11 +109,11 @@ TEST(PointCloudSamplerWithNormal, Sampling)
   // Fix random seeds to avoid flaky results
   const std::vector<unsigned int> seeds =
       {
-          12345,
-          23456,
-          34567,
-          45678,
-          56789,
+          123456,
+          234567,
+          345678,
+          456789,
+          567890,
       };
 
   struct ParameterSet
@@ -156,8 +156,8 @@ TEST(PointCloudSamplerWithNormal, Sampling)
         ++counts[index / std::pow(wall_length, 2)];
       }
       const double ratio = static_cast<double>(counts[0]) / (counts[0] + counts[1]);
-      EXPECT_GE(ratio, parameter.expected_ratio_min);
-      EXPECT_LE(ratio, parameter.expected_ratio_max);
+      EXPECT_GE(ratio, parameter.expected_ratio_min) << "Failed at seed #" << seed;
+      EXPECT_LE(ratio, parameter.expected_ratio_max) << "Failed at seed #" << seed;
     }
   }
 
