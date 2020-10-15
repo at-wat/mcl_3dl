@@ -10,8 +10,8 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the copyright holder nor the names of its 
- *       contributors may be used to endorse or promote products derived from 
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -33,8 +33,8 @@
 #include <cmath>
 #include <vector>
 
-#include <mcl_3dl/vec3.h>
 #include <mcl_3dl/chunked_kdtree.h>
+#include <mcl_3dl/vec3.h>
 
 namespace mcl_3dl
 {
@@ -50,6 +50,14 @@ public:
     float sin_angle_;
     const POINT_TYPE* point_;
 
+    CastResult()
+      : pos_(0, 0, 0)
+      , collision_(false)
+      , sin_angle_(0)
+      , point_(nullptr)
+    {
+    }
+
     CastResult(const Vec3& pos, bool collision, float sin_angle, const POINT_TYPE* point)
       : pos_(pos)
       , collision_(collision)
@@ -58,107 +66,12 @@ public:
     {
     }
   };
-  class Iterator
+
+  Raycast()
   {
-  protected:
-    typename ChunkedKdtree<POINT_TYPE>::Ptr kdtree_;
-    Vec3 pos_;
-    Vec3 inc_;
-    size_t count_;
-    size_t length_;
-    float grid_min_;
-    float grid_max_;
-
-  public:
-    friend Raycast;
-
-    Iterator(
-        typename ChunkedKdtree<POINT_TYPE>::Ptr kdtree,
-        const Vec3 begin, const Vec3 end,
-        const float grid_min, const float grid_max)
-    {
-      kdtree_ = kdtree;
-      length_ = std::floor((end - begin).norm() / grid_min - std::sqrt(2.0));
-      inc_ = (end - begin).normalized() * grid_min;
-      pos_ = begin + inc_;
-      count_ = 1;
-      grid_min_ = grid_min;
-      grid_max_ = grid_max;
-    }
-    Iterator& operator++()
-    {
-      ++count_;
-      pos_ += inc_;
-      return *this;
-    }
-    CastResult operator*()
-    {
-      bool collision(false);
-      float sin_ang(0.0);
-
-      const POINT_TYPE* point = nullptr;
-      POINT_TYPE center;
-      center.x = pos_.x_;
-      center.y = pos_.y_;
-      center.z = pos_.z_;
-      std::vector<int> id(1);
-      std::vector<float> sqdist(1);
-      if (kdtree_->radiusSearch(
-              center,
-              std::sqrt(2.0) * grid_max_ / 2.0, id, sqdist, 1))
-      {
-        collision = true;
-        point = &(kdtree_->getInputCloud()->points[id[0]]);
-
-        const float d0 = std::sqrt(sqdist[0]);
-        const Vec3 pos_prev = pos_ - (inc_ * 2.0);
-        POINT_TYPE center_prev;
-        center_prev.x = pos_prev.x_;
-        center_prev.y = pos_prev.y_;
-        center_prev.z = pos_prev.z_;
-        if (kdtree_->radiusSearch(
-                center_prev,
-                grid_min_ * 2 + std::sqrt(2.0) * grid_max_ / 2.0, id, sqdist, 1))
-        {
-          const float d1 = std::sqrt(sqdist[0]);
-          sin_ang = fabs(d1 - d0) / (grid_min_ * 2.0);
-        }
-        else
-        {
-          sin_ang = 1.0;
-        }
-      }
-      return CastResult(pos_, collision, sin_ang, point);
-    }
-    bool operator!=(const Iterator& a) const
-    {
-      return count_ != a.count_;
-    }
-  };
-
-protected:
-  typename ChunkedKdtree<POINT_TYPE>::Ptr kdtree_;
-  Iterator begin_;
-  Iterator end_;
-
-public:
-  Raycast(
-      typename ChunkedKdtree<POINT_TYPE>::Ptr kdtree,
-      const Vec3 begin, const Vec3 end, const float grid, const float grid_max)
-    : begin_(kdtree, begin, end, grid, grid_max)
-    , end_(kdtree, begin, end, grid, grid_max)
-  {
-    kdtree_ = kdtree;
-    end_.count_ = end_.length_;
   }
-  Iterator begin()
-  {
-    return begin_;
-  }
-  Iterator end()
-  {
-    return end_;
-  }
+  virtual void setRay(typename ChunkedKdtree<POINT_TYPE>::Ptr kdtree, const Vec3 ray_begin, const Vec3 ray_end) = 0;
+  virtual bool getNextCastResult(CastResult& result) = 0;
 };
 }  // namespace mcl_3dl
 
