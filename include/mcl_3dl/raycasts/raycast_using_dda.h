@@ -59,7 +59,6 @@ public:
     , min_dist_thr_sq_(std::pow(map_grid_size_x, 2) + std::pow(map_grid_size_y, 2) + std::pow(map_grid_size_y, 2))
     , dda_grid_size_(dda_grid_size)
     , ray_angle_half_(ray_angle_half)
-    // Set minimum tolerance of ray hit to the diagonal size of the voxel (dda_grid_size_ * sqrt(3))
     , hit_tolerance_(hit_tolerance)
   {
   }

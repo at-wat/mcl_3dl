@@ -52,7 +52,6 @@ public:
     // FIXME(at-wat): remove NOLINT after clang-format or roslint supports it
     , map_grid_min_(std::min({ map_grid_size_x, map_grid_size_y, map_grid_size_z }))  // NOLINT(whitespace/braces)
     , map_grid_max_(std::max({ map_grid_size_x, map_grid_size_y, map_grid_size_z }))  // NOLINT(whitespace/braces)
-    // Set minimum tolerance of ray hit to the diagonal size of the voxel (map_grid_min_ * sqrt(3))
     , hit_tolerance_(hit_tolerance)
   {
   }
