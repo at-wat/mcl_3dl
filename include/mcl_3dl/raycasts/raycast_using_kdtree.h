@@ -47,19 +47,20 @@ class RaycastUsingKDTree : public Raycast<POINT_TYPE>
 
 public:
   RaycastUsingKDTree(const float map_grid_size_x, const float map_grid_size_y, const float map_grid_size_z,
-                     const float additional_search_range)
+                     const float hit_tolerance)
     : Raycast<POINT_TYPE>()
     // FIXME(at-wat): remove NOLINT after clang-format or roslint supports it
     , map_grid_min_(std::min({ map_grid_size_x, map_grid_size_y, map_grid_size_z }))  // NOLINT(whitespace/braces)
     , map_grid_max_(std::max({ map_grid_size_x, map_grid_size_y, map_grid_size_z }))  // NOLINT(whitespace/braces)
-    , additional_search_range_(additional_search_range)
+    // Set minimum tolerance of ray hit to the diagonal size of the voxel (map_grid_min_ * sqrt(3))
+    , hit_tolerance_(hit_tolerance)
   {
   }
 
   void setRay(typename ChunkedKdtree<POINT_TYPE>::Ptr kdtree, const Vec3 ray_begin, const Vec3 ray_end) final
   {
     kdtree_ = kdtree;
-    length_ = std::floor(((ray_end - ray_begin).norm() + additional_search_range_) / map_grid_min_);
+    length_ = std::floor(((ray_end - ray_begin).norm() - hit_tolerance_) / map_grid_min_);
     inc_ = (ray_end - ray_begin).normalized() * map_grid_min_;
     count_ = 1;
     pos_ = ray_begin + inc_;
@@ -117,7 +118,7 @@ private:
   size_t count_;
   const float map_grid_min_;
   const float map_grid_max_;
-  const float additional_search_range_;
+  const float hit_tolerance_;
 };
 
 }  // namespace mcl_3dl

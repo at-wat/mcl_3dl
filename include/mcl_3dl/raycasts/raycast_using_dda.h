@@ -54,12 +54,13 @@ class RaycastUsingDDA : public Raycast<POINT_TYPE>
 
 public:
   RaycastUsingDDA(const double map_grid_size_x, const double map_grid_size_y, const double map_grid_size_z,
-                  const double dda_grid_size, const double ray_angle_half, const double additional_range)
+                  const double dda_grid_size, const double ray_angle_half, const double hit_tolerance)
     : Raycast<POINT_TYPE>()
     , min_dist_thr_sq_(std::pow(map_grid_size_x, 2) + std::pow(map_grid_size_y, 2) + std::pow(map_grid_size_y, 2))
     , dda_grid_size_(dda_grid_size)
     , ray_angle_half_(ray_angle_half)
-    , additional_range_(additional_range)
+    // Set minimum tolerance of ray hit to the diagonal size of the voxel (dda_grid_size_ * sqrt(3))
+    , hit_tolerance_(hit_tolerance)
   {
   }
 
@@ -69,7 +70,7 @@ public:
     updatePointCloud();
     ray_begin_ = ray_begin;
     ray_direction_vector_ = (ray_end_org - ray_begin).normalized();
-    const Vec3 ray_end = ray_direction_vector_ * additional_range_ + ray_end_org;
+    const Vec3 ray_end = ray_end_org - ray_direction_vector_ * hit_tolerance_;
     begin_index_ = toIndex(ray_begin);
     end_index_ = toIndex(ray_end);
     const Eigen::Vector3i distance_index = end_index_ - begin_index_;
@@ -255,7 +256,7 @@ private:
   const double min_dist_thr_sq_;
   const double dda_grid_size_;
   const double ray_angle_half_;
-  const double additional_range_;
+  const double hit_tolerance_;
 
   Eigen::Vector3i map_size_;
   pcl::PCLHeader point_cloud_header_;

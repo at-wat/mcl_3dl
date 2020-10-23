@@ -53,7 +53,7 @@ TEST(RaycastUsingDDA, Collision)
 
   mcl_3dl::ChunkedKdtree<pcl::PointXYZ>::Ptr kdtree(new mcl_3dl::ChunkedKdtree<pcl::PointXYZ>(10.0, 1.0));
   kdtree->setInputCloud(pc.makeShared());
-  mcl_3dl::RaycastUsingDDA<pcl::PointXYZ> raycaster(0.1, 0.1, 0.1, 0.1, 0.5, -sqrt(3.0) * 0.1);
+  mcl_3dl::RaycastUsingDDA<pcl::PointXYZ> raycaster(0.1, 0.1, 0.1, 0.1, 0.5, sqrt(3.0) * 0.1);
   for (float y = -0.8; y < 0.8; y += 0.11)
   {
     for (float z = -0.8; z < 0.8; z += 0.13)
@@ -119,7 +119,7 @@ TEST(RaycastUsingDDA, CollisionTolerance)
   kdtree->setInputCloud(pc.makeShared());
 
   {
-    mcl_3dl::RaycastUsingDDA<pcl::PointXYZ> raycaster(0.05, 0.1, 0.1, 0.1, 0.5, -sqrt(3.0) * 0.1);
+    mcl_3dl::RaycastUsingDDA<pcl::PointXYZ> raycaster(0.05, 0.1, 0.1, 0.1, 0.5, sqrt(3.0) * 0.1);
 
     bool collision = false;
     raycaster.setRay(kdtree, mcl_3dl::Vec3(0.0, 0.0, 0.0), mcl_3dl::Vec3(0.7, 0.0, 0.0));
@@ -136,7 +136,7 @@ TEST(RaycastUsingDDA, CollisionTolerance)
   }
   {
     bool collision = false;
-    mcl_3dl::RaycastUsingDDA<pcl::PointXYZ> raycaster(0.1, 0.15, 0.15, 0.15, 0.5, -sqrt(3.0) * 0.15);
+    mcl_3dl::RaycastUsingDDA<pcl::PointXYZ> raycaster(0.1, 0.15, 0.15, 0.15, 0.5, sqrt(3.0) * 0.15);
     raycaster.setRay(kdtree, mcl_3dl::Vec3(0.0, 0.0, 0.0), mcl_3dl::Vec3(0.5, 0.0, 0.0));
     mcl_3dl::Raycast<pcl::PointXYZ>::CastResult point;
     while (raycaster.getNextCastResult(point))
@@ -151,7 +151,7 @@ TEST(RaycastUsingDDA, CollisionTolerance)
   }
   {
     bool collision = false;
-    mcl_3dl::RaycastUsingDDA<pcl::PointXYZ> raycaster(0.1, 0.15, 0.15, 0.15, 0.5, -sqrt(3.0) * 0.15);
+    mcl_3dl::RaycastUsingDDA<pcl::PointXYZ> raycaster(0.1, 0.15, 0.15, 0.15, 0.5, sqrt(3.0) * 0.15);
     raycaster.setRay(kdtree, mcl_3dl::Vec3(0.0, 0.0, 0.0), mcl_3dl::Vec3(0.3, 0.0, 0.0));
     mcl_3dl::Raycast<pcl::PointXYZ>::CastResult point;
     while (raycaster.getNextCastResult(point))
@@ -208,26 +208,26 @@ TEST(RaycastUsingDDA, Waypoints)
 
   {
     const std::vector<mcl_3dl::Vec3> expected_points =
-    {
-        mcl_3dl::Vec3(0.1, 0.0, 0.0), mcl_3dl::Vec3(0.1, 0.1, 0.0), mcl_3dl::Vec3(0.2, 0.1, 0.0),
-        mcl_3dl::Vec3(0.2, 0.2, 0.0), mcl_3dl::Vec3(0.3, 0.2, 0.0), mcl_3dl::Vec3(0.4, 0.2, 0.0),
-        mcl_3dl::Vec3(0.4, 0.3, 0.0), mcl_3dl::Vec3(0.5, 0.3, 0.0), mcl_3dl::Vec3(0.5, 0.4, 0.0),
-        mcl_3dl::Vec3(0.6, 0.4, 0.0), mcl_3dl::Vec3(0.7, 0.4, 0.0), mcl_3dl::Vec3(0.7, 0.5, 0.0),
-        mcl_3dl::Vec3(0.8, 0.5, 0.0), mcl_3dl::Vec3(0.8, 0.6, 0.0), mcl_3dl::Vec3(0.9, 0.6, 0.0),
-    };
+        {
+          mcl_3dl::Vec3(0.1, 0.0, 0.0), mcl_3dl::Vec3(0.1, 0.1, 0.0), mcl_3dl::Vec3(0.2, 0.1, 0.0),
+          mcl_3dl::Vec3(0.2, 0.2, 0.0), mcl_3dl::Vec3(0.3, 0.2, 0.0), mcl_3dl::Vec3(0.4, 0.2, 0.0),
+          mcl_3dl::Vec3(0.4, 0.3, 0.0), mcl_3dl::Vec3(0.5, 0.3, 0.0), mcl_3dl::Vec3(0.5, 0.4, 0.0),
+          mcl_3dl::Vec3(0.6, 0.4, 0.0), mcl_3dl::Vec3(0.7, 0.4, 0.0), mcl_3dl::Vec3(0.7, 0.5, 0.0),
+          mcl_3dl::Vec3(0.8, 0.5, 0.0), mcl_3dl::Vec3(0.8, 0.6, 0.0), mcl_3dl::Vec3(0.9, 0.6, 0.0),
+        };
     compareRayWaypoints(kdtree, raycaster, mcl_3dl::Vec3(0.0, 0.0, 0.0), mcl_3dl::Vec3(1.2, 0.8, 0.0), expected_points,
                         true);
   }
   {
     // Start and end grids are same, but waypoints are different.
     const std::vector<mcl_3dl::Vec3> expected_points =
-    {
-        mcl_3dl::Vec3(0.0, 0.1, 0.0), mcl_3dl::Vec3(0.1, 0.1, 0.0), mcl_3dl::Vec3(0.1, 0.2, 0.0),
-        mcl_3dl::Vec3(0.2, 0.2, 0.0), mcl_3dl::Vec3(0.3, 0.2, 0.0), mcl_3dl::Vec3(0.3, 0.3, 0.0),
-        mcl_3dl::Vec3(0.4, 0.3, 0.0), mcl_3dl::Vec3(0.4, 0.4, 0.0), mcl_3dl::Vec3(0.5, 0.4, 0.0),
-        mcl_3dl::Vec3(0.6, 0.4, 0.0), mcl_3dl::Vec3(0.6, 0.5, 0.0), mcl_3dl::Vec3(0.7, 0.5, 0.0),
-        mcl_3dl::Vec3(0.7, 0.6, 0.0), mcl_3dl::Vec3(0.8, 0.6, 0.0), mcl_3dl::Vec3(0.9, 0.6, 0.0),
-    };
+        {
+          mcl_3dl::Vec3(0.0, 0.1, 0.0), mcl_3dl::Vec3(0.1, 0.1, 0.0), mcl_3dl::Vec3(0.1, 0.2, 0.0),
+          mcl_3dl::Vec3(0.2, 0.2, 0.0), mcl_3dl::Vec3(0.3, 0.2, 0.0), mcl_3dl::Vec3(0.3, 0.3, 0.0),
+          mcl_3dl::Vec3(0.4, 0.3, 0.0), mcl_3dl::Vec3(0.4, 0.4, 0.0), mcl_3dl::Vec3(0.5, 0.4, 0.0),
+          mcl_3dl::Vec3(0.6, 0.4, 0.0), mcl_3dl::Vec3(0.6, 0.5, 0.0), mcl_3dl::Vec3(0.7, 0.5, 0.0),
+          mcl_3dl::Vec3(0.7, 0.6, 0.0), mcl_3dl::Vec3(0.8, 0.6, 0.0), mcl_3dl::Vec3(0.9, 0.6, 0.0),
+        };
     compareRayWaypoints(kdtree, raycaster, mcl_3dl::Vec3(-0.04, 0.04, 0.0), mcl_3dl::Vec3(1.16, 0.84, 0.0),
                         expected_points, true);
   }
@@ -246,20 +246,20 @@ TEST(RaycastUsingDDA, Intersection)
   mcl_3dl::RaycastUsingDDA<pcl::PointXYZ> raycaster(0.05, 0.05, 0.05, 0.2, 0.01, 0.0);
   {
     const std::vector<mcl_3dl::Vec3> expected_points =
-    {
-        mcl_3dl::Vec3(0.2, 0.0, 0.0),  mcl_3dl::Vec3(0.2, -0.2, 0.0), mcl_3dl::Vec3(0.4, -0.2, 0.0),
-        mcl_3dl::Vec3(0.6, -0.2, 0.0), mcl_3dl::Vec3(0.6, -0.4, 0.0),
-    };
+        {
+          mcl_3dl::Vec3(0.2, 0.0, 0.0), mcl_3dl::Vec3(0.2, -0.2, 0.0), mcl_3dl::Vec3(0.4, -0.2, 0.0),
+          mcl_3dl::Vec3(0.6, -0.2, 0.0), mcl_3dl::Vec3(0.6, -0.4, 0.0),
+        };
     compareRayWaypoints(kdtree, raycaster, mcl_3dl::Vec3(0.0, 0.0, 0.0), mcl_3dl::Vec3(1.0, -0.55, 0.0),
                         expected_points, true);
   }
   {
     const std::vector<mcl_3dl::Vec3> expected_points =
-    {
-        mcl_3dl::Vec3(0.2, 0.0, 0.0),  mcl_3dl::Vec3(0.2, -0.2, 0.0), mcl_3dl::Vec3(0.4, -0.2, 0.0),
-        mcl_3dl::Vec3(0.6, -0.2, 0.0), mcl_3dl::Vec3(0.6, -0.4, 0.0),  // The ray passes through this voxel
-        mcl_3dl::Vec3(0.8, -0.4, 0.0), mcl_3dl::Vec3(1.0, -0.4, 0.0), mcl_3dl::Vec3(1.0, -0.6, 0.0),
-    };
+        {
+          mcl_3dl::Vec3(0.2, 0.0, 0.0), mcl_3dl::Vec3(0.2, -0.2, 0.0), mcl_3dl::Vec3(0.4, -0.2, 0.0),
+          mcl_3dl::Vec3(0.6, -0.2, 0.0), mcl_3dl::Vec3(0.6, -0.4, 0.0),  // The ray passes through this voxel
+          mcl_3dl::Vec3(0.8, -0.4, 0.0), mcl_3dl::Vec3(1.0, -0.4, 0.0), mcl_3dl::Vec3(1.0, -0.6, 0.0),
+        };
     // The ray does not hit the obstacle as the distance between them is larger than the threshold.
     compareRayWaypoints(kdtree, raycaster, mcl_3dl::Vec3(0.0, 0.0, 0.0), mcl_3dl::Vec3(1.1, -0.55, 0.0),
                         expected_points, false);

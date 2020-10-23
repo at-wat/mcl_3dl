@@ -49,7 +49,7 @@ TEST(Raycast, Collision)
   }
   mcl_3dl::ChunkedKdtree<pcl::PointXYZ>::Ptr kdtree(new mcl_3dl::ChunkedKdtree<pcl::PointXYZ>(10.0, 1.0));
   kdtree->setInputCloud(pc.makeShared());
-  mcl_3dl::RaycastUsingKDTree<pcl::PointXYZ> raycaster(0.1, 0.1, 0.1);
+  mcl_3dl::RaycastUsingKDTree<pcl::PointXYZ> raycaster(0.1, 0.1, 0.1, 0.1 * std::sqrt(3.f));
   for (float y = -0.8; y < 0.8; y += 0.11)
   {
     for (float z = -0.8; z < 0.8; z += 0.13)
@@ -112,7 +112,7 @@ TEST(Raycast, CollisionTolerance)
   kdtree->setInputCloud(pc.makeShared());
 
   {
-    mcl_3dl::RaycastUsingKDTree<pcl::PointXYZ> raycaster(0.05, 0.1, 0.1);
+    mcl_3dl::RaycastUsingKDTree<pcl::PointXYZ> raycaster(0.05, 0.1, 0.1, 0.1 * std::sqrt(3.f));
     bool collision = false;
     raycaster.setRay(kdtree, mcl_3dl::Vec3(0.0, 0.0, 0.0), mcl_3dl::Vec3(0.7, 0.0, 0.0));
     mcl_3dl::Raycast<pcl::PointXYZ>::CastResult point;
@@ -128,7 +128,7 @@ TEST(Raycast, CollisionTolerance)
   }
   {
     bool collision = false;
-    mcl_3dl::RaycastUsingKDTree<pcl::PointXYZ> raycaster(0.1, 0.15, 0.15);
+    mcl_3dl::RaycastUsingKDTree<pcl::PointXYZ> raycaster(0.1, 0.15, 0.15, 0.15 * std::sqrt(3.f));
     raycaster.setRay(kdtree, mcl_3dl::Vec3(0.0, 0.0, 0.0), mcl_3dl::Vec3(0.5, 0.0, 0.0));
     mcl_3dl::Raycast<pcl::PointXYZ>::CastResult point;
     while (raycaster.getNextCastResult(point))
@@ -143,7 +143,7 @@ TEST(Raycast, CollisionTolerance)
   }
   {
     bool collision = false;
-    mcl_3dl::RaycastUsingKDTree<pcl::PointXYZ> raycaster(0.1, 0.15, 0.15);
+    mcl_3dl::RaycastUsingKDTree<pcl::PointXYZ> raycaster(0.1, 0.15, 0.15, 0.15 * std::sqrt(3.f));
     raycaster.setRay(kdtree, mcl_3dl::Vec3(0.0, 0.0, 0.0), mcl_3dl::Vec3(0.3, 0.0, 0.0));
     mcl_3dl::Raycast<pcl::PointXYZ>::CastResult point;
     while (raycaster.getNextCastResult(point))
@@ -170,7 +170,7 @@ TEST(Raycast, SinAng)
   }
   mcl_3dl::ChunkedKdtree<pcl::PointXYZ>::Ptr kdtree(new mcl_3dl::ChunkedKdtree<pcl::PointXYZ>(10.0, 1.0));
   kdtree->setInputCloud(pc.makeShared());
-  mcl_3dl::RaycastUsingKDTree<pcl::PointXYZ> raycaster(0.1, 0.1, 0.1);
+  mcl_3dl::RaycastUsingKDTree<pcl::PointXYZ> raycaster(0.1, 0.1, 0.1, 0.1 * std::sqrt(3.f));
 
   {
     bool collision = false;
