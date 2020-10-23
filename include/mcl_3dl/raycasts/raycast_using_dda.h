@@ -67,6 +67,12 @@ public:
   {
     kdtree_ = kdtree;
     updatePointCloud();
+    if (!isPointWithinMap(ray_begin))
+    {
+      max_movement_ = 0;
+      pos_ = 0;
+      return;
+    }
     ray_begin_ = ray_begin;
     ray_direction_vector_ = (ray_end_org - ray_begin).normalized();
     const Vec3 ray_end = ray_end_org - ray_direction_vector_ * hit_tolerance_;
@@ -249,6 +255,18 @@ private:
       }
     }
     return nullptr;
+  }
+
+  bool isPointWithinMap(const Vec3& point) const
+  {
+    for (int i = 0; i < 3; ++i)
+    {
+      if ((point[i] < min_p_[i]) || (max_p_[i] < point[i]))
+      {
+        return false;
+      }
+    }
+    return true;
   }
 
   typename ChunkedKdtree<POINT_TYPE>::Ptr kdtree_;
