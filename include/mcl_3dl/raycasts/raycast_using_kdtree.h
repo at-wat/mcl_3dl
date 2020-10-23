@@ -50,17 +50,9 @@ public:
                      const float additional_search_range)
     : Raycast<POINT_TYPE>()
     // FIXME(at-wat): remove NOLINT after clang-format or roslint supports it
-    , map_grid_min_(std::min({map_grid_size_x, map_grid_size_y, map_grid_size_z}))  // NOLINT(whitespace/braces)
-    , map_grid_max_(std::max({map_grid_size_x, map_grid_size_y, map_grid_size_z}))  // NOLINT(whitespace/braces)
+    , map_grid_min_(std::min({ map_grid_size_x, map_grid_size_y, map_grid_size_z }))  // NOLINT(whitespace/braces)
+    , map_grid_max_(std::max({ map_grid_size_x, map_grid_size_y, map_grid_size_z }))  // NOLINT(whitespace/braces)
     , additional_search_range_(additional_search_range)
-  {
-  }
-  RaycastUsingKDTree(const float map_grid_size_x, const float map_grid_size_y, const float map_grid_size_z)
-    : Raycast<POINT_TYPE>()
-    // FIXME(at-wat): remove NOLINT after clang-format or roslint supports it
-    , map_grid_min_(std::min({map_grid_size_x, map_grid_size_y, map_grid_size_z}))  // NOLINT(whitespace/braces)
-    , map_grid_max_(std::max({map_grid_size_x, map_grid_size_y, map_grid_size_z}))  // NOLINT(whitespace/braces)
-    , additional_search_range_(-map_grid_min_ * std::sqrt(2.0))
   {
   }
 

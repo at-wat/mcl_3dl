@@ -57,7 +57,7 @@ LidarMeasurementModelBeam::LidarMeasurementModelBeam(
   , map_grid_z_(map_grid_z)
 {
   // FIXME(at-wat): remove NOLINT after clang-format or roslint supports it
-  search_range_ = std::max({map_grid_x_, map_grid_y_, map_grid_z_}) * 4;  // NOLINT(whitespace/braces)
+  search_range_ = std::max({ map_grid_x_, map_grid_y_, map_grid_z_ }) * 4;  // NOLINT(whitespace/braces)
 }
 
 void LidarMeasurementModelBeam::loadConfig(
@@ -98,6 +98,9 @@ void LidarMeasurementModelBeam::loadConfig(
   filter_label_max_ = filter_label_max;
 
   pnh.param("add_penalty_short_only_mode", add_penalty_short_only_mode_, true);
+  double hit_range;
+  pnh.param("hit_range", hit_range, 0.3);
+  hit_range_sq_ = std::pow(hit_range, 2);
   bool use_raycast_using_dda;
   pnh.param("use_raycast_using_dda", use_raycast_using_dda, false);
   if (use_raycast_using_dda)
@@ -106,42 +109,20 @@ void LidarMeasurementModelBeam::loadConfig(
     pnh.param("ray_angle_half", ray_angle_half, 0.25 * M_PI / 180.0);
     double dda_grid_size;
     pnh.param("dda_grid_size", dda_grid_size, 0.2);
-    const double grid_size_max = std::max({map_grid_x_, map_grid_y_, map_grid_z_});  // NOLINT(whitespace/braces)
+    const double grid_size_max = std::max({ map_grid_x_, map_grid_y_, map_grid_z_ });  // NOLINT(whitespace/braces)
     if (dda_grid_size < grid_size_max)
     {
       ROS_WARN("dda_grid_size must be larger than grid size. New value: %f", grid_size_max);
       dda_grid_size = grid_size_max;
     }
 
-    if (add_penalty_short_only_mode_)
-    {
-      hit_range_sq_ = 0;
-      raycaster_ = std::make_shared<RaycastUsingDDA<PointType>>(map_grid_x_, map_grid_y_, map_grid_z_, dda_grid_size,
-                                                                ray_angle_half);
-    }
-    else
-    {
-      double hit_range;
-      pnh.param("hit_range", hit_range, 0.3);
-      hit_range_sq_ = std::pow(hit_range, 2);
-      raycaster_ = std::make_shared<RaycastUsingDDA<PointType>>(map_grid_x_, map_grid_y_, map_grid_z_, dda_grid_size,
-                                                                ray_angle_half, hit_range);
-    }
+    raycaster_ = std::make_shared<RaycastUsingDDA<PointType>>(
+        map_grid_x_, map_grid_y_, map_grid_z_, dda_grid_size, ray_angle_half, hit_range);
   }
   else
   {
-    if (add_penalty_short_only_mode_)
-    {
-      hit_range_sq_ = 0;
-      raycaster_ = std::make_shared<RaycastUsingKDTree<PointType>>(map_grid_x_, map_grid_y_, map_grid_z_);
-    }
-    else
-    {
-      double hit_range;
-      pnh.param("hit_range", hit_range, 0.3);
-      hit_range_sq_ = std::pow(hit_range, 2);
-      raycaster_ = std::make_shared<RaycastUsingKDTree<PointType>>(map_grid_x_, map_grid_y_, map_grid_z_, hit_range);
-    }
+    raycaster_ = std::make_shared<RaycastUsingKDTree<PointType>>(
+        map_grid_x_, map_grid_y_, map_grid_z_, hit_range);
   }
 }
 

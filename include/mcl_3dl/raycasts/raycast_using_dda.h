@@ -62,16 +62,6 @@ public:
     , additional_range_(additional_range)
   {
   }
-  RaycastUsingDDA(const double map_grid_size_x, const double map_grid_size_y, const double map_grid_size_z,
-                  const double dda_grid_size, const double ray_angle_half)
-    : Raycast<POINT_TYPE>()
-    , min_dist_thr_sq_(std::pow(map_grid_size_x, 2) + std::pow(map_grid_size_y, 2) + std::pow(map_grid_size_y, 2))
-    , dda_grid_size_(dda_grid_size)
-    , ray_angle_half_(ray_angle_half)
-    , additional_range_(
-          -std::sqrt(std::pow(map_grid_size_x, 2) + std::pow(map_grid_size_y, 2) + std::pow(map_grid_size_z, 2)))
-  {
-  }
 
   void setRay(typename ChunkedKdtree<POINT_TYPE>::Ptr kdtree, const Vec3 ray_begin, const Vec3 ray_end_org) final
   {
@@ -153,11 +143,11 @@ public:
     if (collided_point)
     {
       // TODO(nhatao): Implement estimation of the angle of incidence.
-      result = {fromIndex(current_index_), true, 1.0, collided_point};
+      result = { fromIndex(current_index_), true, 1.0, collided_point };
     }
     else
     {
-      result = {fromIndex(current_index_), false, 1.0, collided_point};
+      result = { fromIndex(current_index_), false, 1.0, collided_point };
     }
     return true;
   }
