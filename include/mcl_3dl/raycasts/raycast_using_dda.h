@@ -77,7 +77,8 @@ public:
   {
     kdtree_ = kdtree;
     updatePointCloud();
-    if (!isPointWithinMap(ray_begin)){
+    if (!isPointWithinMap(ray_begin))
+    {
       max_movement_ = 0;
       pos_ = 0;
       return;
