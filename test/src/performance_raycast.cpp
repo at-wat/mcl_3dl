@@ -58,7 +58,7 @@ void performanceTestRaycast(const float chunk_size)
   const auto ts2 = boost::chrono::high_resolution_clock::now();
   size_t collision_cnt = 0;
   size_t cnt = 0;
-  mcl_3dl::RaycastUsingKDTree<pcl::PointXYZ> ray(0.1, 0.1, 0.1);
+  mcl_3dl::RaycastUsingKDTree<pcl::PointXYZ> ray(0.1, 0.1, 0.1, 0.1 * std::sqrt(3.f));
   const auto ts3 = boost::chrono::high_resolution_clock::now();
   for (float y = -50.0; y < 50.0; y += 1.2)
   {
@@ -109,7 +109,7 @@ void performanceTestRaycastUsingDDA(const float dda_grid_size)
   std::cerr << "- Generate kdtree: " << boost::chrono::duration<float>(tnow - ts).count() << " sec" << std::endl;
 
   const auto ts2 = boost::chrono::high_resolution_clock::now();
-  mcl_3dl::RaycastUsingDDA<pcl::PointXYZ> ray(0.1, 0.1, 0.1, dda_grid_size, 0.5);
+  mcl_3dl::RaycastUsingDDA<pcl::PointXYZ> ray(0.1, 0.1, 0.1, dda_grid_size, 0.5, dda_grid_size * std::sqrt(3));
   // Set dummy ray to initialize DDA.
   ray.setRay(kdtree, mcl_3dl::Vec3(0.0, 0.0, 0.0), mcl_3dl::Vec3(1.0, 0.0, 0.0));
   size_t collision_cnt = 0;
