@@ -75,7 +75,7 @@ public:
     }
     ray_begin_ = ray_begin;
     ray_direction_vector_ = (ray_end_org - ray_begin).normalized();
-    const Vec3 ray_end = ray_end_org - ray_direction_vector_ * hit_tolerance_;
+    const Vec3 ray_end = ray_end_org + ray_direction_vector_ * hit_tolerance_;
     begin_index_ = toIndex(ray_begin);
     end_index_ = toIndex(ray_end);
     const Eigen::Vector3i distance_index = end_index_ - begin_index_;

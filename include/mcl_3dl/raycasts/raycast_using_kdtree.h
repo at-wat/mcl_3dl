@@ -59,7 +59,7 @@ public:
   void setRay(typename ChunkedKdtree<POINT_TYPE>::Ptr kdtree, const Vec3 ray_begin, const Vec3 ray_end) final
   {
     kdtree_ = kdtree;
-    length_ = std::floor(((ray_end - ray_begin).norm() - hit_tolerance_) / map_grid_min_);
+    length_ = std::floor(((ray_end - ray_begin).norm() + hit_tolerance_) / map_grid_min_);
     inc_ = (ray_end - ray_begin).normalized() * map_grid_min_;
     count_ = 1;
     pos_ = ray_begin + inc_;

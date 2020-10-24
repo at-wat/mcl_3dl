@@ -97,15 +97,11 @@ void LidarMeasurementModelBeam::loadConfig(
   pnh.param("filter_label_max", filter_label_max, static_cast<int>(0xFFFFFFFF));
   filter_label_max_ = filter_label_max;
 
+  pnh.param("add_penalty_short_only_mode", add_penalty_short_only_mode_, true);
   double hit_range;
   pnh.param("hit_range", hit_range, 0.3);
   hit_range_sq_ = std::pow(hit_range, 2);
   bool use_raycast_using_dda;
-  pnh.param("add_penalty_short_only_mode", add_penalty_short_only_mode_, true);
-  if (!add_penalty_short_only_mode_)
-  {
-    hit_range = -hit_range;
-  }
   pnh.param("use_raycast_using_dda", use_raycast_using_dda, false);
   if (use_raycast_using_dda)
   {
