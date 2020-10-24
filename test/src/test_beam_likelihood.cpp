@@ -78,7 +78,8 @@ TEST(BeamModel, LikelihoodFunc)
       for (double hr = 0.0; hr <= 1.0; hr += 0.2)
       {
         ros::NodeHandle pnh("~");
-        pnh.setParam("beam/beam_likelihood", 0.0);
+        pnh.setParam("beam/num_points", static_cast<int>(pc.size()));
+        pnh.setParam("beam/beam_likelihood", 0.2);
         pnh.setParam("beam/hit_range", hr);
         pnh.setParam("beam/use_raycast_using_dda", method == 1);
         pnh.setParam("beam/add_penalty_short_only_mode", mode == 1);
