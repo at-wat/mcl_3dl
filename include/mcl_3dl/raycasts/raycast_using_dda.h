@@ -105,11 +105,11 @@ public:
 
   bool getNextCastResult(CastResult& result) final
   {
+    ++pos_;
     if (pos_ >= max_movement_)
     {
       return false;
     }
-    ++pos_;
 
     if (t_max_[0] < t_max_[1])
     {
