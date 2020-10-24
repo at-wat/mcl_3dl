@@ -42,10 +42,16 @@
 TEST(BeamModel, LikelihoodFunc)
 {
   pcl::PointCloud<mcl_3dl::LidarMeasurementModelBase::PointType> pc;
+  int i_center, i = 0;
   for (float y = -0.2; y <= 0.2; y += 0.1)
   {
     for (float z = -0.2; z <= 0.2; z += 0.1)
     {
+      if (y == 0.0 && z == 0.0)
+      {
+        i_center = i;
+      }
+      ++i;
       mcl_3dl::LidarMeasurementModelBase::PointType p;
       p.x = 2;
       p.y = y;
@@ -53,18 +59,28 @@ TEST(BeamModel, LikelihoodFunc)
       pc.push_back(p);
     }
   }
-  std::vector<mcl_3dl::Vec3> origins;
-  origins.emplace_back(0, 0, 0);
+  pcl::PointCloud<mcl_3dl::LidarMeasurementModelBase::PointType> pc_map = pc;
+  {
+    mcl_3dl::LidarMeasurementModelBase::PointType p;
+    p.x = -100;
+    p.y = 100;
+    p.z = 0;
+    pc_map.push_back(p);
+    p.x = 100;
+    p.y = -100;
+    p.z = 4;
+    pc_map.push_back(p);
+  }
 
   mcl_3dl::ChunkedKdtree<mcl_3dl::LidarMeasurementModelBase::PointType>::Ptr kdtree(
       new mcl_3dl::ChunkedKdtree<mcl_3dl::LidarMeasurementModelBase::PointType>(10.0, 1.0));
-  kdtree->setInputCloud(pc.makeShared());
+  kdtree->setInputCloud(pc_map.makeShared());
 
   for (int method = 0; method < 2; ++method)
   {
     for (int mode = 0; mode < 2; ++mode)
     {
-      for (double hr = 0.0; hr < 1.0; hr += 0.2)
+      for (double hr = 0.0; hr <= 1.0; hr += 0.2)
       {
         ros::NodeHandle pnh("~");
         pnh.setParam("beam/beam_likelihood", 0.0);
@@ -92,9 +108,12 @@ TEST(BeamModel, LikelihoodFunc)
         for (int i = -50; i < 50; i++)
         {
           const float x = 0.1 * i;
+          const mcl_3dl::Vec3 pos(x, 0, 0);
+          std::vector<mcl_3dl::Vec3> origins;
+          origins.push_back(pos);
           const mcl_3dl::LidarMeasurementResult v = model.measure(
               kdtree, pc.makeShared(), origins,
-              mcl_3dl::State6DOF(mcl_3dl::Vec3(x, 0, 0), mcl_3dl::Quat()));
+              mcl_3dl::State6DOF(pos, mcl_3dl::Quat()));
           if (v.likelihood < 1.0 / 8)
             std::cerr << "_";
           else if (v.likelihood < 2.0 / 8)
@@ -111,6 +130,30 @@ TEST(BeamModel, LikelihoodFunc)
             std::cerr << "▆";
           else
             std::cerr << "▇";
+        }
+        std::cerr << std::endl;
+        for (int i = -50; i < 50; i++)
+        {
+          const float x = 0.1 * i;
+          const mcl_3dl::Vec3 p(x, 0, 0);
+          mcl_3dl::Raycast<mcl_3dl::LidarMeasurementModelBeam::PointType>::CastResult result;
+          const mcl_3dl::LidarMeasurementModelBeam::BeamStatus s = model.getBeamStatus(
+              kdtree, mcl_3dl::Vec3(), p, result);
+          switch (s)
+          {
+            case mcl_3dl::LidarMeasurementModelBeam::BeamStatus::SHORT:
+              std::cerr << "s";
+              break;
+            case mcl_3dl::LidarMeasurementModelBeam::BeamStatus::HIT:
+              std::cerr << "*";
+              break;
+            case mcl_3dl::LidarMeasurementModelBeam::BeamStatus::LONG:
+              std::cerr << "l";
+              break;
+            case mcl_3dl::LidarMeasurementModelBeam::BeamStatus::TOTAL_REFLECTION:
+              std::cerr << "t";
+              break;
+          }
         }
         std::cerr << std::endl;
       }
