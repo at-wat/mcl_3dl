@@ -113,8 +113,8 @@ private:
   typename ChunkedKdtree<POINT_TYPE>::Ptr kdtree_;
   Vec3 pos_;
   Vec3 inc_;
-  size_t length_;
-  size_t count_;
+  int length_;
+  int count_;
   const float map_grid_min_;
   const float map_grid_max_;
   const float hit_tolerance_;
