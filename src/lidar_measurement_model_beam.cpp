@@ -179,8 +179,6 @@ LidarMeasurementResult LidarMeasurementModelBeam::measure(
     return LidarMeasurementResult(1, 0);
   pcl::PointCloud<LidarMeasurementModelBase::PointType>::Ptr pc_particle(
       new pcl::PointCloud<LidarMeasurementModelBase::PointType>);
-  std::vector<int> id(1);
-  std::vector<float> sqdist(1);
 
   float score_beam = 1.0;
   *pc_particle = *pc;
