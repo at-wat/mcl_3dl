@@ -42,16 +42,10 @@
 TEST(BeamModel, LikelihoodFunc)
 {
   pcl::PointCloud<mcl_3dl::LidarMeasurementModelBase::PointType> pc;
-  int i_center, i = 0;
   for (float y = -0.2; y <= 0.2; y += 0.1)
   {
     for (float z = -0.2; z <= 0.2; z += 0.1)
     {
-      if (y == 0.0 && z == 0.0)
-      {
-        i_center = i;
-      }
-      ++i;
       mcl_3dl::LidarMeasurementModelBase::PointType p;
       p.x = 2;
       p.y = y;
