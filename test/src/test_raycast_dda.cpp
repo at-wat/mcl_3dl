@@ -203,8 +203,9 @@ TEST(RaycastUsingDDA, Waypoints)
           mcl_3dl::Vec3(0.6, 0.4, 0.0), mcl_3dl::Vec3(0.7, 0.4, 0.0), mcl_3dl::Vec3(0.7, 0.5, 0.0),
           mcl_3dl::Vec3(0.8, 0.5, 0.0), mcl_3dl::Vec3(0.8, 0.6, 0.0), mcl_3dl::Vec3(0.9, 0.6, 0.0),
         };
-    compareRayWaypoints("Waypoints#1", kdtree, raycaster, mcl_3dl::Vec3(0.0, 0.0, 0.0), mcl_3dl::Vec3(1.2, 0.8, 0.0), expected_points,
-                        true);
+    compareRayWaypoints("Waypoints#1", kdtree, raycaster,
+                        mcl_3dl::Vec3(0.0, 0.0, 0.0), mcl_3dl::Vec3(1.2, 0.8, 0.0),
+                        expected_points, true);
   }
   {
     // Start and end grids are same, but waypoints are different.
@@ -216,7 +217,8 @@ TEST(RaycastUsingDDA, Waypoints)
           mcl_3dl::Vec3(0.6, 0.4, 0.0), mcl_3dl::Vec3(0.6, 0.5, 0.0), mcl_3dl::Vec3(0.7, 0.5, 0.0),
           mcl_3dl::Vec3(0.7, 0.6, 0.0), mcl_3dl::Vec3(0.8, 0.6, 0.0), mcl_3dl::Vec3(0.9, 0.6, 0.0),
         };
-    compareRayWaypoints("Waypoints#2", kdtree, raycaster, mcl_3dl::Vec3(-0.04, 0.04, 0.0), mcl_3dl::Vec3(1.16, 0.84, 0.0),
+    compareRayWaypoints("Waypoints#2", kdtree, raycaster,
+                        mcl_3dl::Vec3(-0.04, 0.04, 0.0), mcl_3dl::Vec3(1.16, 0.84, 0.0),
                         expected_points, true);
   }
 }
@@ -238,7 +240,8 @@ TEST(RaycastUsingDDA, Intersection)
           mcl_3dl::Vec3(0.2, 0.0, 0.0), mcl_3dl::Vec3(0.2, -0.2, 0.0), mcl_3dl::Vec3(0.4, -0.2, 0.0),
           mcl_3dl::Vec3(0.6, -0.2, 0.0), mcl_3dl::Vec3(0.6, -0.4, 0.0),
         };
-    compareRayWaypoints("Intersection#1", kdtree, raycaster, mcl_3dl::Vec3(0.0, 0.0, 0.0), mcl_3dl::Vec3(1.0, -0.55, 0.0),
+    compareRayWaypoints("Intersection#1", kdtree, raycaster,
+                        mcl_3dl::Vec3(0.0, 0.0, 0.0), mcl_3dl::Vec3(1.0, -0.55, 0.0),
                         expected_points, true);
   }
   {
@@ -249,7 +252,8 @@ TEST(RaycastUsingDDA, Intersection)
           mcl_3dl::Vec3(0.8, -0.4, 0.0), mcl_3dl::Vec3(1.0, -0.4, 0.0),
         };
     // The ray does not hit the obstacle as the distance between them is larger than the threshold.
-    compareRayWaypoints("Intersection#2", kdtree, raycaster, mcl_3dl::Vec3(0.0, 0.0, 0.0), mcl_3dl::Vec3(1.1, -0.55, 0.0),
+    compareRayWaypoints("Intersection#2", kdtree, raycaster,
+                        mcl_3dl::Vec3(0.0, 0.0, 0.0), mcl_3dl::Vec3(1.1, -0.55, 0.0),
                         expected_points, false);
   }
 }
