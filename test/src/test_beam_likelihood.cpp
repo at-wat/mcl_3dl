@@ -61,6 +61,7 @@ TEST(BeamModel, LikelihoodFunc)
   }
   pcl::PointCloud<mcl_3dl::LidarMeasurementModelBase::PointType> pc_map = pc;
   {
+    // Add dummy points to expand DDA grid size.
     mcl_3dl::LidarMeasurementModelBase::PointType p;
     p.x = -100;
     p.y = 100;
