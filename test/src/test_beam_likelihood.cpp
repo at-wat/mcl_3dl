@@ -57,12 +57,12 @@ TEST(BeamModel, LikelihoodFunc)
   {
     // Add dummy points to expand DDA grid size.
     mcl_3dl::LidarMeasurementModelBase::PointType p;
-    p.x = -100;
+    p.x = -100.05;
     p.y = 100;
-    p.z = 0;
+    p.z = -0.05;
     pc_map.push_back(p);
     p.x = 100;
-    p.y = -100;
+    p.y = -100.05;
     p.z = 4;
     pc_map.push_back(p);
   }
