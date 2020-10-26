@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>mcl_3dl</name>
-  <version>0.5.0</version>
+  <version>0.5.1</version>
   <description>3-D/6-DOF localization for mobile robots with 3-D LIDAR(s)</description>
 
   <maintainer email="atsushi.w@ieee.org">Atsushi Watanabe</maintainer>

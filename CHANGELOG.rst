@@ -2,8 +2,8 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.1 (2020-10-26)
+------------------
 * Make hit_range independent from grid size and fix DDA hit/miss state (`#350 <https://github.com/at-wat/mcl_3dl/issues/350>`_)
 * Fix crushing when lidar poses are out of map (`#351 <https://github.com/at-wat/mcl_3dl/issues/351>`_)
 * Contributors: Atsushi Watanabe, Naotaka Hatao
