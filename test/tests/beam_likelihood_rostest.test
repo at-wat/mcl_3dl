@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+  <env name="GCOV_PREFIX" value="/tmp/gcov/beam_likelihood" />
+
+  <test test-name="test_beam_likelihood" pkg="mcl_3dl" type="test_beam_likelihood" />
+</launch>

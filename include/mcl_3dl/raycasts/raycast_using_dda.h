@@ -54,22 +54,12 @@ class RaycastUsingDDA : public Raycast<POINT_TYPE>
 
 public:
   RaycastUsingDDA(const double map_grid_size_x, const double map_grid_size_y, const double map_grid_size_z,
-                  const double dda_grid_size, const double ray_angle_half, const double additional_range)
+                  const double dda_grid_size, const double ray_angle_half, const double hit_tolerance)
     : Raycast<POINT_TYPE>()
     , min_dist_thr_sq_(std::pow(map_grid_size_x, 2) + std::pow(map_grid_size_y, 2) + std::pow(map_grid_size_y, 2))
     , dda_grid_size_(dda_grid_size)
     , ray_angle_half_(ray_angle_half)
-    , additional_range_(additional_range)
-  {
-  }
-  RaycastUsingDDA(const double map_grid_size_x, const double map_grid_size_y, const double map_grid_size_z,
-                  const double dda_grid_size, const double ray_angle_half)
-    : Raycast<POINT_TYPE>()
-    , min_dist_thr_sq_(std::pow(map_grid_size_x, 2) + std::pow(map_grid_size_y, 2) + std::pow(map_grid_size_y, 2))
-    , dda_grid_size_(dda_grid_size)
-    , ray_angle_half_(ray_angle_half)
-    , additional_range_(
-          -std::sqrt(std::pow(map_grid_size_x, 2) + std::pow(map_grid_size_y, 2) + std::pow(map_grid_size_z, 2)))
+    , hit_tolerance_(hit_tolerance)
   {
   }
 
@@ -85,7 +75,7 @@ public:
     }
     ray_begin_ = ray_begin;
     ray_direction_vector_ = (ray_end_org - ray_begin).normalized();
-    const Vec3 ray_end = ray_direction_vector_ * additional_range_ + ray_end_org;
+    const Vec3 ray_end = ray_end_org + ray_direction_vector_ * hit_tolerance_;
     begin_index_ = toIndex(ray_begin);
     end_index_ = toIndex(ray_end);
     const Eigen::Vector3i distance_index = end_index_ - begin_index_;
@@ -115,11 +105,11 @@ public:
 
   bool getNextCastResult(CastResult& result) final
   {
+    ++pos_;
     if (pos_ >= max_movement_)
     {
       return false;
     }
-    ++pos_;
 
     if (t_max_[0] < t_max_[1])
     {
@@ -159,11 +149,11 @@ public:
     if (collided_point)
     {
       // TODO(nhatao): Implement estimation of the angle of incidence.
-      result = {fromIndex(current_index_), true, 1.0, collided_point};
+      result = { fromIndex(current_index_), true, 1.0, collided_point };
     }
     else
     {
-      result = {fromIndex(current_index_), false, 1.0, collided_point};
+      result = { fromIndex(current_index_), false, 1.0, collided_point };
     }
     return true;
   }
@@ -283,7 +273,7 @@ private:
   const double min_dist_thr_sq_;
   const double dda_grid_size_;
   const double ray_angle_half_;
-  const double additional_range_;
+  const double hit_tolerance_;
 
   Eigen::Vector3i map_size_;
   pcl::PCLHeader point_cloud_header_;

@@ -49,6 +49,13 @@ add_rostest_gtest(test_beam_label tests/beam_label_rostest.test
 target_link_libraries(test_beam_label ${catkin_LIBRARIES})
 add_dependencies(test_beam_label mcl_3dl)
 
+add_rostest_gtest(test_beam_likelihood tests/beam_likelihood_rostest.test
+    src/test_beam_likelihood.cpp
+    ../src/lidar_measurement_model_beam.cpp
+    ../src/point_types.cpp
+)
+target_link_libraries(test_beam_likelihood ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
 add_rostest_gtest(test_global_localization tests/global_localization_rostest.test
     src/test_global_localization.cpp)
 target_link_libraries(test_global_localization ${catkin_LIBRARIES})
