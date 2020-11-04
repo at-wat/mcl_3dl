@@ -1,3 +1,2 @@
-samples
 .git
-.travis.yml
+.github/workflows
