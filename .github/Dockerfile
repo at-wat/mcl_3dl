@@ -29,7 +29,7 @@ RUN apt-get -qq update \
     libxml2-utils \
     python3-pip \
     python3-setuptools \
-    python-rosdep \
+    python3-rosdep \
     sudo \
     wget \
   && rosdep init \
@@ -45,4 +45,4 @@ RUN cd /catkin_ws/src \
   && . /opt/ros/${ROS_DISTRO}/setup.sh \
   && catkin_init_workspace
 
-COPY .travis/gh-pr-comment /usr/local/bin/
+COPY .github/gh-pr-comment /usr/local/bin/
