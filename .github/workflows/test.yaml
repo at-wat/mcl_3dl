@@ -70,6 +70,6 @@ jobs:
         run: |
           eval export ${{ matrix.env }}
           PACKAGE_NAME=$(basename ${GITHUB_REPOSITORY})
-          LAYERS=$(docker history -q $(basename ${GITHUB_REPOSITORY}):${ROS_DISTRO})
+          LAYERS=$(docker history -q $(basename ${GITHUB_REPOSITORY}):${ROS_DISTRO} | grep -v missing)
           echo "layers: $(echo ${LAYERS})"
           docker save -o ${HOME}/layers.tar ${LAYERS}
