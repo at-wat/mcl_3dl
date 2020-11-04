@@ -57,6 +57,7 @@ jobs:
           docker run --rm \
             -e BUILD_LINK=${BUILD_LINK} \
             $(sh <(curl -s https://raw.githubusercontent.com/at-wat/gh-pr-comment/master/env.sh)) \
+            -e GITHUB_ACTIONS \
             $(bash /tmp/codecovenv) \
             ${PACKAGE_NAME}:${ROS_DISTRO} \
             /catkin_ws/src/${PACKAGE_NAME}/.github/test.sh
