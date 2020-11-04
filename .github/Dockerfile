@@ -27,9 +27,13 @@ RUN apt-get -qq update \
     build-essential \
     curl \
     libxml2-utils \
+    python3-catkin-pkg \
     python3-pip \
-    python3-setuptools \
     python3-rosdep \
+    python3-rosdep-modules \
+    python3-rosdistro \
+    python3-rospkg \
+    python3-setuptools \
     sudo \
     wget \
   && rosdep init \
