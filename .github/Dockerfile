@@ -21,6 +21,8 @@ RUN sed -e \
   's|http://archive\.ubuntu\.com|http://us-east-1.ec2.archive.ubuntu.com|' \
   -i /etc/apt/sources.list
 
+ENV DEBIAN_FRONTEND=noninteractive
+
 COPY --from=cloner /repos-manifests/src /catkin_ws/src
 RUN apt-get -qq update \
   && apt-get install -y --no-install-recommends \
