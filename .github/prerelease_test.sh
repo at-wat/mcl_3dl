@@ -41,7 +41,7 @@ sudo pip3 install ./ros_buildfarm
 
 
 git_ref=$(echo ${GITHUB_REF} | sed 's|^refs/\S\+/||')
-build_link="[[${GITHUB_RUN_ID}-prerelease](https://github.com/${GITHUB_REPOSITORY}/runs/${GITHUB_RUN_NUMBER})]"
+build_link="[${GITHUB_RUN_ID}-prerelease]"
 
 generate_prerelease_script.py \
   https://raw.githubusercontent.com/ros-infrastructure/ros_buildfarm_config/production/index.yaml \
@@ -53,5 +53,5 @@ generate_prerelease_script.py \
   --output-dir ./
 
 yes | ./prerelease.sh \
-  && gh-pr-comment "${build_link} PASSED on ${ROS_DISTRO_TARGET}" "" \
-  || (gh-pr-comment "${build_link} FAILED on ${ROS_DISTRO_TARGET}" ""; false)
+  && gh-pr-comment "${build_link} PASSED on ${ROS_DISTRO}" "" \
+  || (gh-pr-comment "${build_link} FAILED on ${ROS_DISTRO}" ""; false)

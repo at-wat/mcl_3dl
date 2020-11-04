@@ -50,7 +50,7 @@ jobs:
         run: |
           eval export ${{ matrix.env }}
           PACKAGE_NAME=$(basename ${GITHUB_REPOSITORY})
-          BUILD_LINK="[[${GITHUB_RUN_ID}](https://github.com/${GITHUB_REPOSITORY}/runs/${GITHUB_RUN_NUMBER})]"
+          BUILD_LINK="[${GITHUB_RUN_ID}]"
           docker build \
             -t ${PACKAGE_NAME}:${ROS_DISTRO} \
             -f .github/Dockerfile \
