@@ -65,4 +65,4 @@ jobs:
           GITHUB_API_URL_BASE: https://ghbot-api.at-wat.tokyo
           GITHUB_TOKEN: d50e89aa-016e-450b-a140-931fa5daa484
       - name: Save layer cache
-        run: docker save -o ${HOME}/layers.tar $(docker history -q ${PACKAGE_NAME}:${ROS_DISTRO} | grep -v 'missing')
+        run: docker save -o ${HOME}/layers.tar $(docker history -q $(basename ${GITHUB_REPOSITORY}):${ROS_DISTRO} | grep -v 'missing')
