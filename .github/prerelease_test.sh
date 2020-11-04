@@ -2,11 +2,6 @@
 
 set -eu
 
-if [[ ! "${TRAVIS_PULL_REQUEST_BRANCH}" =~ ^release-.*$ ]]; then
-  echo "Skipping prerelease test"
-  exit 0
-fi
-
 case ${ROS_DISTRO} in
   kinetic )
     UBUNTU_DIST_TARGET=xenial
