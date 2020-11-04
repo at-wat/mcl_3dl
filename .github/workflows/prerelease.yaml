@@ -21,6 +21,9 @@ jobs:
       - name: Install gh-pr-comment
         run: |
           curl -sL https://raw.githubusercontent.com/at-wat/gh-pr-comment/master/install.sh | sh -s
+          echo "${HOME}/.local/bin/gh-pr-comment" >> ${GITHUB_PATH}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Pre-release test
         run: |
           eval export ${{ matrix.env }}
