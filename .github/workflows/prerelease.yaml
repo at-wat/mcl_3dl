@@ -6,7 +6,7 @@ on:
 
 jobs:
   prerelease:
-    if: ${{ startsWith(github.ref, 'refs/heads/release-') }}
+    #if: ${{ startsWith(github.ref, 'refs/heads/release-') }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
