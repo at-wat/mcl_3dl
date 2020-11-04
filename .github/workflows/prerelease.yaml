@@ -21,4 +21,6 @@ jobs:
         run: |
           curl -sL https://raw.githubusercontent.com/at-wat/gh-pr-comment/master/install.sh | sh -s
       - name: Pre-release test
-        run: .github/prerelease_test.sh
+        run: |
+          eval export ${{ matrix.env }}
+          .github/prerelease_test.sh

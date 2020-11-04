@@ -7,7 +7,7 @@ if [[ ! "${TRAVIS_PULL_REQUEST_BRANCH}" =~ ^release-.*$ ]]; then
   exit 0
 fi
 
-case ${ROS_DISTRO_TARGET} in
+case ${ROS_DISTRO} in
   kinetic )
     UBUNTU_DIST_TARGET=xenial
     ;;
@@ -18,7 +18,7 @@ case ${ROS_DISTRO_TARGET} in
     UBUNTU_DIST_TARGET=focal
     ;;
   * )
-    echo "Unknown ROS_DISTRO_TARGET: ${ROS_DISTRO_TARGET}"
+    echo "Unknown ROS_DISTRO: ${ROS_DISTRO}"
     exit 1
     ;;
 esac
@@ -45,15 +45,18 @@ git clone \
 sudo pip3 install ./ros_buildfarm
 
 
+git_ref=$(echo ${GITHUB_REF} | sed 's|^refs/\S\+/||')
+build_link="[[${GITHUB_RUN_ID}-prerelease](https://github.com/${GITHUB_REPOSITORY}/runs/${GITHUB_RUN_NUMBER})]"
+
 generate_prerelease_script.py \
   https://raw.githubusercontent.com/ros-infrastructure/ros_buildfarm_config/production/index.yaml \
-  ${ROS_DISTRO_TARGET} default ubuntu ${UBUNTU_DIST_TARGET} amd64 \
+  ${ROS_DISTRO} default ubuntu ${UBUNTU_DIST_TARGET} amd64 \
   --custom-repo \
-    mcl_3dl__custom-2:git:https://github.com/at-wat/mcl_3dl.git:${TRAVIS_PULL_REQUEST_BRANCH} \
+    mcl_3dl__custom-2:git:https://github.com/at-wat/mcl_3dl.git:${git_ref} \
     mcl_3dl_msgs__custom-2:git:https://github.com/at-wat/mcl_3dl_msgs.git:master \
   --level 1 \
   --output-dir ./
 
 yes | ./prerelease.sh \
-  && gh-pr-comment "[#${TRAVIS_BUILD_NUMBER}-prerelease] PASSED on ${ROS_DISTRO_TARGET}" "" \
-  || (gh-pr-comment "[#${TRAVIS_BUILD_NUMBER}-prerelease] FAILED on ${ROS_DISTRO_TARGET}" ""; false)
+  && gh-pr-comment "${build_link} PASSED on ${ROS_DISTRO_TARGET}" "" \
+  || (gh-pr-comment "${build_link} FAILED on ${ROS_DISTRO_TARGET}" ""; false)
