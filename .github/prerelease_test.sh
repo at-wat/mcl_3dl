@@ -46,7 +46,7 @@ git clone \
 sudo python3 -m pip install ./ros_buildfarm
 
 
-build_link="[${GITHUB_RUN_ID}-prerelease]"
+build_link="[${GITHUB_RUN_NUMBER}-prerelease]"
 
 generate_prerelease_script.py \
   https://raw.githubusercontent.com/ros-infrastructure/ros_buildfarm_config/production/index.yaml \
