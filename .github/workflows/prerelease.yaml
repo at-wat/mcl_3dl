@@ -1,11 +1,11 @@
-name: build
+name: prerelease
 on:
   pull_request:
     branches:
       - master
 
 jobs:
-  build:
+  prerelease:
     if: ${{ startsWith(github.ref, 'refs/heads/release-') }}
     runs-on: ubuntu-latest
     strategy:
