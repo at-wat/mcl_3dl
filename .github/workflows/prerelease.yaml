@@ -6,7 +6,7 @@ on:
 
 jobs:
   prerelease:
-    #if: ${{ startsWith(github.ref, 'refs/heads/release-') }}
+    #if: ${{ startsWith(github.head_ref, 'refs/heads/release-') }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -24,4 +24,4 @@ jobs:
       - name: Pre-release test
         run: |
           eval export ${{ matrix.env }}
-          .github/prerelease_test.sh
+          .github/prerelease_test.sh ${{ github.head_ref }}
