@@ -40,6 +40,8 @@ jobs:
         run: |
           curl -sL https://raw.githubusercontent.com/at-wat/gh-pr-comment/master/install.sh | sh -s
           cp ~/.local/bin/gh-pr-comment .github/
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Download codecov script
         run: for i in 1 2 3; do wget --timeout=10 -O /tmp/codecovenv https://codecov.io/env && break; done
 
