@@ -33,7 +33,7 @@ jobs:
           key: docker-layers-${{ hashFiles('package.xml') }}
 
       - name: Get dataset
-        run: .github/get_dataset.sh
+        run: if [ -x .github/get_dataset.sh ]; then .github/get_dataset.sh; fi
       - name: Load docker layer cache
         run: if [ -f ${HOME}/layers.tar ]; then docker load -i ${HOME}/layers.tar; fi
 

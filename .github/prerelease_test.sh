@@ -2,8 +2,6 @@
 
 set -eu
 
-source_ref=$1
-
 case ${ROS_DISTRO} in
   kinetic )
     UBUNTU_DIST_TARGET=xenial
@@ -51,9 +49,7 @@ build_link="[${GITHUB_RUN_NUMBER}-prerelease]"
 generate_prerelease_script.py \
   https://raw.githubusercontent.com/ros-infrastructure/ros_buildfarm_config/production/index.yaml \
   ${ROS_DISTRO} default ubuntu ${UBUNTU_DIST_TARGET} amd64 \
-  --custom-repo \
-    mcl_3dl__custom-2:git:https://github.com/at-wat/mcl_3dl.git:${source_ref} \
-    mcl_3dl_msgs__custom-2:git:https://github.com/at-wat/mcl_3dl_msgs.git:master \
+  --custom-repo $@ \
   --level 1 \
   --output-dir ./
 

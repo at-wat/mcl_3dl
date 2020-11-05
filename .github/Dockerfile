@@ -9,7 +9,7 @@ WORKDIR /repos
 COPY .rosinstall /repos/deps.rosinstall
 
 RUN wstool init src --shallow deps.rosinstall
-COPY . /repos/src/mcl_3dl
+COPY . /repos/src/self
 
 RUN mkdir -p /repos-manifests/src
 RUN find . -name package.xml | xargs -ISRC cp --parents SRC /repos-manifests/

@@ -17,9 +17,12 @@ $(catkin_lint $pkgs 2>&1)
 ${md_codeblock}
 </details>"; false)
 
-mkdir -p /catkin_ws/build/mcl_3dl/test/
-mv /catkin_ws/src/mcl_3dl/.cached-dataset/* /catkin_ws/build/mcl_3dl/test/
-ls -lh /catkin_ws/build/mcl_3dl/test/
+if [ -d /catkin_ws/src/self/.cached-dataset ]
+then
+  mkdir -p /catkin_ws/build/self/test/
+  mv /catkin_ws/src/self/.cached-dataset/* /catkin_ws/build/self/test/
+  ls -lh /catkin_ws/build/self/test/
+fi
 
 sed -i -e "/^set(CATKIN_TOPLEVEL TRUE)$/a set(CMAKE_C_FLAGS \"-Wall -Werror -O2 -coverage\")" \
   /opt/ros/${ROS_DISTRO}/share/catkin/cmake/toplevel.cmake
@@ -39,7 +42,7 @@ catkin_make tests -DMCL_3DL_EXTRA_TESTS=ON ${CM_OPTIONS} || \
 catkin_make run_tests -DMCL_3DL_EXTRA_TESTS=ON ${CM_OPTIONS} || \
   (gh-pr-comment "${BUILD_LINK} FAILED on ${ROS_DISTRO}" '```catkin_make run_tests``` failed'; false)
 
-if [ catkin_test_results ];
+if [ catkin_test_results ]
 then
   result_text="
 ${md_codeblock}
@@ -81,12 +84,12 @@ then
     echo "  - ${new_gcda}"
   done
 
-  cd src/mcl_3dl/
+  cd src/self/
   cp -r /catkin_ws/build ./
 
   gcov $(find . -name "*.gcda") -p -c -l > /dev/null
 
-  rm -rf build/mcl_3dl_msgs
+  rm -rf $(find build -type d -maxdepth 1 -mindepth 1 | grep -v -e "/self$")
   download_codecov='wget --timeout=10 -O /tmp/codecov https://codecov.io/bash'
   ${download_codecov} || ${download_codecov} || ${download_codecov}
   bash /tmp/codecov \
