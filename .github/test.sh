@@ -93,14 +93,14 @@ then
   if [ -n "$(find . -name "*.gcda")" ]
   then
     gcov $(find . -name "*.gcda") -p -c -l > /dev/null
-  fi
 
-  rm -rf $(find build -type d -maxdepth 1 -mindepth 1 | grep -v -e "/self$")
-  download_codecov='wget --timeout=10 -O /tmp/codecov https://codecov.io/bash'
-  ${download_codecov} || ${download_codecov} || ${download_codecov}
-  bash /tmp/codecov \
-    -Z \
-    -X gcov
+    rm -rf $(find build -type d -maxdepth 1 -mindepth 1 | grep -v -e "/self$")
+    download_codecov='wget --timeout=10 -O /tmp/codecov https://codecov.io/bash'
+    ${download_codecov} || ${download_codecov} || ${download_codecov}
+    bash /tmp/codecov \
+      -Z \
+      -X gcov
+  fi
 fi
 
 gh-pr-comment "${BUILD_LINK} PASSED on ${ROS_DISTRO}" "<details><summary>All tests passed</summary>
