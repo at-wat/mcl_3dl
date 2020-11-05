@@ -90,7 +90,7 @@ then
   cd src/self/
   cp -r /catkin_ws/build ./
 
-  if find . -name "*.gcda"
+  if [ -n $(find . -name "*.gcda") ]
   then
     gcov $(find . -name "*.gcda") -p -c -l > /dev/null
   fi
