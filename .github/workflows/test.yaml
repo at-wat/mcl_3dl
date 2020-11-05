@@ -49,6 +49,7 @@ jobs:
       - name: Test
         run: |
           eval export ${{ matrix.env }}
+          eval export .github/ghbot.conf
           BUILD_LINK="[${GITHUB_RUN_NUMBER}]"
           docker build \
             -t tester \
@@ -64,8 +65,6 @@ jobs:
             tester \
             /catkin_ws/src/self/.github/test.sh
         env:
-          GITHUB_API_URL_BASE: https://ghbot-api.at-wat.tokyo
-          GITHUB_TOKEN: d50e89aa-016e-450b-a140-931fa5daa484
       - name: Save layer cache
         run: |
           eval export ${{ matrix.env }}
