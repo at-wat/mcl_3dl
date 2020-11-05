@@ -38,17 +38,22 @@ RUN apt-get -qq update \
     build-essential \
     curl \
     libxml2-utils \
+    python3-catkin-pkg \
     python3-pip \
+    python3-rosdep \
+    python3-rosdep-modules \
+    python3-rosdistro \
+    python3-rospkg \
     python3-setuptools \
     sudo \
     wget \
-  && python3 -m pip install catkin_lint \
   && rosdep init \
   && rosdep update \
   && rosdep install --from-paths /catkin_ws/src --ignore-src --rosdistro=${ROS_DISTRO} -y \
   && rosdep install --from-paths /catkin_ws_isolated/src --ignore-src --rosdistro=${ROS_DISTRO} -y \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
+RUN python3 -m pip install catkin_lint
 
 COPY --from=cloner /repos-isolated/src /catkin_ws_isolated/src
 RUN cd /catkin_ws_isolated \
