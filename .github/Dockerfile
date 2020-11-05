@@ -61,7 +61,7 @@ RUN cd /catkin_ws_isolated \
   && . /opt/ros/${ROS_DISTRO}/setup.sh \
   && catkin_make_isolated \
     --install --install-space=/opt/ros/${ROS_DISTRO} \
-    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_BUILD_TYPE=Debug \
   && rm -rf build devel
 
 COPY --from=cloner /repos/src /catkin_ws/src
