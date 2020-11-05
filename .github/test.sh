@@ -33,13 +33,13 @@ echo "--- catkin cmake hook ---"
 grep -A5 -B1 "set(CATKIN_TOPLEVEL TRUE)" /opt/ros/${ROS_DISTRO}/share/catkin/cmake/toplevel.cmake
 echo "-------------------------"
 
-CM_OPTIONS=''
+CM_OPTIONS=${CATKIN_MAKE_OPTIONS:-}
 
-catkin_make -DMCL_3DL_EXTRA_TESTS=ON ${CM_OPTIONS} || \
+catkin_make ${CM_OPTIONS} || \
   (gh-pr-comment "${BUILD_LINK} FAILED on ${ROS_DISTRO}" '```catkin_make``` failed'; false)
-catkin_make tests -DMCL_3DL_EXTRA_TESTS=ON ${CM_OPTIONS} || \
+catkin_make tests ${CM_OPTIONS} || \
   (gh-pr-comment "${BUILD_LINK} FAILED on ${ROS_DISTRO}" '```catkin_make tests``` failed'; false)
-catkin_make run_tests -DMCL_3DL_EXTRA_TESTS=ON ${CM_OPTIONS} || \
+catkin_make run_tests ${CM_OPTIONS} || \
   (gh-pr-comment "${BUILD_LINK} FAILED on ${ROS_DISTRO}" '```catkin_make run_tests``` failed'; false)
 
 if [ catkin_test_results ]
