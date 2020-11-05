@@ -49,7 +49,7 @@ jobs:
       - name: Test
         run: |
           eval export ${{ matrix.env }}
-          eval export .github/ghbot.conf
+          eval export $(cat .github/ghbot.conf)
           BUILD_LINK="[${GITHUB_RUN_NUMBER}]"
           docker build \
             -t tester \

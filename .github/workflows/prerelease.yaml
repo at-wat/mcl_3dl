@@ -28,7 +28,7 @@ jobs:
         run: |
           eval export ${{ matrix.env }}
           . .github/prerelease.conf
-          .github/prerelease_test.sh ${prerelease_targets}
+          .github/prerelease_test.sh ${PRERELEASE_TARGETS}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HEAD_REF: ${{ github.head_ref }}
