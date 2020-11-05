@@ -33,22 +33,22 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 COPY --from=cloner /repos-manifests/src /catkin_ws/src
 COPY --from=cloner /repos-isolated-manifests/src /catkin_ws_isolated/src
-RUN if [ ${ROS_DISTRO} = "noetic" ]; then ROS_PYTHON_VERSION=3; else ROS_PYTHON_VERSION=2; fi \
+RUN if [ ${ROS_DISTRO} = "noetic" ]; then PYTHON_VERSION_SUFFIX=3; else PYTHON_VERSION_SUFFIX=; fi \
   && apt-get -qq update \
   && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
     libxml2-utils \
-    python${ROS_PYTHON_VERSION}-catkin-pkg \
-    python${ROS_PYTHON_VERSION}-pip \
-    python${ROS_PYTHON_VERSION}-rosdep \
-    python${ROS_PYTHON_VERSION}-rosdep-modules \
-    python${ROS_PYTHON_VERSION}-rosdistro \
-    python${ROS_PYTHON_VERSION}-rospkg \
-    python${ROS_PYTHON_VERSION}-setuptools \
+    python${PYTHON_VERSION_SUFFIX}-catkin-pkg \
+    python${PYTHON_VERSION_SUFFIX}-pip \
+    python${PYTHON_VERSION_SUFFIX}-rosdep \
+    python${PYTHON_VERSION_SUFFIX}-rosdep-modules \
+    python${PYTHON_VERSION_SUFFIX}-rosdistro \
+    python${PYTHON_VERSION_SUFFIX}-rospkg \
+    python${PYTHON_VERSION_SUFFIX}-setuptools \
     sudo \
     wget \
-  && python${ROS_PYTHON_VERSION} -m pip install catkin_lint \
+  && python${PYTHON_VERSION_SUFFIX} -m pip install catkin_lint \
   && rosdep init \
   && rosdep update \
   && rosdep install --from-paths /catkin_ws/src --ignore-src --rosdistro=${ROS_DISTRO} -y \
