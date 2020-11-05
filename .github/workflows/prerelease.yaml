@@ -29,6 +29,6 @@ jobs:
           eval export ${{ matrix.env }}
           .github/prerelease_test.sh } \
             mcl_3dl__custom-2:git:https://github.com/at-wat/mcl_3dl.git:${{ github.head_ref } \
-            mcl_3dl_msgs__custom-2:git:https://github.com/at-wat/mcl_3dl_msgs.git:master \
+            mcl_3dl_msgs__custom-2:git:https://github.com/at-wat/mcl_3dl_msgs.git:master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
