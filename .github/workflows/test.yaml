@@ -30,7 +30,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${HOME}/layers.tar
-          key: docker-layers-${{ hashFiles('package.xml') }}
+          key: docker-layers-${{ matrix.env }}-${{ hashFiles('package.xml') }}
 
       - name: Get dataset
         run: if [ -x .github/get_dataset.sh ]; then .github/get_dataset.sh; fi
