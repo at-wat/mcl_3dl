@@ -6,7 +6,7 @@ RUN apk add --no-cache git py3-pip \
   && python3 -m pip install wstool
 
 WORKDIR /repos-isolated
-COPY .rosinstall-isolated /repos/deps.rosinstall
+COPY .rosinstall-isolated /repos-isolated/deps.rosinstall
 
 RUN wstool init src --shallow deps.rosinstall
 
