@@ -51,7 +51,7 @@ jobs:
           eval export ${{ matrix.env }}
           eval export $(cat .github/test.conf)
           BUILD_LINK="[${GITHUB_RUN_NUMBER}]"
-          touch .rosinstall
+          touch .rosinstall .rosinstall-isolated
           docker build \
             -t tester \
             -f .github/Dockerfile \
