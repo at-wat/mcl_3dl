@@ -57,6 +57,7 @@ RUN python3 -m pip install catkin_lint
 
 COPY --from=cloner /repos-isolated/src /catkin_ws_isolated/src
 RUN cd /catkin_ws_isolated \
+  && . /opt/ros/${ROS_DISTRO}/setup.sh \
   && catkin_make_isolated \
     --install --install-space=/opt/ros/${ROS_DISTRO} \
     -DCMAKE_BUILD_TYPE=Release \
