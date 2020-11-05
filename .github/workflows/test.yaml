@@ -51,6 +51,7 @@ jobs:
           eval export ${{ matrix.env }}
           eval export $(cat .github/ghbot.conf)
           BUILD_LINK="[${GITHUB_RUN_NUMBER}]"
+          touch .rosinstall
           docker build \
             -t tester \
             -f .github/Dockerfile \
