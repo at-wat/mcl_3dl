@@ -23,6 +23,7 @@ for i in 1 2 3; do
   sudo apt-key adv --keyserver hkp://pool.sks-keyservers.net --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654 \
     && break \
     || true
+  sleep 5
 done
 sudo apt-get update -qq
 sudo apt-get install -y --no-install-recommends \
