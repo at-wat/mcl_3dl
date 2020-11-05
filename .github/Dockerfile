@@ -32,7 +32,7 @@ RUN sed -e \
 ENV DEBIAN_FRONTEND=noninteractive
 
 COPY --from=cloner /repos-manifests/src /catkin_ws/src
-COPY --from=cloner /repos-isolated/manifests/src /catkin_ws_isolated/src
+COPY --from=cloner /repos-isolated-manifests/src /catkin_ws_isolated/src
 RUN apt-get -qq update \
   && apt-get install -y --no-install-recommends \
     build-essential \
