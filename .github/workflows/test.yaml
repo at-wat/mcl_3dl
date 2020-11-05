@@ -64,7 +64,6 @@ jobs:
             $(bash /tmp/codecovenv) \
             tester \
             /catkin_ws/src/self/.github/test.sh
-        env:
       - name: Save layer cache
         run: |
           eval export ${{ matrix.env }}
