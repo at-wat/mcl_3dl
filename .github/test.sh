@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# This file is automatically deployed from https://github.com/at-wat/.rospkg-assets.
+# Please don't directly edit; update at-wat/.rospkg-assets instead.
+
 set -o errexit
 
 source /opt/ros/${ROS_DISTRO}/setup.bash

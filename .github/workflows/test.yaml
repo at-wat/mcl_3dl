@@ -1,3 +1,6 @@
+# This file is automatically deployed from https://github.com/at-wat/.rospkg-assets.
+# Please don't directly edit; update at-wat/.rospkg-assets instead.
+
 name: build
 on:
   pull_request:
@@ -30,7 +33,8 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${HOME}/layers.tar
-          key: docker-layers-${{ matrix.env }}-${{ hashFiles('package.xml') }}
+          key: docker-layers-${{ matrix.env }}-${{ github.ref }}
+          restore-keys: docker-layers-${{ matrix.env }}
 
       - name: Get dataset
         run: if [ -x .github/get_dataset.sh ]; then .github/get_dataset.sh; fi

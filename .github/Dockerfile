@@ -1,3 +1,6 @@
+# This file is automatically deployed from https://github.com/at-wat/.rospkg-assets.
+# Please don't directly edit; update at-wat/.rospkg-assets instead.
+
 ARG ROS_DISTRO=kinetic
 # ========================================
 FROM alpine:latest as cloner
