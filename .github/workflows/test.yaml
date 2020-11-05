@@ -33,14 +33,14 @@ jobs:
       - name: Cache docker layers
         uses: actions/cache@v2
         with:
-          path: ${{ github.workspace }}/../layers.tar
+          path: /home/runner/layers.tar
           key: docker-layers-${{ matrix.env }}-${{ github.sha }}
-          restore-keys: docker-layers-${{ matrix.env }}
+          restore-keys: docker-layers-${{ matrix.env }}-
 
       - name: Get dataset
         run: if [ -x .github/get_dataset.sh ]; then .github/get_dataset.sh; fi
       - name: Load docker layer cache
-        run: if [ -f ${{ github.workspace }}/../layers.tar ]; then docker load -i ${{ github.workspace }}/../layers.tar; fi
+        run: if [ -f /home/runner/layers.tar ]; then docker load -i /home/runner/layers.tar; fi
 
       - name: Install gh-pr-comment
         run: |
@@ -77,4 +77,4 @@ jobs:
           eval export ${{ matrix.env }}
           LAYERS=$(docker history -q tester | grep -v missing)
           echo "layers: $(echo ${LAYERS})"
-          docker save -o ${{ github.workspace }}/../layers.tar ${LAYERS}
+          docker save -o /home/runner/layers.tar ${LAYERS}
