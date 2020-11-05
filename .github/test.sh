@@ -69,25 +69,31 @@ then
   echo "Generated gcda files"
   find /catkin_ws/build -name "*.gcda" | xargs -n1 echo "  -"
 
-  # Find and copy renamed gcda files
-  echo
-  echo "Renamed gcda files"
-  find /tmp/gcov/ -name "*.gcda" | sed 's|^/tmp/gcov||' | while read file
-  do
-    id=$(echo ${file} | cut -d'/' -f2) # /id/path/to/gcda
-    gcda=$(echo ${file} | sed 's|^/[^/]*/|/|')
-    new_gcda=$(echo ${gcda} | sed "s|/\(\S*\)\.gcda$|/\1.${id}.gcda|")
-    gcno=$(echo ${gcda} | sed 's|\.gcda|.gcno|')
-    new_gcno=$(echo ${gcda} | sed "s|\.gcda|.${id}.gcno|")
-    cp /tmp/gcov/${id}/${gcda} ${new_gcda}
-    cp ${gcno} ${new_gcno}
-    echo "  - ${new_gcda}"
-  done
+  if [ -d /tmp/gcov/ ]
+  then
+    # Find and copy renamed gcda files
+    echo
+    echo "Renamed gcda files"
+    find /tmp/gcov/ -name "*.gcda" | sed 's|^/tmp/gcov||' | while read file
+    do
+      id=$(echo ${file} | cut -d'/' -f2) # /id/path/to/gcda
+      gcda=$(echo ${file} | sed 's|^/[^/]*/|/|')
+      new_gcda=$(echo ${gcda} | sed "s|/\(\S*\)\.gcda$|/\1.${id}.gcda|")
+      gcno=$(echo ${gcda} | sed 's|\.gcda|.gcno|')
+      new_gcno=$(echo ${gcda} | sed "s|\.gcda|.${id}.gcno|")
+      cp /tmp/gcov/${id}/${gcda} ${new_gcda}
+      cp ${gcno} ${new_gcno}
+      echo "  - ${new_gcda}"
+    done
+  fi
 
   cd src/self/
   cp -r /catkin_ws/build ./
 
-  gcov $(find . -name "*.gcda") -p -c -l > /dev/null
+  if find . -name "*.gcda"
+  then
+    gcov $(find . -name "*.gcda") -p -c -l > /dev/null
+  fi
 
   rm -rf $(find build -type d -maxdepth 1 -mindepth 1 | grep -v -e "/self$")
   download_codecov='wget --timeout=10 -O /tmp/codecov https://codecov.io/bash'
