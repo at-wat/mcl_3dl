@@ -29,4 +29,4 @@ jobs:
           pr_title: Release ${{ steps.create_release.outputs.version}}
           pr_body: close \#${{ github.event.issue.number }}
           pr_assignee: ${{ github.actor }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.BOT_GITHUB_TOKEN }}
