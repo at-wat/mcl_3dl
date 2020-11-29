@@ -10,16 +10,6 @@ cd /catkin_ws
 
 md_codeblock='```'
 
-pkgs=$(find . -name package.xml | xargs -n1 dirname)
-catkin_lint $pkgs \
-  || (gh-pr-comment "${BUILD_LINK} FAILED on ${ROS_DISTRO}" \
-      "<details><summary>catkin_lint failed</summary>
-
-${md_codeblock}
-$(catkin_lint $pkgs 2>&1)
-${md_codeblock}
-</details>"; false)
-
 if [ -d /catkin_ws/src/self/.cached-dataset ]
 then
   mkdir -p /catkin_ws/build/self/test/
