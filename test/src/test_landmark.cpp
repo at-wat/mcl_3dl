@@ -75,6 +75,7 @@ std::pair<float, float> getMean(const std::vector<geometry_msgs::Pose>& poses)
   return std::pair<float, float>(mean, root_mean);
 }
 }  // namespace
+
 TEST(Landmark, Measurement)
 {
   geometry_msgs::PoseArray::ConstPtr poses;
@@ -94,6 +95,16 @@ TEST(Landmark, Measurement)
 
   ros::Duration(1.0).sleep();
   pub_init.publish(generatePoseWithCov(2.0, 1.0));
+
+  ros::Rate wait(10);
+  for (int i = 0; i < 100; i++)
+  {
+    wait.sleep();
+    ros::spinOnce();
+    if (poses)
+      break;
+    ASSERT_TRUE(ros::ok());
+  }
   ros::Duration(0.1).sleep();
   ros::spinOnce();
 

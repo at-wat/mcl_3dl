@@ -213,6 +213,16 @@ protected:
     ASSERT_TRUE(src_expansion_resetting_.waitForExistence(ros::Duration(10)));
 
     pub_init_.publish(generateInitialPose());
+    ros::Rate wait(10);
+    for (int i = 0; i < 100; i++)
+    {
+      wait.sleep();
+      ros::spinOnce();
+      if (pose_cov_)
+        break;
+      if (!ros::ok())
+        break;
+    }
   }
 
 public:
