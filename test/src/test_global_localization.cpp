@@ -206,6 +206,15 @@ TEST_P(GlobalLocalization, Localize)
   ros::Publisher pub_odom = nh.advertise<nav_msgs::Odometry>("odom", 1);
 
   pub_mapcloud.publish(generateMapMsg());
+  ros::Rate wait(10);
+  for (int i = 0; i < 100; i++)
+  {
+    wait.sleep();
+    ros::spinOnce();
+    if (poses)
+      break;
+    ASSERT_TRUE(ros::ok());
+  }
 
   for (float offset_x = -0.5; offset_x <= 0.51; offset_x += 1.0)
   {
