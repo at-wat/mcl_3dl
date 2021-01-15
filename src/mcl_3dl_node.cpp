@@ -32,7 +32,9 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#ifdef BOOST_STACKTRACE
 #include <boost/stacktrace.hpp>
+#endif  // BOOST_STACKTRACE
 
 #include <ros/ros.h>
 
@@ -41,7 +43,9 @@
 void stacktrace(int signum)
 {
   signal(signum, SIG_DFL);
+#ifdef BOOST_STACKTRACE
   boost::stacktrace::safe_dump_to("./trace.dump");
+#endif  // BOOST_STACKTRACE
   raise(SIGABRT);
 }
 
@@ -60,6 +64,7 @@ int main(int argc, char* argv[])
     if (WIFSIGNALED(status))
     {
       const int sig = WTERMSIG(status);
+#ifdef BOOST_STACKTRACE
       if (boost::filesystem::exists("./trace.dump"))
       {
         std::ifstream ifs("./trace.dump");
@@ -69,6 +74,10 @@ int main(int argc, char* argv[])
         ifs.close();
         boost::filesystem::remove("./trace.dump");
       }
+#else
+      std::cerr << "mcl_3dl crushed by signal " << sig
+                << ": stacktrace is unavailable on this system" << std::endl;
+#endif  // BOOST_STACKTRACE
       return -WTERMSIG(status);
     }
 

@@ -71,6 +71,10 @@ endif()
 # Define PCL_NO_PRECOMPILE to disable using the binary version.
 add_definitions(-DPCL_NO_PRECOMPILE)
 
+find_path(BOOST_STACKTRACE boost/stacktrace.hpp)
+if(BOOST_STACKTRACE)
+  add_definitions(-DBOOST_STACKTRACE)
+endif()
 
 add_executable(mcl_3dl
   src/cloud_accum.cpp
