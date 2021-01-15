@@ -64,19 +64,19 @@ int main(int argc, char* argv[])
     if (WIFSIGNALED(status))
     {
       const int sig = WTERMSIG(status);
+      std::cerr << "mcl_3dl crushed by signal " << sig << ": ";
 #ifdef BOOST_STACKTRACE
       if (boost::filesystem::exists("./trace.dump"))
       {
         std::ifstream ifs("./trace.dump");
         boost::stacktrace::stacktrace st = boost::stacktrace::stacktrace::from_dump(ifs);
-        std::cerr << "mcl_3dl crushed by signal " << sig << ":" << std::endl
+        std::cerr << std::endl
                   << st << std::endl;
         ifs.close();
         boost::filesystem::remove("./trace.dump");
       }
 #else
-      std::cerr << "mcl_3dl crushed by signal " << sig
-                << ": stacktrace is unavailable on this system" << std::endl;
+      std::cerr << "stacktrace is unavailable on this system" << std::endl;
 #endif  // BOOST_STACKTRACE
       return -WTERMSIG(status);
     }
