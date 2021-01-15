@@ -91,6 +91,7 @@ if(CATKIN_ENABLE_TESTING)
   add_subdirectory(test)
 
   find_package(roslint REQUIRED)
+  set(ROSLINT_CPP_OPTS "--filter=-runtime/references,-build/c++11,-readability/fn_size")
   roslint_cpp()
   roslint_add_test()
 endif()

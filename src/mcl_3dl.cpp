@@ -297,7 +297,7 @@ bool MCL3dlNode::accumCloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
   return true;
 }
 
-void MCL3dlNode::measure()  // nolint:readability/fn_size
+void MCL3dlNode::measure()
 {
   cnt_measure_++;
   if (cnt_measure_ % static_cast<size_t>(params_.skip_measure_) != 0)
