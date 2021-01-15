@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
       {
         std::ifstream ifs("./trace.dump");
         boost::stacktrace::stacktrace st = boost::stacktrace::stacktrace::from_dump(ifs);
-        std::cout << "mcl_3dl crushed by signal " << sig << ":" << std::endl
+        std::cerr << "mcl_3dl crushed by signal " << sig << ":" << std::endl
                   << st << std::endl;
         ifs.close();
         boost::filesystem::remove("./trace.dump");
