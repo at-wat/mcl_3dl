@@ -932,7 +932,6 @@ void MCL3dlNode::cbLandmark(const geometry_msgs::PoseWithCovarianceStamped::Cons
 
 void MCL3dlNode::cbImu(const sensor_msgs::Imu::ConstPtr& msg)
 {
-  ROS_INFO("%f", (ros::Time(0) - ros::Duration(1)).toSec());
   const Vec3 acc = f_acc_->in(Vec3(
       msg->linear_acceleration.x,
       msg->linear_acceleration.y,
