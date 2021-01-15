@@ -767,7 +767,7 @@ protected:
       *pc_all_accum_ += *pc_particle;
     }
 
-    if ((header.stamp > *params_.match_output_interval_ + match_output_last_ ||
+    if ((header.stamp > match_output_last_ + *params_.match_output_interval_ ||
          header.stamp + ros::Duration(1.0) < match_output_last_) &&
         (pub_matched_.getNumSubscribers() > 0 || pub_unmatched_.getNumSubscribers() > 0))
     {
