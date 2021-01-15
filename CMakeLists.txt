@@ -73,7 +73,7 @@ add_definitions(-DPCL_NO_PRECOMPILE)
 
 find_path(BOOST_STACKTRACE boost/stacktrace.hpp)
 if(BOOST_STACKTRACE)
-  add_definitions(-DBOOST_STACKTRACE -DBOOST_STACKTRACE_USE_BACKTRACE)
+  add_definitions(-DBOOST_STACKTRACE -DBOOST_STACKTRACE_USE_ADDR2LINE)
 endif()
 
 add_executable(mcl_3dl
