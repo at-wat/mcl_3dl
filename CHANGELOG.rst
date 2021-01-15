@@ -2,8 +2,8 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.2 (2021-01-15)
+------------------
 * Fix potential "Time is out of dual 32-bit range" error (`#367 <https://github.com/at-wat/mcl_3dl/issues/367>`_)
 * Update assets to v0.1.4 (`#365 <https://github.com/at-wat/mcl_3dl/issues/365>`_)
 * Improve test stability (`#363 <https://github.com/at-wat/mcl_3dl/issues/363>`_)
