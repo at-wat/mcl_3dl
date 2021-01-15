@@ -92,7 +92,7 @@ add_dependencies(mcl_3dl ${catkin_EXPORTED_TARGETS})
 if(CATKIN_ENABLE_TESTING)
   find_package(rostest REQUIRED)
   find_package(rosunit REQUIRED)
-  add_subdirectory(test)
+  #add_subdirectory(test)
 
   find_package(roslint REQUIRED)
   set(ROSLINT_CPP_OPTS "--filter=-runtime/references,-build/c++11,-readability/fn_size")
