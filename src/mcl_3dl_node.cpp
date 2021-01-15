@@ -32,7 +32,10 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include <iostream>
+
 #ifdef BOOST_STACKTRACE
+#include <boost/filesystem.hpp>
 #include <boost/stacktrace.hpp>
 #endif  // BOOST_STACKTRACE
 
@@ -46,7 +49,7 @@ void stacktrace(int signum)
 #ifdef BOOST_STACKTRACE
   boost::stacktrace::safe_dump_to("./trace.dump");
 #endif  // BOOST_STACKTRACE
-  raise(SIGABRT);
+  raise(signum);
 }
 
 int main(int argc, char* argv[])
