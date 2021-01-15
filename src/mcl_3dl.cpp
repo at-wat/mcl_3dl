@@ -748,8 +748,8 @@ void MCL3dlNode::measure()
     *pc_all_accum_ += *pc_particle;
   }
 
-  if ((header.stamp - match_output_last_ > *params_.match_output_interval_ ||
-       header.stamp < match_output_last_ - ros::Duration(1.0)) &&
+  if ((header.stamp > match_output_last_ + *params_.match_output_interval_ ||
+       header.stamp + ros::Duration(1.0) < match_output_last_) &&
       (pub_matched_.getNumSubscribers() > 0 || pub_unmatched_.getNumSubscribers() > 0))
   {
     match_output_last_ = header.stamp;
