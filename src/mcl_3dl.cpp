@@ -132,6 +132,7 @@ void MCL3dlNode::cbMapcloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
 
   cbMapUpdateTimer(ros::TimerEvent());
 }
+
 void MCL3dlNode::cbMapcloudUpdate(const sensor_msgs::PointCloud2::ConstPtr& msg)
 {
   ROS_INFO("map_update received");
@@ -239,6 +240,7 @@ void MCL3dlNode::cbOdom(const nav_msgs::Odometry::ConstPtr& msg)
     cbImu(imu);
   }
 }
+
 void MCL3dlNode::cbCloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
 {
   status_ = mcl_3dl_msgs::Status();
@@ -927,6 +929,7 @@ void MCL3dlNode::cbLandmark(const geometry_msgs::PoseWithCovarianceStamped::Cons
 
   publishParticles();
 }
+
 void MCL3dlNode::cbImu(const sensor_msgs::Imu::ConstPtr& msg)
 {
   const Vec3 acc = f_acc_->in(Vec3(
@@ -1005,6 +1008,7 @@ void MCL3dlNode::cbImu(const sensor_msgs::Imu::ConstPtr& msg)
     }
   }
 }
+
 bool MCL3dlNode::cbResizeParticle(mcl_3dl_msgs::ResizeParticleRequest& request,
                                   mcl_3dl_msgs::ResizeParticleResponse& response)
 {
@@ -1012,6 +1016,7 @@ bool MCL3dlNode::cbResizeParticle(mcl_3dl_msgs::ResizeParticleRequest& request,
   publishParticles();
   return true;
 }
+
 bool MCL3dlNode::cbExpansionReset(std_srvs::TriggerRequest& request,
                                   std_srvs::TriggerResponse& response)
 {
@@ -1025,6 +1030,7 @@ bool MCL3dlNode::cbExpansionReset(std_srvs::TriggerRequest& request,
   publishParticles();
   return true;
 }
+
 bool MCL3dlNode::cbGlobalLocalization(std_srvs::TriggerRequest& request,
                                       std_srvs::TriggerResponse& response)
 {
@@ -1294,7 +1300,7 @@ bool MCL3dlNode::configure()
   return true;
 }
 
-void MCL3dlNode::~MCL3dlNode()
+MCL3dlNode::~MCL3dlNode()
 {
   if (params_.output_pcd_ && pc_all_accum_)
   {

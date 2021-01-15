@@ -104,6 +104,7 @@ protected:
     }
   };
 
+  void cbMapcloud(const sensor_msgs::PointCloud2::ConstPtr& msg);
   void cbMapcloudUpdate(const sensor_msgs::PointCloud2::ConstPtr& msg);
   void cbPosition(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg);
   void cbOdom(const nav_msgs::Odometry::ConstPtr& msg);
