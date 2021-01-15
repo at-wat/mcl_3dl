@@ -51,7 +51,11 @@ int main(int argc, char* argv[])
   if (pid != 0)
   {
     int status;
-    const int ret = waitpid(pid, &status, 0);
+    if (waitpid(pid, &status, 0) == -1)
+    {
+      std::cerr << "Failed to check mcl_3dl process status" << std::endl;
+      return 2;
+    }
 
     if (WIFSIGNALED(status))
     {
@@ -71,6 +75,7 @@ int main(int argc, char* argv[])
     if (WIFEXITED(status))
       return WEXITSTATUS(status);
 
+    std::cerr << "mcl_3dl exited by unknown reason" << std::endl;
     return 2;
   }
 
