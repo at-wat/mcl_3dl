@@ -2,6 +2,17 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.2 (2021-01-15)
+------------------
+* Fix potential "Time is out of dual 32-bit range" error (`#367 <https://github.com/at-wat/mcl_3dl/issues/367>`_)
+* Update assets to v0.1.4 (`#365 <https://github.com/at-wat/mcl_3dl/issues/365>`_)
+* Improve test stability (`#363 <https://github.com/at-wat/mcl_3dl/issues/363>`_)
+* Update assets to v0.1.3 (`#362 <https://github.com/at-wat/mcl_3dl/issues/362>`_)
+* Update assets to v0.1.2 (`#361 <https://github.com/at-wat/mcl_3dl/issues/361>`_)
+* Migrate to GitHub Actions (`#357 <https://github.com/at-wat/mcl_3dl/issues/357>`_)
+* Update assets to v0.0.10 (`#356 <https://github.com/at-wat/mcl_3dl/issues/356>`_)
+* Contributors: Atsushi Watanabe
+
 0.5.1 (2020-10-26)
 ------------------
 * Make hit_range independent from grid size and fix DDA hit/miss state (`#350 <https://github.com/at-wat/mcl_3dl/issues/350>`_)
