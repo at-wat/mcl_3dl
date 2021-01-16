@@ -50,6 +50,7 @@ void stacktrace(int signum)
 {
   signal(signum, SIG_DFL);
 #ifdef HAVE_EXECINFO
+  fprintf(stderr, "mcl_3dl is exiting by signal %d\n", signum);
   int nptrs = backtrace(trace_buffer, 100);
   fprintf(stderr, "stacktrace (%d):\n", nptrs);
   backtrace_symbols_fd(trace_buffer, nptrs, STDERR_FILENO);
