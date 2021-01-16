@@ -32,5 +32,6 @@
 
   <depend>eigen</depend>
 
-  <!-- alpine/depends: execinfo -->
+  <!-- alpine/depends: libexecinfo -->
+  <!-- alpine/makedepends: libexecinfo-dev -->
 </package>
