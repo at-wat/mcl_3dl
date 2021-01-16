@@ -50,7 +50,10 @@ void stacktrace(int signum)
 #ifdef HAVE_EXECINFO
   void* buffer[100];
   int nptrs = backtrace(buffer, 100);
+  fprintf(stderr, "stacktrace (%d):\n", nptrs);
+  fflush(stderr);
   backtrace_symbols_fd(buffer, nptrs, STDERR_FILENO);
+  fflush(stderr);
 #endif  // HAVE_EXECINFO
   raise(signum);
 }
