@@ -47,7 +47,7 @@
 void trace(unw_context_t* context)
 {
   unw_cursor_t cursor;
-  unw_init_local(&cursor, context);
+  unw_init_local2(&cursor, context, 1);
 
   int n = 0;
   while (unw_step(&cursor))
@@ -84,13 +84,10 @@ void signalHandler(int signum, siginfo_t* siginfo, void* crashContextPtr)
 {
   signal(signum, SIG_DFL);
 
-  unw_context_t* crashContext = (struct sigcontext*)crashContextPtr;
   fprintf(stderr, "mcl_3dl is exiting by signal %d\n", signum);
   unw_context_t context;
   unw_getcontext(&context);
-  trace(&context.uc_mcontext);
-  fprintf(stderr, "crash context:\n");
-  trace((unw_context_t*)crashContext);
+  trace((unw_context_t*)&context.uc_mcontext);
 
   raise(signum);
 }
