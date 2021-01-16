@@ -33,12 +33,9 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
-#ifdef HAVE_EXECINFO
-#include <execinfo.h>
-#endif  // HAVE_EXECINFO
-
-#include <iostream>
+#include <dlfcn.h>
 
 #include <ros/ros.h>
 
@@ -49,12 +46,14 @@ void* trace_buffer[100];
 void stacktrace(int signum)
 {
   signal(signum, SIG_DFL);
-#ifdef HAVE_EXECINFO
-  fprintf(stderr, "mcl_3dl is exiting by signal %d\n", signum);
-  int nptrs = backtrace(trace_buffer, 100);
-  fprintf(stderr, "stacktrace (%d):\n", nptrs);
-  backtrace_symbols_fd(trace_buffer, nptrs, STDERR_FILENO);
-#endif  // HAVE_EXECINFO
+
+  void* addr0 = __builtin_return_address(0);
+  Dl_info info;
+  dladdr(addr0, &info);
+  fprintf(stderr, "mcl_3dl is exiting by signal %d %p %s %p %s %p\n",
+          signum,
+          addr0, info.dli_fname, info.dli_fbase, info.dli_sname, info.dli_saddr);
+
   raise(signum);
 }
 
