@@ -44,7 +44,7 @@
 
 #include <mcl_3dl/mcl_3dl.h>
 
-void trace(int i, void* addr)
+void trace()
 {
   unw_cursor_t cursor;
   unw_context_t context;
