@@ -31,13 +31,14 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#ifdef HAVE_EXECINFO
+#include <execinfo.h>
+#endif  // HAVE_EXECINFO
 
 #include <iostream>
-
-#ifdef BOOST_STACKTRACE
-#include <boost/filesystem.hpp>
-#include <boost/stacktrace.hpp>
-#endif  // BOOST_STACKTRACE
 
 #include <ros/ros.h>
 
@@ -46,51 +47,16 @@
 void stacktrace(int signum)
 {
   signal(signum, SIG_DFL);
-#ifdef BOOST_STACKTRACE
-  boost::stacktrace::safe_dump_to("./trace.dump");
-#endif  // BOOST_STACKTRACE
+#ifdef HAVE_EXECINFO
+  void* buffer[100];
+  int nptrs = backtrace(buffer, 100);
+  backtrace_symbols_fd(buffer, nptrs, STDERR_FILENO);
+#endif  // HAVE_EXECINFO
   raise(signum);
 }
 
 int main(int argc, char* argv[])
 {
-  pid_t pid = fork();
-  if (pid != 0)
-  {
-    int status;
-    if (waitpid(pid, &status, 0) == -1)
-    {
-      std::cerr << "Failed to check mcl_3dl process status" << std::endl;
-      return 2;
-    }
-
-    if (WIFSIGNALED(status))
-    {
-      const int sig = WTERMSIG(status);
-      std::cerr << "mcl_3dl crushed by signal " << sig << ": ";
-#ifdef BOOST_STACKTRACE
-      if (boost::filesystem::exists("./trace.dump"))
-      {
-        std::ifstream ifs("./trace.dump");
-        boost::stacktrace::stacktrace st = boost::stacktrace::stacktrace::from_dump(ifs);
-        std::cerr << std::endl
-                  << st << std::endl;
-        ifs.close();
-        boost::filesystem::remove("./trace.dump");
-      }
-#else
-      std::cerr << "stacktrace is unavailable on this system" << std::endl;
-#endif  // BOOST_STACKTRACE
-      return -WTERMSIG(status);
-    }
-
-    if (WIFEXITED(status))
-      return WEXITSTATUS(status);
-
-    std::cerr << "mcl_3dl exited by unknown reason" << std::endl;
-    return 2;
-  }
-
   signal(SIGSEGV, &stacktrace);
   signal(SIGABRT, &stacktrace);
 
