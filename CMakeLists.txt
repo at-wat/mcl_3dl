@@ -73,7 +73,7 @@ add_definitions(-DPCL_NO_PRECOMPILE)
 
 find_path(BOOST_STACKTRACE boost/stacktrace.hpp)
 if(BOOST_STACKTRACE)
-  add_definitions(-DBOOST_STACKTRACE -DBOOST_STACKTRACE_USE_ADDR2LINE -rdynamic)
+  add_definitions(-DBOOST_STACKTRACE -DBOOST_STACKTRACE_USE_ADDR2LINE)
 endif()
 
 add_executable(mcl_3dl
@@ -87,6 +87,9 @@ add_executable(mcl_3dl
 )
 target_link_libraries(mcl_3dl ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${PCL_LIBRARIES})
 add_dependencies(mcl_3dl ${catkin_EXPORTED_TARGETS})
+if(BOOST_STACKTRACE AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  set_target_properties(mcl_3dl PROPERTIES LINK_FLAGS -rdynamic)
+endif()
 
 
 if(CATKIN_ENABLE_TESTING)
