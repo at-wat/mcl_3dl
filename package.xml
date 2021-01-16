@@ -31,4 +31,6 @@
   <depend>mcl_3dl_msgs</depend>
 
   <depend>eigen</depend>
+
+  <!-- alpine/depends: execinfo -->
 </package>
