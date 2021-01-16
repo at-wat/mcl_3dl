@@ -47,7 +47,7 @@
 void trace(unw_context_t* context)
 {
   unw_cursor_t cursor;
-  unw_init_local2(&cursor, context, 1);
+  unw_init_local(&cursor, context);
 
   int n = 0;
   while (unw_step(&cursor))
@@ -80,31 +80,22 @@ void trace(unw_context_t* context)
   }
 }
 
-void signalHandler(int signum, siginfo_t* siginfo, void* crashContextPtr)
+void signalHandler(int signum)
 {
   signal(signum, SIG_DFL);
 
   fprintf(stderr, "mcl_3dl is exiting by signal %d\n", signum);
   unw_context_t context;
   unw_getcontext(&context);
-  trace((unw_context_t*)&context.uc_mcontext);
+  trace(&context);
 
   raise(signum);
 }
 
-void setSignalHandler(int signum)
-{
-  struct sigaction action;
-  action.sa_sigaction = signalHandler;
-  sigfillset(&action.sa_mask);
-  action.sa_flags = SA_SIGINFO;
-  sigaction(signum, &action, NULL);
-}
-
 int main(int argc, char* argv[])
 {
-  setSignalHandler(SIGSEGV);
-  setSignalHandler(SIGABRT);
+  signal(SIGSEGV, signalHandler);
+  signal(SIGABRT, signalHandler);
 
   ros::init(argc, argv, "mcl_3dl");
 
