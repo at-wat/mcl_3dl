@@ -41,19 +41,41 @@
 
 #include <mcl_3dl/mcl_3dl.h>
 
-void* trace_buffer[100];
+void showStack(int i, void* addr)
+{
+  Dl_info info;
+  dladdr(addr, &info);
+  fprintf(stderr, "#%u %p %s %p %s %p\n",
+          i, addr, info.dli_fname, info.dli_fbase, info.dli_sname, info.dli_saddr);
+}
 
 void stacktrace(int signum)
 {
   signal(signum, SIG_DFL);
 
-  void* addr0 = __builtin_return_address(0);
-  Dl_info info;
-  dladdr(addr0, &info);
-  fprintf(stderr, "mcl_3dl is exiting by signal %d %p %s %p %s %p\n",
-          signum,
-          addr0, info.dli_fname, info.dli_fbase, info.dli_sname, info.dli_saddr);
+  fprintf(stderr, "mcl_3dl is exiting by signal %d\n", signum);
 
+  while (true)
+  {
+    void* addr0 = __builtin_frame_address(0);
+    if (addr0 == nullptr)
+      break;
+    showStack(0, addr0);
+    void* addr1 = __builtin_frame_address(1);
+    if (addr1 == nullptr)
+      break;
+    showStack(1, addr1);
+    void* addr2 = __builtin_frame_address(2);
+    if (addr2 == nullptr)
+      break;
+    showStack(2, addr2);
+    void* addr3 = __builtin_frame_address(3);
+    if (addr3 == nullptr)
+      break;
+    showStack(3, addr3);
+
+    break;
+  }
   raise(signum);
 }
 
