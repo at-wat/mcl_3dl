@@ -88,7 +88,7 @@ add_executable(mcl_3dl
 )
 target_link_libraries(mcl_3dl ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${PCL_LIBRARIES} ${EXECINFO_LIBRARY})
 add_dependencies(mcl_3dl ${catkin_EXPORTED_TARGETS})
-if(BOOST_STACKTRACE AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+if(HAVE_EXECINFO AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   set_target_properties(mcl_3dl PROPERTIES LINK_FLAGS -rdynamic)
 endif()
 
