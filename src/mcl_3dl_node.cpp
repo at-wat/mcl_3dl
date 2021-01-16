@@ -44,13 +44,10 @@
 
 #include <mcl_3dl/mcl_3dl.h>
 
-void trace()
+void trace(unw_context_t* context)
 {
   unw_cursor_t cursor;
-  unw_context_t context;
-
-  unw_getcontext(&context);
-  unw_init_local(&cursor, &context);
+  unw_init_local(&cursor, context);
 
   int n = 0;
   while (unw_step(&cursor))
@@ -83,20 +80,34 @@ void trace()
   }
 }
 
-void signalHandler(int signum)
+void signalHandler(int signum, siginfo_t* siginfo, void* crashContextPtr)
 {
   signal(signum, SIG_DFL);
 
+  unw_context_t* crashContext = (struct sigcontext*)crashContextPtr;
   fprintf(stderr, "mcl_3dl is exiting by signal %d\n", signum);
-  trace();
+  unw_context_t context;
+  unw_getcontext(&context);
+  trace(&context.uc_mcontext);
+  fprintf(stderr, "crash context:\n");
+  trace((unw_context_t*)crashContext);
 
   raise(signum);
 }
 
+void setSignalHandler(int signum)
+{
+  struct sigaction action;
+  action.sa_sigaction = signalHandler;
+  sigfillset(&action.sa_mask);
+  action.sa_flags = SA_SIGINFO;
+  sigaction(signum, &action, NULL);
+}
+
 int main(int argc, char* argv[])
 {
-  signal(SIGSEGV, &signalHandler);
-  signal(SIGABRT, &signalHandler);
+  setSignalHandler(SIGSEGV);
+  setSignalHandler(SIGABRT);
 
   ros::init(argc, argv, "mcl_3dl");
 
