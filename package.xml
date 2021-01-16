@@ -31,4 +31,6 @@
   <depend>mcl_3dl_msgs</depend>
 
   <depend>eigen</depend>
+  <depend>libunwind</depend>
+  <build_depend>libunwind-dev</build_depend>
 </package>

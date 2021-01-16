@@ -34,55 +34,69 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <inttypes.h>
 
-#include <dlfcn.h>
+#define UNW_LOCAL_ONLY
+#include <libunwind.h>
+#include <cxxabi.h>
 
 #include <ros/ros.h>
 
 #include <mcl_3dl/mcl_3dl.h>
 
-void showStack(int i, void* addr)
+void trace(int i, void* addr)
 {
-  Dl_info info;
-  dladdr(addr, &info);
-  fprintf(stderr, "#%u %p %s %p %s %p\n",
-          i, addr, info.dli_fname, info.dli_fbase, info.dli_sname, info.dli_saddr);
+  unw_cursor_t cursor;
+  unw_context_t context;
+
+  unw_getcontext(&context);
+  unw_init_local(&cursor, &context);
+
+  int n = 0;
+  while (unw_step(&cursor))
+  {
+    unw_word_t ip, sp, off;
+
+    unw_get_reg(&cursor, UNW_REG_IP, &ip);
+    unw_get_reg(&cursor, UNW_REG_SP, &sp);
+
+    char symbol[256] = { "<unknown>" };
+    char* name = symbol;
+
+    if (!unw_get_proc_name(&cursor, symbol, sizeof(symbol), &off))
+    {
+      int status;
+      if ((name = abi::__cxa_demangle(symbol, NULL, NULL, &status)) == 0)
+        name = symbol;
+    }
+
+    fprintf(
+        stderr, "#%-2d 0x%016" PRIxPTR " sp=0x%016" PRIxPTR " %s + 0x%" PRIxPTR "\n",
+        ++n,
+        static_cast<uintptr_t>(ip),
+        static_cast<uintptr_t>(sp),
+        name,
+        static_cast<uintptr_t>(off));
+
+    if (name != symbol)
+      free(name);
+  }
 }
 
-void stacktrace(int signum)
+void signalHandler(int signum)
 {
   signal(signum, SIG_DFL);
 
   fprintf(stderr, "mcl_3dl is exiting by signal %d\n", signum);
+  trace();
 
-  while (true)
-  {
-    void* addr0 = __builtin_frame_address(0);
-    if (addr0 == nullptr)
-      break;
-    showStack(0, addr0);
-    void* addr1 = __builtin_frame_address(1);
-    if (addr1 == nullptr)
-      break;
-    showStack(1, addr1);
-    void* addr2 = __builtin_frame_address(2);
-    if (addr2 == nullptr)
-      break;
-    showStack(2, addr2);
-    void* addr3 = __builtin_frame_address(3);
-    if (addr3 == nullptr)
-      break;
-    showStack(3, addr3);
-
-    break;
-  }
   raise(signum);
 }
 
 int main(int argc, char* argv[])
 {
-  signal(SIGSEGV, &stacktrace);
-  signal(SIGABRT, &stacktrace);
+  signal(SIGSEGV, &signalHandler);
+  signal(SIGABRT, &signalHandler);
 
   ros::init(argc, argv, "mcl_3dl");
 

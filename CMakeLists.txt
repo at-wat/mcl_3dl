@@ -33,11 +33,20 @@ catkin_package(
   INCLUDE_DIRS include
   CATKIN_DEPENDS ${CATKIN_DEPENDS}
 )
+find_package(PkgConfig)
+pkg_check_modules(LIBUNWIND REQUIRED libunwind)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-include_directories(include ${catkin_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${PCL_INCLUDE_DIR})
+include_directories(
+  include
+  ${catkin_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIR}
+  ${Boost_INCLUDE_DIRS}
+  ${PCL_INCLUDE_DIR}
+  ${LIBUNWIND_INCLUDE_DIRS}
+)
 add_definitions(${PCL_DEFINITIONS})
 
 
@@ -80,7 +89,7 @@ add_executable(mcl_3dl
   src/parameters.cpp
   src/point_types.cpp
 )
-target_link_libraries(mcl_3dl ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${PCL_LIBRARIES} ${EXECINFO_LIBRARY} -ldl)
+target_link_libraries(mcl_3dl ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${PCL_LIBRARIES} ${EXECINFO_LIBRARY} ${LIBUNWIND_LIBRARIES})
 add_dependencies(mcl_3dl ${catkin_EXPORTED_TARGETS})
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   set_target_properties(mcl_3dl PROPERTIES LINK_FLAGS -rdynamic)
