@@ -44,16 +44,15 @@
 
 #include <mcl_3dl/mcl_3dl.h>
 
+void* trace_buffer[100];
+
 void stacktrace(int signum)
 {
   signal(signum, SIG_DFL);
 #ifdef HAVE_EXECINFO
-  void* buffer[100];
-  int nptrs = backtrace(buffer, 100);
+  int nptrs = backtrace(trace_buffer, 100);
   fprintf(stderr, "stacktrace (%d):\n", nptrs);
-  fflush(stderr);
-  backtrace_symbols_fd(buffer, nptrs, STDERR_FILENO);
-  fflush(stderr);
+  backtrace_symbols_fd(trace_buffer, nptrs, STDERR_FILENO);
 #endif  // HAVE_EXECINFO
   raise(signum);
 }
