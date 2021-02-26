@@ -325,6 +325,11 @@ protected:
       return;
     }
 
+    if (pc_accum_header_.size() < 1)
+    {
+      ROS_ERROR("MCL measure function is called without available pointcloud");
+      return;
+    }
     const std_msgs::Header& header = pc_accum_header_.back();
 
     try
