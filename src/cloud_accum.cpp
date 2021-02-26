@@ -73,8 +73,7 @@ void CloudAccumulationLogic::push(
       else
       {
         clear();
-        keys_.clear();
-        cnt_accum_ = 0;
+        reset();
       }
       return;
     }
@@ -91,8 +90,7 @@ void CloudAccumulationLogic::push(
       else
       {
         clear();
-        keys_.clear();
-        cnt_accum_ = 0;
+        reset();
       }
       return;
     }
