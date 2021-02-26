@@ -147,6 +147,7 @@ protected:
     has_map_ = true;
 
     accumClear();
+    accum_->reset();
 
     ROS_INFO("map original: %d points", (int)pc_tmp->points.size());
     ROS_INFO("map reduced: %d points", (int)pc_map_->points.size());

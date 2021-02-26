@@ -109,15 +109,20 @@ void CloudAccumulationLogic::push(
   }
 
   process();
+  accum_->reset();
 
   clear();
-  keys_.clear();
-  cnt_accum_ = 0;
 
   if (accumulate(msg))
   {
     keys_.push_back(key);
     cnt_accum_++;
   }
+}
+
+void CloudAccumulationLogic::reset()
+{
+  keys_.clear();
+  cnt_accum_ = 0;
 }
 }  // namespace mcl_3dl

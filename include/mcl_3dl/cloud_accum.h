@@ -50,6 +50,8 @@ public:
       std::function<void()> process,
       std::function<bool(const sensor_msgs::PointCloud2::ConstPtr&)> accumulate,
       std::function<void()> clear) = 0;
+
+  virtual void reset() = 0;
 };
 
 class CloudAccumulationLogicPassThrough : public CloudAccumulationLogicBase
@@ -61,6 +63,10 @@ public:
       std::function<void()> process,
       std::function<bool(const sensor_msgs::PointCloud2::ConstPtr&)> accumulate,
       std::function<void()> clear) final;
+
+  inline void reset() final
+  {
+  }
 };
 
 class CloudAccumulationLogic : public CloudAccumulationLogicBase
@@ -81,6 +87,8 @@ public:
       std::function<void()> process,
       std::function<bool(const sensor_msgs::PointCloud2::ConstPtr&)> accumulate,
       std::function<void()> clear) final;
+
+  void reset() final;
 
 private:
   size_t accum_;
