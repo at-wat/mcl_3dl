@@ -2,6 +2,11 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.5.3 (2021-02-26)
+------------------
+* Fix cloud accum reset on map update (`#371 <https://github.com/at-wat/mcl_3dl/issues/371>`_)
+* Contributors: Atsushi Watanabe
+
 0.5.2 (2021-01-15)
 ------------------
 * Fix potential "Time is out of dual 32-bit range" error (`#367 <https://github.com/at-wat/mcl_3dl/issues/367>`_)

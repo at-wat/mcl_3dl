@@ -10,7 +10,7 @@ on:
 jobs:
   prerelease:
     if: ${{ startsWith(github.head_ref, 'release-') }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     strategy:
       fail-fast: false
       matrix:
