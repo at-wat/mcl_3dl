@@ -147,6 +147,7 @@ protected:
     has_map_ = true;
 
     accumClear();
+    accum_->reset();
 
     ROS_INFO("map original: %d points", (int)pc_tmp->points.size());
     ROS_INFO("map reduced: %d points", (int)pc_map_->points.size());
@@ -324,6 +325,11 @@ protected:
       return;
     }
 
+    if (pc_accum_header_.empty())
+    {
+      ROS_ERROR("MCL measure function is called without available pointcloud");
+      return;
+    }
     const std_msgs::Header& header = pc_accum_header_.back();
 
     try
