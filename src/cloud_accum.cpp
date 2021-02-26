@@ -109,9 +109,9 @@ void CloudAccumulationLogic::push(
   }
 
   process();
-  accum_->reset();
 
   clear();
+  accum_->reset();
 
   if (accumulate(msg))
   {
