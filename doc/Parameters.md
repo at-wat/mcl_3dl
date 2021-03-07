@@ -38,3 +38,12 @@ Description of the node parameters and how to tune them.
     Time constant to forget the integral of the rotational odometry error.
 - **odom\_err\_integ\_ang\_sigma** (float, default: `100.0`, unit: radian):\
     Acceptable range of the integral of the rotational odometry error.
+
+## ROS communication
+
+- **odom\_queue\_size** (int, default: `200`, unit: count):\
+    Odometry subscriber queue size
+- **imu\_queue\_size** (int, default: `200`, unit: count):\
+    IMU subscriber queue size
+- **cloud\_queue\_size** (int, default: `100`, unit: count):\
+    Point cloud subscriber queue size
