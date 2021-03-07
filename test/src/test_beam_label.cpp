@@ -64,19 +64,21 @@ void generateSamplePointcloud2(
       "z", 1, sensor_msgs::PointField::FLOAT32,
       "label", 1, sensor_msgs::PointField::UINT32);
 
+  const float resolution = 0.05;
+
   std::vector<Eigen::Vector4d> points;
   // Floor
-  for (float x = -range; x < range; x += 0.1)
+  for (float x = -range; x < range; x += resolution)
   {
-    for (float y = -range; y < range; y += 0.1)
+    for (float y = -range; y < range; y += resolution)
     {
       points.emplace_back(x, y, -1.0, 0);
     }
   }
   // Semi-transparent wall
-  for (float x = -0.5; x < 0.5; x += 0.1)
+  for (float x = -0.5; x < 0.5; x += resolution)
   {
-    for (float z = -1.0; z < 0.0; z += 0.1)
+    for (float z = -1.0; z < 0.0; z += resolution)
     {
       points.emplace_back(x, 1.0, z, 2);
     }
