@@ -1203,20 +1203,26 @@ public:
 
     if (!params_.fake_odom_)
     {
+      int odom_queue_size;
+      pnh_.param("odom_queue_size", odom_queue_size, 200);
       sub_odom_ = mcl_3dl_compat::subscribe(
           nh_, "odom",
-          pnh_, "odom", 200, &MCL3dlNode::cbOdom, this);
+          pnh_, "odom", odom_queue_size, &MCL3dlNode::cbOdom, this);
     }
     if (!params_.fake_imu_)
     {
+      int imu_queue_size;
+      pnh_.param("imu_queue_size", imu_queue_size, 200);
       sub_imu_ = mcl_3dl_compat::subscribe(
           nh_, "imu/data",
-          pnh_, "imu", 200, &MCL3dlNode::cbImu, this);
+          pnh_, "imu", imu_queue_size, &MCL3dlNode::cbImu, this);
     }
 
+    int cloud_queue_size;
+    pnh_.param("cloud_queue_size", cloud_queue_size, 100);
     sub_cloud_ = mcl_3dl_compat::subscribe(
         nh_, "cloud",
-        pnh_, "cloud", 100, &MCL3dlNode::cbCloud, this);
+        pnh_, "cloud", cloud_queue_size, &MCL3dlNode::cbCloud, this);
     sub_mapcloud_ = mcl_3dl_compat::subscribe(
         nh_, "mapcloud",
         pnh_, "mapcloud", 1, &MCL3dlNode::cbMapcloud, this);
