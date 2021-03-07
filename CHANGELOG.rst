@@ -2,6 +2,12 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add odom/imu/cloud_queue_size params (`#375 <https://github.com/at-wat/mcl_3dl/issues/375>`_)
+* Fix flaky tests (`#376 <https://github.com/at-wat/mcl_3dl/issues/376>`_)
+* Contributors: Atsushi Watanabe
+
 0.5.3 (2021-02-26)
 ------------------
 * Fix cloud accum reset on map update (`#371 <https://github.com/at-wat/mcl_3dl/issues/371>`_)
