@@ -20,7 +20,7 @@ jobs:
         id: bloom
         uses: at-wat/bloom-release-action@v0
         with:
-          ros_distro: kinetic melodic noetic
+          ros_distro: melodic noetic
           github_token_bloom: ${{ secrets.BLOOM_GITHUB_TOKEN }}
           github_user: at-wat
           git_user: Atsushi Watanabe
