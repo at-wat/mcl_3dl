@@ -42,12 +42,9 @@ jobs:
         run: if [ -f /home/runner/layers.tar ]; then docker load -i /home/runner/layers.tar; fi
 
       - name: Install gh-pr-comment
-        run: |
-          curl -sL https://raw.githubusercontent.com/at-wat/gh-pr-comment/master/install.sh | sh -s
-          echo "${HOME}/.local/bin" >> ${GITHUB_PATH}
-          cp ${HOME}/.local/bin/gh-pr-comment .github/
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: at-wat/setup-gh-pr-comment@v0
+      - name: Copy gh-pr-comment for container
+        run: cp $(which gh-pr-comment) .github/
       - name: Download codecov script
         run: for i in 1 2 3; do wget --timeout=10 -O /tmp/codecovenv https://codecov.io/env && break; done
 
@@ -65,7 +62,7 @@ jobs:
             || (gh-pr-comment "${BUILD_LINK} FAILED on ${ROS_DISTRO}" "docker build failed"; false)
           docker run --rm \
             -e BUILD_LINK=${BUILD_LINK} \
-            $(sh <(curl -s https://raw.githubusercontent.com/at-wat/gh-pr-comment/master/env.sh)) \
+            $(gh-pr-comment-env.sh) \
             -e GITHUB_ACTIONS \
             -e CATKIN_MAKE_OPTIONS \
             $(bash /tmp/codecovenv) \

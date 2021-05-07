@@ -21,11 +21,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Install gh-pr-comment
-        run: |
-          curl -sL https://raw.githubusercontent.com/at-wat/gh-pr-comment/master/install.sh | sh -s
-          echo "${HOME}/.local/bin" >> ${GITHUB_PATH}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: at-wat/setup-gh-pr-comment@v0
       - name: Pre-release test
         run: |
           eval export ${{ matrix.env }}
