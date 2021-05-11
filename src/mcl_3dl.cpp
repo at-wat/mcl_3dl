@@ -1282,9 +1282,7 @@ public:
     srv_expansion_reset_ = mcl_3dl_compat::advertiseService(
         nh_, "expansion_resetting",
         pnh_, "expansion_resetting", &MCL3dlNode::cbExpansionReset, this);
-    srv_load_pcd_ = mcl_3dl_compat::advertiseService(
-      nh_, "load_pcd",
-      pnh_, "load_pcd", &MCL3dlNode::cbLoadPCD, this);
+    srv_load_pcd_ = nh_.advertiseService("load_pcd", &MCL3dlNode::cbLoadPCD, this);
 
     point_rep_.setRescaleValues(params_.dist_weight_.data());
 
