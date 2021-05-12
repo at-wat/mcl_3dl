@@ -2,6 +2,14 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add option to load cloud through "load_pcd" service (`#381 <https://github.com/at-wat/mcl_3dl/issues/381>`_)
+* Update assets to v0.3.1 (`#382 <https://github.com/at-wat/mcl_3dl/issues/382>`_)
+* Update assets to v0.3.0 (`#380 <https://github.com/at-wat/mcl_3dl/issues/380>`_)
+* Update assets to v0.2.0 (`#379 <https://github.com/at-wat/mcl_3dl/issues/379>`_)
+* Contributors: Atsushi Watanabe, Remco
+
 0.5.4 (2021-03-07)
 ------------------
 * Add odom/imu/cloud_queue_size params (`#375 <https://github.com/at-wat/mcl_3dl/issues/375>`_)
