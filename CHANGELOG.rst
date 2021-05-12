@@ -2,8 +2,8 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.0 (2021-05-12)
+------------------
 * Add option to load cloud through "load_pcd" service (`#381 <https://github.com/at-wat/mcl_3dl/issues/381>`_)
 * Update assets to v0.3.1 (`#382 <https://github.com/at-wat/mcl_3dl/issues/382>`_)
 * Update assets to v0.3.0 (`#380 <https://github.com/at-wat/mcl_3dl/issues/380>`_)
