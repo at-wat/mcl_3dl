@@ -54,6 +54,7 @@
 #include <visualization_msgs/MarkerArray.h>
 #include <mcl_3dl_msgs/ResizeParticle.h>
 #include <mcl_3dl_msgs/Status.h>
+#include <mcl_3dl_msgs/LoadPCD.h>
 #include <std_srvs/Trigger.h>
 #include <diagnostic_updater/diagnostic_updater.h>
 
@@ -136,23 +137,7 @@ protected:
     const ros::Time map_stamp = (msg->header.stamp != ros::Time()) ? msg->header.stamp : ros::Time::now();
     pcl_conversions::toPCL(map_stamp, pc_tmp->header.stamp);
 
-    pc_map_.reset(new pcl::PointCloud<PointType>);
-    pc_map2_.reset();
-    pc_update_.reset();
-    pcl::VoxelGrid18<PointType> ds;
-    ds.setInputCloud(pc_tmp);
-    ds.setLeafSize(params_.map_downsample_x_, params_.map_downsample_y_, params_.map_downsample_z_);
-    ds.filter(*pc_map_);
-    pc_all_accum_.reset(new pcl::PointCloud<PointType>);
-    has_map_ = true;
-
-    accumClear();
-    accum_->reset();
-
-    ROS_INFO("map original: %d points", (int)pc_tmp->points.size());
-    ROS_INFO("map reduced: %d points", (int)pc_map_->points.size());
-
-    cbMapUpdateTimer(ros::TimerEvent());
+    loadMapCloud(pc_tmp);
   }
   void cbMapcloudUpdate(const sensor_msgs::PointCloud2::ConstPtr& msg)
   {
@@ -1182,6 +1167,50 @@ protected:
     pub_status_.publish(status_);
   }
 
+  void loadMapCloud(const pcl::PointCloud<PointType>::Ptr& map_cloud)
+  {
+    pc_map_.reset(new pcl::PointCloud<PointType>);
+    pc_map2_.reset();
+    pc_update_.reset();
+    pcl::VoxelGrid18<PointType> ds;
+    ds.setInputCloud(map_cloud);
+    ds.setLeafSize(params_.map_downsample_x_, params_.map_downsample_y_, params_.map_downsample_z_);
+    ds.filter(*pc_map_);
+    pc_all_accum_.reset(new pcl::PointCloud<PointType>);
+    has_map_ = true;
+
+    accumClear();
+    accum_->reset();
+
+    ROS_INFO("map original: %d points", static_cast<int>(map_cloud->points.size()));
+    ROS_INFO("map reduced: %d points", static_cast<int>(pc_map_->points.size()));
+
+    // output map for visualization purposes:
+    cbMapUpdateTimer(ros::TimerEvent());
+  }
+
+  bool cbLoadPCD(mcl_3dl_msgs::LoadPCD::Request& req, mcl_3dl_msgs::LoadPCD::Response& resp)
+  {
+    ROS_INFO("map received");
+
+    pcl::PointCloud<PointType>::Ptr pc_tmp(new pcl::PointCloud<PointType>);
+    if (pcl::io::loadPCDFile<PointType> (req.pcd_path, *pc_tmp) == -1)
+    {
+      ROS_ERROR_STREAM("Couldn't read file " << req.pcd_path);
+      has_map_ = false;
+      resp.success = false;
+      return true;
+    }
+
+    pcl_conversions::toPCL(ros::Time::now(), pc_tmp->header.stamp);
+    pc_tmp->header.frame_id = params_.frame_ids_["map"];
+
+    loadMapCloud(pc_tmp);
+
+    resp.success = true;
+    return true;
+  }
+
 public:
   MCL3dlNode()
     : pnh_("~")
@@ -1253,6 +1282,7 @@ public:
     srv_expansion_reset_ = mcl_3dl_compat::advertiseService(
         nh_, "expansion_resetting",
         pnh_, "expansion_resetting", &MCL3dlNode::cbExpansionReset, this);
+    srv_load_pcd_ = nh_.advertiseService("load_pcd", &MCL3dlNode::cbLoadPCD, this);
 
     point_rep_.setRescaleValues(params_.dist_weight_.data());
 
@@ -1396,6 +1426,7 @@ protected:
   ros::ServiceServer srv_particle_size_;
   ros::ServiceServer srv_global_localization_;
   ros::ServiceServer srv_expansion_reset_;
+  ros::ServiceServer srv_load_pcd_;
 
   tf2_ros::Buffer tfbuf_;
   tf2_ros::TransformListener tfl_;
