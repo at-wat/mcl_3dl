@@ -44,9 +44,9 @@ TEST(PointCloudUniformSampler, Sampling)
 
   const float points_ref[][3] =
       {
-        { 10, 11, 12 },
-        { 20, 21, 22 },
-        { 30, 31, 32 }
+          {10, 11, 12},
+          {20, 21, 22},
+          {30, 31, 32},
       };
   for (const auto& p_ref : points_ref)
   {

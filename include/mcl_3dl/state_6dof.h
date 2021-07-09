@@ -77,7 +77,7 @@ public:
     }
   };
   RPYVec rpy_;
-  float& operator[](const size_t i)override
+  float& operator[](const size_t i) override
   {
     switch (i)
     {

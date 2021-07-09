@@ -122,14 +122,14 @@ TEST(Vec3, Products)
   const int num_samples = 8;
   const mcl_3dl::Vec3 samples[num_samples] =
       {
-        mcl_3dl::Vec3(1.5, 2.5, 3.5),
-        mcl_3dl::Vec3(-0.5, 1.0, 1.0),
-        mcl_3dl::Vec3(0.5, -1.0, 2.0),
-        mcl_3dl::Vec3(0.5, 1.0, -2.0),
-        mcl_3dl::Vec3(-2.0, -5.0, 4.0),
-        mcl_3dl::Vec3(2.0, -5.0, -4.0),
-        mcl_3dl::Vec3(-2.0, 5.0, -4.0),
-        mcl_3dl::Vec3(-3.0, -1.0, -2.0)
+          mcl_3dl::Vec3(1.5, 2.5, 3.5),
+          mcl_3dl::Vec3(-0.5, 1.0, 1.0),
+          mcl_3dl::Vec3(0.5, -1.0, 2.0),
+          mcl_3dl::Vec3(0.5, 1.0, -2.0),
+          mcl_3dl::Vec3(-2.0, -5.0, 4.0),
+          mcl_3dl::Vec3(2.0, -5.0, -4.0),
+          mcl_3dl::Vec3(-2.0, 5.0, -4.0),
+          mcl_3dl::Vec3(-3.0, -1.0, -2.0),
       };
 
   for (int i = 0; i < num_samples; ++i)

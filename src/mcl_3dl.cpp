@@ -1194,7 +1194,7 @@ protected:
     ROS_INFO("map received");
 
     pcl::PointCloud<PointType>::Ptr pc_tmp(new pcl::PointCloud<PointType>);
-    if (pcl::io::loadPCDFile<PointType> (req.pcd_path, *pc_tmp) == -1)
+    if (pcl::io::loadPCDFile<PointType>(req.pcd_path, *pc_tmp) == -1)
     {
       ROS_ERROR_STREAM("Couldn't read file " << req.pcd_path);
       has_map_ = false;
@@ -1470,7 +1470,8 @@ protected:
 
   std::map<
       std::string,
-      LidarMeasurementModelBase::Ptr> lidar_measurements_;
+      LidarMeasurementModelBase::Ptr>
+      lidar_measurements_;
   ImuMeasurementModelBase::Ptr imu_measurement_model_;
   MotionPredictionModelBase::Ptr motion_prediction_model_;
 

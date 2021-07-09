@@ -127,11 +127,11 @@ TEST(PointCloudSamplerWithNormal, Sampling)
   const std::vector<ParameterSet> parameters =
       {
           // Weights of points in the wall at right angles: 10, weights of points in the parallel wall: 1
-          {2.0, 4.0, 10.0, 0.85, 1.0},  // NOLINT(whitespace/braces)
+          {2.0, 4.0, 10.0, 0.85, 1.0},
           // Weights of points in the wall at right angles: 1, weights of points in the parallel wall: 1
-          {6.0, 7.0, 10.0, 0.4, 0.6},  // NOLINT(whitespace/braces)
+          {6.0, 7.0, 10.0, 0.4, 0.6},
           // Weights of points in the wall at right angles: 3, weights of points in the parallel wall: 1
-          {2.0, 8.0, 5.0, 0.65, 0.85},  // NOLINT(whitespace/braces)
+          {2.0, 8.0, 5.0, 0.65, 0.85},
       };
 
   for (const unsigned int seed : seeds)
@@ -149,7 +149,8 @@ TEST(PointCloudSamplerWithNormal, Sampling)
       std::vector<int> counts(2, 0);
       for (const auto& extracted_point : *extracted_cloud)
       {
-        const auto pred = [&extracted_point](const PointXYZIL& p) {  // NOLINT(whitespace/braces)
+        const auto pred = [&extracted_point](const PointXYZIL& p)
+        {
           return (p.x == extracted_point.x) && (p.y == extracted_point.y) && (p.z == extracted_point.z);
         };
         const size_t index = std::find_if(pc->begin(), pc->end(), pred) - pc->begin();

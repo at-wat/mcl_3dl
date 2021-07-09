@@ -56,8 +56,7 @@ LidarMeasurementModelBeam::LidarMeasurementModelBeam(
   , map_grid_y_(map_grid_y)
   , map_grid_z_(map_grid_z)
 {
-  // FIXME(at-wat): remove NOLINT after clang-format or roslint supports it
-  search_range_ = std::max({ map_grid_x_, map_grid_y_, map_grid_z_ }) * 4;  // NOLINT(whitespace/braces)
+  search_range_ = std::max({map_grid_x_, map_grid_y_, map_grid_z_}) * 4;
 }
 
 void LidarMeasurementModelBeam::loadConfig(
@@ -109,7 +108,7 @@ void LidarMeasurementModelBeam::loadConfig(
     pnh.param("ray_angle_half", ray_angle_half, 0.25 * M_PI / 180.0);
     double dda_grid_size;
     pnh.param("dda_grid_size", dda_grid_size, 0.2);
-    const double grid_size_max = std::max({ map_grid_x_, map_grid_y_, map_grid_z_ });  // NOLINT(whitespace/braces)
+    const double grid_size_max = std::max({map_grid_x_, map_grid_y_, map_grid_z_});
     if (dda_grid_size < grid_size_max)
     {
       ROS_WARN("dda_grid_size must be larger than grid size. New value: %f", grid_size_max);

@@ -80,7 +80,9 @@ TEST(Pf, BayesianEstimation)
   mcl_3dl::pf::ParticleFilter<State, float> pf(1024);
   const float center_list[] =
       {
-          10.0, 11.0, 9.5
+          10.0,
+          11.0,
+          9.5,
       };
 
   const float abs_error = 2e-1;
@@ -150,7 +152,9 @@ TEST(Pf, VariableParticleSize)
   const size_t size_num = 3;
   const size_t size[size_num] =
       {
-          1024, 2048, 900
+          1024,
+          2048,
+          900,
       };
   mcl_3dl::pf::ParticleFilter<State, float> pf(size[0]);
 
@@ -230,15 +234,27 @@ TEST(Pf, ResampleFirstAndLastParticle)
     SCOPED_TRACE("ResampleFirstParticle");
     const std::vector<float> probs =
         {
-            small_prob, 0.2f, 0.2f, 0.2f, 0.4f - small_prob
+            small_prob,
+            0.2f,
+            0.2f,
+            0.2f,
+            0.4f - small_prob,
         };
     const std::vector<float> states =
         {
-            0.0f, 1.0f, 2.0f, 3.0f, 4.0f
+            0.0f,
+            1.0f,
+            2.0f,
+            3.0f,
+            4.0f,
         };
     const std::vector<float> expected_resampled_states =
         {
-            1.0f, 2.0f, 3.0f, 4.0f, 4.0f
+            1.0f,
+            2.0f,
+            3.0f,
+            4.0f,
+            4.0f,
         };
     testResample(probs, states, expected_resampled_states);
   }
@@ -246,14 +262,27 @@ TEST(Pf, ResampleFirstAndLastParticle)
     SCOPED_TRACE("ResampleLastParticle");
     const std::vector<float> probs =
         {
-            0.2f, 0.2f, 0.2f, 0.4f - small_prob, small_prob};
+            0.2f,
+            0.2f,
+            0.2f,
+            0.4f - small_prob,
+            small_prob,
+        };
     const std::vector<float> states =
         {
-            0.0f, 1.0f, 2.0f, 3.0f, 4.0f
+            0.0f,
+            1.0f,
+            2.0f,
+            3.0f,
+            4.0f,
         };
     const std::vector<float> expected_resampled_states =
         {
-            0.0f, 1.0f, 2.0f, 3.0f, 3.0f
+            0.0f,
+            1.0f,
+            2.0f,
+            3.0f,
+            3.0f,
         };
     testResample(probs, states, expected_resampled_states);
   }

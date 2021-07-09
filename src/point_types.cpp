@@ -36,15 +36,15 @@
 #include <mcl_3dl/point_types.h>
 
 template bool pcl_ros::transformPointCloud<mcl_3dl::PointXYZIL>(
-    const std::string &,
-    const ros::Time &,
-    const pcl::PointCloud<mcl_3dl::PointXYZIL> &,
-    const std::string &,
-    pcl::PointCloud<mcl_3dl::PointXYZIL> &,
-    const tf::TransformListener &);
+    const std::string&,
+    const ros::Time&,
+    const pcl::PointCloud<mcl_3dl::PointXYZIL>&,
+    const std::string&,
+    pcl::PointCloud<mcl_3dl::PointXYZIL>&,
+    const tf::TransformListener&);
 
 template bool pcl_ros::transformPointCloud<mcl_3dl::PointXYZIL>(
-    const std::string &,
-    const pcl::PointCloud<mcl_3dl::PointXYZIL> &,
-    pcl::PointCloud<mcl_3dl::PointXYZIL> &,
-    const tf::TransformListener &);
+    const std::string&,
+    const pcl::PointCloud<mcl_3dl::PointXYZIL>&,
+    pcl::PointCloud<mcl_3dl::PointXYZIL>&,
+    const tf::TransformListener&);

@@ -149,11 +149,11 @@ public:
     if (collided_point)
     {
       // TODO(nhatao): Implement estimation of the angle of incidence.
-      result = { fromIndex(current_index_), true, 1.0, collided_point };
+      result = {fromIndex(current_index_), true, 1.0, collided_point};
     }
     else
     {
-      result = { fromIndex(current_index_), false, 1.0, collided_point };
+      result = {fromIndex(current_index_), false, 1.0, collided_point};
     }
     return true;
   }
