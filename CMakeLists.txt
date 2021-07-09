@@ -89,9 +89,11 @@ if(CATKIN_ENABLE_TESTING)
   find_package(rosunit REQUIRED)
   add_subdirectory(test)
 
-  find_package(roslint REQUIRED)
-  roslint_cpp()
-  roslint_add_test()
+  if(NOT "$ENV{ROS_DISTRO}" STREQUAL "melodic")
+    find_package(roslint REQUIRED)
+    roslint_cpp()
+    roslint_add_test()
+  endif()
 endif()
 
 
