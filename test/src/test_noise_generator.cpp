@@ -122,18 +122,13 @@ TEST(NoiseGenerator, DiagonalNoiseGenerator)
 
 TEST(NoiseGenerator, MultivariateNoiseGenerator)
 {
-  // clang-format off
-  const std::vector<float> expected_mean =
-  {
-      -1.0, 2.0, -3.0,
-  };
+  const std::vector<float> expected_mean = {-1.0, 2.0, -3.0};
   const std::vector<float> expected_covariance =
-  {
-      1.0, 0.3, 0.7,
-      0.3, 2.0, 0.4,
-      0.7, 0.4, 1.0
-  };
-  // clang-format on
+      {
+          1.0, 0.3, 0.7,  //
+          0.3, 2.0, 0.4,  //
+          0.7, 0.4, 1.0,  //
+      };
 
   const MultivariateNoiseGenerator<float> gen(expected_mean, expected_covariance);
   testNoiseGeneratorResults(expected_mean, expected_covariance, gen, 0.01);
@@ -141,21 +136,16 @@ TEST(NoiseGenerator, MultivariateNoiseGenerator)
 
 TEST(NoiseGenerator, MultivariateNoiseGeneratorForState6Dof)
 {
-  // clang-format off
-  const std::vector<float> expected_mean =
-  {
-      5.0, -6.0, 7.0, -0.3, 0.2, 0.1
-  };
+  const std::vector<float> expected_mean = {5.0, -6.0, 7.0, -0.3, 0.2, 0.1};
   const std::vector<float> expected_covariance =
-  {
-      2.0,  0.5,  0.6,  0.05,  0.04,  0.0,
-      0.5,  2.5,  0.4,  0.06,  0.07,  0.08,
-      0.6,  0.4,  3.0,  0.09,  0.02,  0.11,
-      0.05, 0.06, 0.09, 0.2,   0.045, 0.035,
-      0.04, 0.07, 0.02, 0.045, 0.15,  0.015,
-      0.0,  0.08, 0.11, 0.035, 0.015, 0.1
-  };
-  // clang-format on
+      {
+          2.000, 0.500, 0.600, 0.050, 0.040, 0.000,  //
+          0.500, 2.500, 0.400, 0.060, 0.070, 0.080,  //
+          0.600, 0.400, 3.000, 0.090, 0.020, 0.110,  //
+          0.050, 0.060, 0.090, 0.200, 0.045, 0.035,  //
+          0.040, 0.070, 0.020, 0.045, 0.150, 0.015,  //
+          0.000, 0.080, 0.110, 0.035, 0.015, 0.100,  //
+      };
 
   const mcl_3dl::Vec3 mean_pos(expected_mean[0], expected_mean[1], expected_mean[2]);
   const mcl_3dl::Quat mean_rot(mcl_3dl::Vec3(expected_mean[3], expected_mean[4], expected_mean[5]));

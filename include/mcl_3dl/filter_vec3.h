@@ -46,13 +46,13 @@ private:
 public:
   inline FilterVec3(Filter::type_t type, const Vec3& time_const, const Vec3& out0, const bool angle = false)
     : x_(out0)
-    , f_(  // clang-format off
+    , f_(
           {
               Filter(type, time_const[0], out0[0], angle),
               Filter(type, time_const[1], out0[1], angle),
               Filter(type, time_const[2], out0[2], angle),
-          }
-        )  // clang-format on
+          }  //
+      )
   {
   }
   inline void set(const Vec3& out0)

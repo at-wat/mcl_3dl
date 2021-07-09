@@ -105,7 +105,7 @@ TEST(BeamModel, LikelihoodFunc)
         {
           const float x = 0.1 * i;
           const mcl_3dl::Vec3 pos(x, 0, 0);
-          const std::vector<mcl_3dl::Vec3> origins = {pos};  // NOLINT(whitespace/braces)
+          const std::vector<mcl_3dl::Vec3> origins = {pos};
           const mcl_3dl::LidarMeasurementResult v = model.measure(
               kdtree, pc.makeShared(), origins,
               mcl_3dl::State6DOF(pos, mcl_3dl::Quat()));
