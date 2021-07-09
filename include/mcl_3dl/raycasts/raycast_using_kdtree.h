@@ -50,8 +50,8 @@ public:
                      const float hit_tolerance)
     : Raycast<POINT_TYPE>()
     // FIXME(at-wat): remove NOLINT after clang-format or roslint supports it
-    , map_grid_min_(std::min({ map_grid_size_x, map_grid_size_y, map_grid_size_z }))  // NOLINT(whitespace/braces)
-    , map_grid_max_(std::max({ map_grid_size_x, map_grid_size_y, map_grid_size_z }))  // NOLINT(whitespace/braces)
+    , map_grid_min_(std::min({map_grid_size_x, map_grid_size_y, map_grid_size_z}))  // NOLINT(whitespace/braces)
+    , map_grid_max_(std::max({map_grid_size_x, map_grid_size_y, map_grid_size_z}))  // NOLINT(whitespace/braces)
     , hit_tolerance_(hit_tolerance)
   {
   }

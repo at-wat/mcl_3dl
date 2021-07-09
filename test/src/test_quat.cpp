@@ -178,14 +178,14 @@ TEST(Quat, Products)
   const int num_samples = 8;
   const mcl_3dl::Quat samples[num_samples] =
       {
-        mcl_3dl::Quat(mcl_3dl::Vec3(1.5, 2.5, 3.5), 0.5),
-        mcl_3dl::Quat(mcl_3dl::Vec3(-0.5, 1.0, 1.0), 1.0),
-        mcl_3dl::Quat(mcl_3dl::Vec3(0.5, -1.0, 2.0), 1.5),
-        mcl_3dl::Quat(mcl_3dl::Vec3(0.5, 1.0, -2.0), 2.0),
-        mcl_3dl::Quat(mcl_3dl::Vec3(-2.0, -5.0, 4.0), 2.5),
-        mcl_3dl::Quat(mcl_3dl::Vec3(2.0, -5.0, -4.0), -1.0),
-        mcl_3dl::Quat(mcl_3dl::Vec3(-2.0, 5.0, -4.0), -1.5),
-        mcl_3dl::Quat(mcl_3dl::Vec3(-3.0, -1.0, -2.0), -2.0)
+          mcl_3dl::Quat(mcl_3dl::Vec3(1.5, 2.5, 3.5), 0.5),
+          mcl_3dl::Quat(mcl_3dl::Vec3(-0.5, 1.0, 1.0), 1.0),
+          mcl_3dl::Quat(mcl_3dl::Vec3(0.5, -1.0, 2.0), 1.5),
+          mcl_3dl::Quat(mcl_3dl::Vec3(0.5, 1.0, -2.0), 2.0),
+          mcl_3dl::Quat(mcl_3dl::Vec3(-2.0, -5.0, 4.0), 2.5),
+          mcl_3dl::Quat(mcl_3dl::Vec3(2.0, -5.0, -4.0), -1.0),
+          mcl_3dl::Quat(mcl_3dl::Vec3(-2.0, 5.0, -4.0), -1.5),
+          mcl_3dl::Quat(mcl_3dl::Vec3(-3.0, -1.0, -2.0), -2.0),
       };
 
   // Check inverse
@@ -235,28 +235,28 @@ TEST(Quat, Products)
   const int num_vecs = 3;
   const mcl_3dl::Vec3 v[num_vecs] =
       {
-        mcl_3dl::Vec3(1.0, 0.0, 0.0),
-        mcl_3dl::Vec3(0.0, 1.0, 0.0),
-        mcl_3dl::Vec3(0.0, 0.0, 1.0)
+          mcl_3dl::Vec3(1.0, 0.0, 0.0),
+          mcl_3dl::Vec3(0.0, 1.0, 0.0),
+          mcl_3dl::Vec3(0.0, 0.0, 1.0),
       };
   const int num_rots = 3;
   const mcl_3dl::Quat r[num_rots] =
       {
-        mcl_3dl::Quat(mcl_3dl::Vec3(1.0, 0.0, 0.0), M_PI / 2.0),
-        mcl_3dl::Quat(mcl_3dl::Vec3(0.0, 1.0, 0.0), -M_PI / 2.0),
-        mcl_3dl::Quat(mcl_3dl::Vec3(0.0, 0.0, 1.0), -M_PI / 2.0)
+          mcl_3dl::Quat(mcl_3dl::Vec3(1.0, 0.0, 0.0), M_PI / 2.0),
+          mcl_3dl::Quat(mcl_3dl::Vec3(0.0, 1.0, 0.0), -M_PI / 2.0),
+          mcl_3dl::Quat(mcl_3dl::Vec3(0.0, 0.0, 1.0), -M_PI / 2.0),
       };
   const mcl_3dl::Vec3 v_ans[3][3] =
       {
-        mcl_3dl::Vec3(1.0, 0.0, 0.0),
-        mcl_3dl::Vec3(0.0, 0.0, 1.0),
-        mcl_3dl::Vec3(0.0, -1.0, 0.0),
-        mcl_3dl::Vec3(0.0, 0.0, 1.0),
-        mcl_3dl::Vec3(0.0, 1.0, 0.0),
-        mcl_3dl::Vec3(-1.0, 0.0, 0.0),
-        mcl_3dl::Vec3(0.0, -1.0, 0.0),
-        mcl_3dl::Vec3(1.0, 0.0, 0.0),
-        mcl_3dl::Vec3(0.0, 0.0, 1.0)
+          mcl_3dl::Vec3(1.0, 0.0, 0.0),
+          mcl_3dl::Vec3(0.0, 0.0, 1.0),
+          mcl_3dl::Vec3(0.0, -1.0, 0.0),
+          mcl_3dl::Vec3(0.0, 0.0, 1.0),
+          mcl_3dl::Vec3(0.0, 1.0, 0.0),
+          mcl_3dl::Vec3(-1.0, 0.0, 0.0),
+          mcl_3dl::Vec3(0.0, -1.0, 0.0),
+          mcl_3dl::Vec3(1.0, 0.0, 0.0),
+          mcl_3dl::Vec3(0.0, 0.0, 1.0),
       };
   for (int i = 0; i < num_vecs; ++i)
   {

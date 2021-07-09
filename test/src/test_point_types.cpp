@@ -64,7 +64,7 @@ TEST(PointTypes, VoxelGrid)
 
   ASSERT_EQ(pc2->size(), 2u);
   int num_1(0), num_4(0);
-  for (auto &p : *pc2)
+  for (auto& p : *pc2)
   {
     switch (p.label)
     {
@@ -93,7 +93,7 @@ TEST(PointTypes, VoxelGrid)
   ASSERT_TRUE(num_1 == 1 && num_4 == 1);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);
 

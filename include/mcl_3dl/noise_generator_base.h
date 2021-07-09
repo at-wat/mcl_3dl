@@ -64,7 +64,6 @@ protected:
   std::vector<FLT_TYPE> mean_;
 };
 
-
 }  // namespace mcl_3dl
 
 #endif  // MCL_3DL_NOISE_GENERATOR_BASE_H
