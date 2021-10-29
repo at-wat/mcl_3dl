@@ -3,10 +3,9 @@
 
 ARG ROS_DISTRO=noetic
 # ========================================
-FROM alpine:latest as cloner
+FROM ghcr.io/alpine-ros/alpine-ros:noetic-bare as cloner
 
-RUN apk add --no-cache git py3-pip \
-  && python3 -m pip install wstool
+RUN apk add --no-cache git py3-wstool
 
 WORKDIR /repos-isolated
 COPY .rosinstall-isolated /repos-isolated/deps.rosinstall
