@@ -62,10 +62,6 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O1")
 
-if(PCL_VERSION VERSION_LESS 1.8.0)
-  add_definitions(-DBACKPORT_PCL_VOXEL_GRID)
-endif()
-
 # Binary installed pcl provided by Linux distro is built with -march=native
 # which causes a lot of compatibility problems.
 # Define PCL_NO_PRECOMPILE to disable using the binary version.
