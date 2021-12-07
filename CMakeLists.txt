@@ -22,7 +22,7 @@ set(CATKIN_DEPENDS
 
 find_package(catkin REQUIRED COMPONENTS ${CATKIN_DEPENDS})
 find_package(Eigen3 REQUIRED)
-find_package(PCL 1.7.2 REQUIRED
+find_package(PCL 1.8.0 REQUIRED
   COMPONENTS
     core
     filters
