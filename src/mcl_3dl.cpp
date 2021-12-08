@@ -72,8 +72,6 @@
 #include <pcl/kdtree/kdtree.h>
 #include <pcl/kdtree/kdtree_flann.h>
 
-#include <pcl18_backports/voxel_grid.h>
-
 #include <mcl_3dl/chunked_kdtree.h>
 #include <mcl_3dl/cloud_accum.h>
 #include <mcl_3dl/filter.h>
@@ -147,7 +145,7 @@ protected:
       return;
 
     pc_update_.reset(new pcl::PointCloud<PointType>);
-    pcl::VoxelGrid18<PointType> ds;
+    pcl::VoxelGrid<PointType> ds;
     ds.setInputCloud(pc_tmp);
     ds.setLeafSize(params_.update_downsample_x_, params_.update_downsample_y_, params_.update_downsample_z_);
     ds.filter(*pc_update_);
@@ -362,7 +360,7 @@ protected:
     const auto ts = boost::chrono::high_resolution_clock::now();
 
     pcl::PointCloud<PointType>::Ptr pc_local_full(new pcl::PointCloud<PointType>);
-    pcl::VoxelGrid18<PointType> ds;
+    pcl::VoxelGrid<PointType> ds;
     ds.setInputCloud(pc_local_accum_);
     ds.setLeafSize(params_.downsample_x_, params_.downsample_y_, params_.downsample_z_);
     ds.filter(*pc_local_full);
@@ -1047,7 +1045,7 @@ protected:
     }
     pcl::PointCloud<PointType>::Ptr points(new pcl::PointCloud<PointType>);
 
-    pcl::VoxelGrid18<PointType> ds;
+    pcl::VoxelGrid<PointType> ds;
     ds.setInputCloud(pc_map_);
     ds.setLeafSize(
         params_.global_localization_grid_,
@@ -1172,7 +1170,7 @@ protected:
     pc_map_.reset(new pcl::PointCloud<PointType>);
     pc_map2_.reset();
     pc_update_.reset();
-    pcl::VoxelGrid18<PointType> ds;
+    pcl::VoxelGrid<PointType> ds;
     ds.setInputCloud(map_cloud);
     ds.setLeafSize(params_.map_downsample_x_, params_.map_downsample_y_, params_.map_downsample_z_);
     ds.filter(*pc_map_);
