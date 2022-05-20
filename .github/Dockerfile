@@ -3,7 +3,7 @@
 
 ARG ROS_DISTRO=noetic
 # ========================================
-FROM ghcr.io/alpine-ros/alpine-ros:noetic-bare as cloner
+FROM ghcr.io/alpine-ros/alpine-ros:noetic-3.14-bare as cloner
 
 RUN apk add --no-cache git py3-wstool
 
