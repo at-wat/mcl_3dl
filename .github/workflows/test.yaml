@@ -21,16 +21,16 @@ jobs:
           - ROS_DISTRO=noetic
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Cache test data
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: .cached-dataset
           key: dataset-${{ hashFiles('test/CMakeLists.txt') }}
           restore-keys: dataset-
       - name: Cache docker layers
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: /home/runner/layers.tar
           key: docker-layers-${{ matrix.env }}-${{ github.sha }}
