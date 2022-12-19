@@ -29,10 +29,10 @@ jobs:
           tag_and_release: true
           open_pr: true
       - name: create GitHub release
-        uses: actions/create-release@v1
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.bloom.outputs.version }}
-          release_name: Release ${{ steps.bloom.outputs.version }}
+        run:
+          gh release create \
+            ${{ steps.bloom.outputs.version }} \
+            --title "Release ${{ steps.bloom.outputs.version }}"
