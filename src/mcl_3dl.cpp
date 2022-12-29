@@ -109,18 +109,11 @@ protected:
   class MyPointRepresentation : public pcl::PointRepresentation<PointType>
   {
     using pcl::PointRepresentation<PointType>::nr_dimensions_;
-    using pcl::PointRepresentation<PointType>::alpha_;
 
   public:
     MyPointRepresentation()
     {
       nr_dimensions_ = 3;
-    }
-
-    MyPointRepresentation(const float *alpha)
-    {
-      nr_dimensions_ = 3;
-      std::copy_n(alpha, 3, alpha_.begin());
     }
 
     virtual void copyToFloatArray(const PointType& p, float* out) const
