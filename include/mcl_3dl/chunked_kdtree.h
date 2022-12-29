@@ -204,9 +204,7 @@ public:
     for (auto& cloud : clouds)
     {
       if (point_rep_)
-      {
         chunks_[cloud.first].kdtree_->setPointRepresentation(point_rep_);
-      }
       if (set_epsilon_)
         chunks_[cloud.first].kdtree_->setEpsilon(epsilon_);
       auto cloud_ptr = cloud.second.makeShared();
