@@ -109,21 +109,12 @@ protected:
   class MyPointRepresentation : public pcl::PointRepresentation<PointType>
   {
     using pcl::PointRepresentation<PointType>::nr_dimensions_;
-    using pcl::PointRepresentation<PointType>::alpha_;
 
   public:
     MyPointRepresentation()
     {
-      ROS_ERROR("construct MyPointRepresentation");
       nr_dimensions_ = 3;
       trivial_ = true;
-    }
-
-    void debug() const
-    {
-      ROS_ERROR("%d %0.3f %0.3f %0.3f",
-          nr_dimensions_,
-          alpha_[0], alpha_[1], alpha_[2]);
     }
 
     virtual void copyToFloatArray(const PointType& p, float* out) const
