@@ -109,7 +109,7 @@ public:
     }
   }
   void setPointRepresentation(
-      boost::shared_ptr<pcl::PointRepresentation<POINT_TYPE>> point_rep)
+      const typename pcl::PointRepresentation<POINT_TYPE>::ConstPtr point_rep)
   {
     point_rep_ = point_rep;
     for (auto& chunk : chunks_)
@@ -204,7 +204,9 @@ public:
     for (auto& cloud : clouds)
     {
       if (point_rep_)
+      {
         chunks_[cloud.first].kdtree_->setPointRepresentation(point_rep_);
+      }
       if (set_epsilon_)
         chunks_[cloud.first].kdtree_->setEpsilon(epsilon_);
       auto cloud_ptr = cloud.second.makeShared();
@@ -283,7 +285,7 @@ protected:
   bool set_epsilon_;
   bool keep_clouds_;
   float epsilon_;
-  boost::shared_ptr<pcl::PointRepresentation<POINT_TYPE>> point_rep_;
+  typename pcl::PointRepresentation<POINT_TYPE>::ConstPtr point_rep_;
 
   using ChunkMap = std::unordered_map<ChunkId, Chunk, ChunkId>;
   using ChunkCloud = std::unordered_map<ChunkId, typename pcl::PointCloud<POINT_TYPE>, ChunkId>;

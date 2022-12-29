@@ -109,11 +109,18 @@ protected:
   class MyPointRepresentation : public pcl::PointRepresentation<PointType>
   {
     using pcl::PointRepresentation<PointType>::nr_dimensions_;
+    using pcl::PointRepresentation<PointType>::alpha_;
 
   public:
     MyPointRepresentation()
     {
       nr_dimensions_ = 3;
+    }
+
+    MyPointRepresentation(const float *alpha)
+    {
+      nr_dimensions_ = 3;
+      std::copy_n(alpha, 3, alpha_.begin());
     }
 
     virtual void copyToFloatArray(const PointType& p, float* out) const
@@ -1055,9 +1062,7 @@ protected:
 
     pcl::KdTreeFLANN<PointType>::Ptr kdtree(new pcl::KdTreeFLANN<PointType>);
     kdtree->setPointRepresentation(
-        boost::dynamic_pointer_cast<
-            pcl::PointRepresentation<PointType>,
-            MyPointRepresentation>(boost::make_shared<MyPointRepresentation>(point_rep_)));
+        pcl::KdTree<mcl_3dl::PointXYZIL>::PointRepresentation::ConstPtr(&point_rep_));
     kdtree->setInputCloud(points);
 
     auto pc_filter = [this, kdtree](const PointType& p)
@@ -1349,9 +1354,7 @@ public:
     kdtree_.reset(new ChunkedKdtree<PointType>(params_.map_chunk_, max_search_radius));
     kdtree_->setEpsilon(params_.map_grid_min_ / 16);
     kdtree_->setPointRepresentation(
-        boost::dynamic_pointer_cast<
-            pcl::PointRepresentation<PointType>,
-            MyPointRepresentation>(boost::make_shared<MyPointRepresentation>(point_rep_)));
+        pcl::PointRepresentation<PointType>::PointRepresentation::ConstPtr(&point_rep_));
 
     map_update_timer_ = nh_.createTimer(
         *params_.map_update_interval_,
