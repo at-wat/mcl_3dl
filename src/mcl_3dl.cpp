@@ -114,6 +114,7 @@ protected:
     MyPointRepresentation()
     {
       nr_dimensions_ = 3;
+      trivial_ = true;
     }
 
     virtual void copyToFloatArray(const PointType& p, float* out) const
@@ -1054,10 +1055,7 @@ protected:
     ds.filter(*points);
 
     pcl::KdTreeFLANN<PointType>::Ptr kdtree(new pcl::KdTreeFLANN<PointType>);
-    kdtree->setPointRepresentation(
-        boost::dynamic_pointer_cast<
-            pcl::PointRepresentation<PointType>,
-            MyPointRepresentation>(boost::make_shared<MyPointRepresentation>(point_rep_)));
+    kdtree->setPointRepresentation(point_rep_);
     kdtree->setInputCloud(points);
 
     auto pc_filter = [this, kdtree](const PointType& p)
@@ -1215,6 +1213,7 @@ public:
     , tfl_(tfbuf_)
     , cnt_measure_(0)
     , global_localization_fix_cnt_(0)
+    , point_rep_(new MyPointRepresentation)
     , engine_(seed_gen_())
   {
   }
@@ -1282,7 +1281,7 @@ public:
         pnh_, "expansion_resetting", &MCL3dlNode::cbExpansionReset, this);
     srv_load_pcd_ = nh_.advertiseService("load_pcd", &MCL3dlNode::cbLoadPCD, this);
 
-    point_rep_.setRescaleValues(params_.dist_weight_.data());
+    point_rep_->setRescaleValues(params_.dist_weight_.data());
 
     pf_.reset(new pf::ParticleFilter<State6DOF,
                                      float,
@@ -1348,10 +1347,7 @@ public:
     ROS_DEBUG("max_search_radius: %0.3f", max_search_radius);
     kdtree_.reset(new ChunkedKdtree<PointType>(params_.map_chunk_, max_search_radius));
     kdtree_->setEpsilon(params_.map_grid_min_ / 16);
-    kdtree_->setPointRepresentation(
-        boost::dynamic_pointer_cast<
-            pcl::PointRepresentation<PointType>,
-            MyPointRepresentation>(boost::make_shared<MyPointRepresentation>(point_rep_)));
+    kdtree_->setPointRepresentation(point_rep_);
 
     map_update_timer_ = nh_.createTimer(
         *params_.map_update_interval_,
@@ -1454,7 +1450,7 @@ protected:
   diagnostic_updater::Updater diag_updater_;
   mcl_3dl_msgs::Status status_;
 
-  MyPointRepresentation point_rep_;
+  MyPointRepresentation::Ptr point_rep_;
 
   pcl::PointCloud<PointType>::Ptr pc_map_;
   pcl::PointCloud<PointType>::Ptr pc_map2_;
