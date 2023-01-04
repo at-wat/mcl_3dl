@@ -2,6 +2,17 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Support PCL 1.11 and later (`#397 <https://github.com/at-wat/mcl_3dl/issues/397>`_)
+* Update assets to v0.4.0 (`#395 <https://github.com/at-wat/mcl_3dl/issues/395>`_)
+* Update assets to v0.3.4 (`#392 <https://github.com/at-wat/mcl_3dl/issues/392>`_)
+* Remove old workarounds for PCL<1.8 (`#389 <https://github.com/at-wat/mcl_3dl/issues/389>`_)
+* Update assets to v0.3.3 (`#388 <https://github.com/at-wat/mcl_3dl/issues/388>`_)
+* Update assets to v0.3.2 (`#387 <https://github.com/at-wat/mcl_3dl/issues/387>`_)
+* Update code format (`#386 <https://github.com/at-wat/mcl_3dl/issues/386>`_)
+* Contributors: Atsushi Watanabe
+
 0.6.0 (2021-05-12)
 ------------------
 * Add option to load cloud through "load_pcd" service (`#381 <https://github.com/at-wat/mcl_3dl/issues/381>`_)
