@@ -2,8 +2,8 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.1 (2023-01-04)
+------------------
 * Update assets to v0.4.1 (`#400 <https://github.com/at-wat/mcl_3dl/issues/400>`_)
 * Support PCL 1.11 and later (`#397 <https://github.com/at-wat/mcl_3dl/issues/397>`_)
 * Update assets to v0.4.0 (`#395 <https://github.com/at-wat/mcl_3dl/issues/395>`_)
