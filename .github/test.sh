@@ -88,11 +88,11 @@ then
     gcov $(find . -name "*.gcda") -p -c -l > /dev/null
 
     rm -rf $(find build -type d -maxdepth 1 -mindepth 1 | grep -v -e "/self$")
-    download_codecov='wget --timeout=10 -O /tmp/codecov https://codecov.io/bash'
-    ${download_codecov} || ${download_codecov} || ${download_codecov}
-    bash /tmp/codecov \
-      -Z \
-      -X gcov
+    find . -name "*.gcov" | while read file
+    do
+      mkdir -p /orig-src/$(dirname ${file})
+      cp ${file} /orig-src/${file}
+    done
   fi
 fi
 

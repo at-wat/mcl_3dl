@@ -32,7 +32,7 @@ jobs:
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run:
+        run: |
           gh release create \
             ${{ steps.bloom.outputs.version }} \
             --title "Release ${{ steps.bloom.outputs.version }}"

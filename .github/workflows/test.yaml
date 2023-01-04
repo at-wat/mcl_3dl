@@ -45,8 +45,6 @@ jobs:
         uses: at-wat/setup-gh-pr-comment@v0
       - name: Copy gh-pr-comment for container
         run: cp $(which gh-pr-comment) .github/
-      - name: Download codecov script
-        run: for i in 1 2 3; do wget --timeout=10 -O /tmp/codecovenv https://codecov.io/env && break; done
 
       - name: Test
         run: |
@@ -65,9 +63,10 @@ jobs:
             $(gh-pr-comment-env.sh) \
             -e GITHUB_ACTIONS \
             -e CATKIN_MAKE_OPTIONS \
-            $(bash /tmp/codecovenv) \
+            -v ${GITHUB_WORKSPACE}:/orig-src \
             tester \
             /catkin_ws/src/self/.github/test.sh
+      - uses: codecov/codecov-action@v3
       - name: Save layer cache
         run: |
           eval export ${{ matrix.env }}
