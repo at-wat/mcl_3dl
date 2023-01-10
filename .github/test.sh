@@ -95,8 +95,7 @@ then
       for file in $(find . -name "*.gcov")
       do
         base="$(basename ${file})"
-        id="$(uuidgen -r)"
-        mv "${file}" "/tmp/gcov-out/${base%.gcov}.${id}${exec_name}.gcov"
+        mv "${file}" "/tmp/gcov-out/${base%.gcov}.${RANDOM}${exec_name}.gcov"
       done
     done
     mv /tmp/gcov-out/* ./
