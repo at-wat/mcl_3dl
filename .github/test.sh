@@ -85,7 +85,21 @@ then
 
   if [ -n "$(find . -name "*.gcda")" ]
   then
-    gcov $(find . -name "*.gcda") -p -c -l > /dev/null
+    mkdir -p /tmp/gcov-out/
+    find . -name "*.gcda" | while read gcda
+    do
+      echo "processing ${gcda}"
+      name="${gcda%.gcda}"
+      exec_name="$(echo "${name}" | sed -n 's|^.*/\([^/]\+\)\.dir/.*|.\1|p')"
+      gcov -p ${name}.gcda -s ./ > /dev/null
+      for file in $(find . -name "*.gcov")
+      do
+        base="$(basename ${file})"
+        id="$(uuidgen -r)"
+        mv "${file}" "/tmp/gcov-out/${base%.gcov}.${id}${exec_name}.gcov"
+      done
+    done
+    mv /tmp/gcov-out/* ./
 
     rm -rf $(find build -type d -maxdepth 1 -mindepth 1 | grep -v -e "/self$")
     find . -name "*.gcov" | while read file
