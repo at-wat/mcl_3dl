@@ -10,6 +10,7 @@ cd /catkin_ws
 
 md_codeblock='```'
 
+echo '::group::prepare'
 if [ -d /catkin_ws/src/self/.cached-dataset ]
 then
   mkdir -p /catkin_ws/build/self/test/
@@ -25,17 +26,25 @@ sed -i -e "/^set(CATKIN_TOPLEVEL TRUE)$/a set(CMAKE_CXX_FLAGS \"-Wall -Werror -O
 echo "--- catkin cmake hook ---"
 grep -A5 -B1 "set(CATKIN_TOPLEVEL TRUE)" /opt/ros/${ROS_DISTRO}/share/catkin/cmake/toplevel.cmake
 echo "-------------------------"
+echo '::endgroup::'
 
 CM_OPTIONS=${CATKIN_MAKE_OPTIONS:-}
 
+echo '::group::catkin_make'
 catkin_make ${CM_OPTIONS} || \
   (gh-pr-comment "${BUILD_LINK} FAILED on ${ROS_DISTRO}" '```catkin_make``` failed'; false)
+echo '::endgroup::'
+echo '::group::catkin_make tests'
 catkin_make tests ${CM_OPTIONS} || \
   (gh-pr-comment "${BUILD_LINK} FAILED on ${ROS_DISTRO}" '```catkin_make tests``` failed'; false)
+echo '::endgroup::'
+echo '::group::catkin_make run_tests'
 catkin_make run_tests ${CM_OPTIONS} || \
   (gh-pr-comment "${BUILD_LINK} FAILED on ${ROS_DISTRO}" '```catkin_make run_tests``` failed'; false)
+echo '::endgroup::'
 
-if [ catkin_test_results ]
+echo '::group::post-process'
+if catkin_test_results
 then
   result_text="
 ${md_codeblock}
@@ -112,3 +121,4 @@ fi
 gh-pr-comment "${BUILD_LINK} PASSED on ${ROS_DISTRO}" "<details><summary>All tests passed</summary>
 
 $result_text</details>" || true
+echo '::endgroup::'
