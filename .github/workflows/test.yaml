@@ -35,6 +35,8 @@ jobs:
           path: /home/runner/layers.tar
           key: docker-layers-${{ matrix.env }}-${{ github.sha }}
           restore-keys: docker-layers-${{ matrix.env }}-
+      - name: Set env
+        run: echo "${{ matrix.env }}" | tee ${GITHUB_ENV}
 
       - name: Get dataset
         run: if [ -x .github/get_dataset.sh ]; then .github/get_dataset.sh; fi
@@ -48,28 +50,43 @@ jobs:
 
       - name: Test
         run: |
-          eval export ${{ matrix.env }}
           eval export $(cat .github/test.conf)
+          echo "ROS_DISTRO=${ROS_DISTRO}" >> ${GITHUB_ENV}
+
           BUILD_LINK="[${GITHUB_RUN_NUMBER}]"
           touch .rosinstall .rosinstall-isolated
+          echo '::group::docker build'
           docker build \
             -t tester \
             -f .github/Dockerfile \
             --build-arg ROS_DISTRO \
             --pull=true . \
             || (gh-pr-comment "${BUILD_LINK} FAILED on ${ROS_DISTRO}" "docker build failed"; false)
+          echo '::endgroup::'
+
+          mkdir -p /tmp/log
           docker run --rm \
             -e BUILD_LINK=${BUILD_LINK} \
             $(gh-pr-comment-env.sh) \
             -e GITHUB_ACTIONS \
             -e CATKIN_MAKE_OPTIONS \
             -v ${GITHUB_WORKSPACE}:/orig-src \
+            -v /tmp/log:/root/.ros/log \
             tester \
             /catkin_ws/src/self/.github/test.sh
+      - name: Compress logs
+        if: always()
+        run: cd /tmp; tar -cJf logs.tar.xz log
+      - name: Upload ROS logs
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: logs-${{ env.ROS_DISTRO }}.tar.xz
+          path: /tmp/logs.tar.xz
+          retention-days: 1
       - uses: codecov/codecov-action@v3
       - name: Save layer cache
         run: |
-          eval export ${{ matrix.env }}
           LAYERS=$(docker history -q tester | grep -v missing)
           echo "layers: $(echo ${LAYERS})"
           docker save -o /home/runner/layers.tar ${LAYERS}
