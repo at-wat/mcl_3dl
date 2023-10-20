@@ -12,7 +12,7 @@ jobs:
     if: startsWith(github.event.issue.title, 'Release ')
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: create release
         id: create_release
         uses: at-wat/catkin-release-action@v1

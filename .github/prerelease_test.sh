@@ -6,9 +6,6 @@
 set -eu
 
 case ${ROS_DISTRO} in
-  melodic )
-    UBUNTU_DIST_TARGET=bionic
-    ;;
   noetic )
     UBUNTU_DIST_TARGET=focal
     ;;
