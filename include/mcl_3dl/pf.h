@@ -260,7 +260,10 @@ public:
       for (auto& p : particles_)
       {
         p.probability_ /= sum;
-        entropy_ += p.probability_ * std::log(p.probability_);
+        if (p.probability_ > 0)
+        {
+          entropy_ += p.probability_ * std::log(p.probability_);
+        }
       }
       entropy_ *= -1;
     }
