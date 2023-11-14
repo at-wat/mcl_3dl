@@ -256,10 +256,13 @@ public:
     }
     if (sum > 0.0)
     {
+      entropy_ = 0;
       for (auto& p : particles_)
       {
         p.probability_ /= sum;
+        entropy_ += p.probability_ * std::log(p.probability_);
       }
+      entropy_ *= -1;
     }
     else
     {
