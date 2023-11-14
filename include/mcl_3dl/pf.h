@@ -437,12 +437,17 @@ public:
   {
     return particles_.end();
   }
+  FLT_TYPE getEntropy() const
+  {
+    return entropy_;
+  }
 
 protected:
   std::vector<Particle<T, FLT_TYPE>> particles_;
   std::vector<Particle<T, FLT_TYPE>> particles_dup_;
   RANDOM_ENGINE engine_;
   T ie_;
+  FLT_TYPE entropy_;
 };
 
 }  // namespace pf
