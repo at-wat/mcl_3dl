@@ -2,8 +2,8 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.2 (2023-11-14)
+------------------
 * Fix reported entropy (`#408 <https://github.com/at-wat/mcl_3dl/issues/408>`_)
 * Update assets to v0.6.1 (`#407 <https://github.com/at-wat/mcl_3dl/issues/407>`_)
 * Update assets to v0.6.0 (`#406 <https://github.com/at-wat/mcl_3dl/issues/406>`_)
