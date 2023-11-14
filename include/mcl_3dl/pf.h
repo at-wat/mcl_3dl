@@ -256,10 +256,16 @@ public:
     }
     if (sum > 0.0)
     {
+      entropy_ = 0;
       for (auto& p : particles_)
       {
         p.probability_ /= sum;
+        if (p.probability_ > 0)
+        {
+          entropy_ += p.probability_ * std::log(p.probability_);
+        }
       }
+      entropy_ *= -1;
     }
     else
     {
@@ -437,12 +443,17 @@ public:
   {
     return particles_.end();
   }
+  FLT_TYPE getEntropy() const
+  {
+    return entropy_;
+  }
 
 protected:
   std::vector<Particle<T, FLT_TYPE>> particles_;
   std::vector<Particle<T, FLT_TYPE>> particles_dup_;
   RANDOM_ENGINE engine_;
   T ie_;
+  FLT_TYPE entropy_;
 };
 
 }  // namespace pf

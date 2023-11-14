@@ -327,6 +327,69 @@ TEST(Pf, AppendParticles)
     ASSERT_EQ(pf.getParticle(i)[0], val1);
 }
 
+TEST(Pf, Entropy)
+{
+  mcl_3dl::pf::ParticleFilter<State, float> pf(10);
+
+  // no uncertainty
+  {
+    unsigned int idx = 0;
+    auto likelihood = [&idx](const State& s) -> float
+    {
+      return idx++ == 0 ? 1.0 : 0.0;
+    };
+    pf.init(State(0), State(0.1));
+    pf.measure(likelihood);
+    ASSERT_EQ(pf.getEntropy(), 0);
+  }
+
+  // uniform distribution
+  {
+    auto likelihood = [](const State& s) -> float
+    {
+      return 0.1;
+    };
+    pf.init(State(0), State(0.1));
+    pf.measure(likelihood);
+    ASSERT_NEAR(pf.getEntropy(), 2.303, 1e-3);
+  }
+
+  // compare the entropy of two distributions with first one having a narrower peak
+  // i.e. less uncertainty that the other
+  {
+    unsigned int idx = 0;
+    auto likelihood1 = [&idx](const State& s) -> float
+    {
+      float lk = 0.025;
+      if (idx >= 4 && idx < 6)
+      {
+        lk = 0.4;
+      }
+      idx++;
+      return lk;
+    };
+    pf.init(State(0), State(0.1));
+    pf.measure(likelihood1);
+    const float entropy1 = pf.getEntropy();
+
+    idx = 0;
+    auto likelihood2 = [&idx](const State& s) -> float
+    {
+      float lk = 0.025;
+      if (idx >= 2 && idx < 8)
+      {
+        lk = 0.15;
+      }
+      idx++;
+      return lk;
+    };
+    pf.init(State(0), State(0.1));
+    pf.measure(likelihood2);
+    const float entropy2 = pf.getEntropy();
+    ASSERT_GT(entropy2, entropy1);
+  }
+}
+
 int main(int argc, char** argv)
 {
   testing::InitGoogleTest(&argc, argv);

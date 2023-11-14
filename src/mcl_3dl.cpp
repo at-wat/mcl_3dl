@@ -1119,25 +1119,8 @@ protected:
       pm.orientation.w = p.rot_.w_;
       pa.poses.push_back(pm);
     }
+
     pub_particle_.publish(pa);
-  }
-
-  float getEntropy()
-  {
-    float sum = 0.0f;
-    for (auto& particle : *pf_)
-    {
-      sum += particle.probability_;
-    }
-
-    float entropy = 0.0f;
-    for (auto& particle : *pf_)
-    {
-      if (particle.probability_ / sum > 0.0)
-        entropy += particle.probability_ / sum * std::log(particle.probability_ / sum);
-    }
-
-    return -entropy;
   }
 
   void diagnoseStatus(diagnostic_updater::DiagnosticStatusWrapper& stat)
@@ -1159,7 +1142,7 @@ protected:
     stat.add("Odometry Availability", has_odom_ ? "true" : "false");
     stat.add("IMU Availability", has_imu_ ? "true" : "false");
 
-    status_.entropy = getEntropy();
+    status_.entropy = pf_->getEntropy();
     pub_status_.publish(status_);
   }
 
