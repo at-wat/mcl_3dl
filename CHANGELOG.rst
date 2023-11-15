@@ -2,6 +2,16 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.2 (2023-11-14)
+------------------
+* Fix reported entropy (`#408 <https://github.com/at-wat/mcl_3dl/issues/408>`_)
+* Update assets to v0.6.1 (`#407 <https://github.com/at-wat/mcl_3dl/issues/407>`_)
+* Update assets to v0.6.0 (`#406 <https://github.com/at-wat/mcl_3dl/issues/406>`_)
+* Update assets to v0.5.2 (`#405 <https://github.com/at-wat/mcl_3dl/issues/405>`_)
+* Update assets to v0.5.1 (`#404 <https://github.com/at-wat/mcl_3dl/issues/404>`_)
+* Update assets to v0.4.2 (`#402 <https://github.com/at-wat/mcl_3dl/issues/402>`_)
+* Contributors: Atsushi Watanabe, f-fl0
+
 0.6.1 (2023-01-04)
 ------------------
 * Update assets to v0.4.1 (`#400 <https://github.com/at-wat/mcl_3dl/issues/400>`_)
