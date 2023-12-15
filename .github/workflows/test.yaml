@@ -78,7 +78,7 @@ jobs:
         run: cd /tmp; tar -cJf logs.tar.xz log
       - name: Upload ROS logs
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: logs-${{ env.ROS_DISTRO }}.tar.xz
           path: /tmp/logs.tar.xz
