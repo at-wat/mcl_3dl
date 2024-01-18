@@ -23,13 +23,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Cache test data
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .cached-dataset
           key: dataset-${{ hashFiles('test/CMakeLists.txt') }}
           restore-keys: dataset-
       - name: Cache docker layers
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: /home/runner/layers.tar
           key: docker-layers-${{ matrix.env }}-${{ github.sha }}
