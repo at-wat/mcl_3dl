@@ -2,8 +2,8 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.3 (2024-07-22)
+------------------
 * Explicitly handle zero sigma (`#414 <https://github.com/at-wat/mcl_3dl/issues/414>`_)
 * Update assets to v0.6.4 (`#413 <https://github.com/at-wat/mcl_3dl/issues/413>`_)
 * Update assets to v0.6.3 (`#412 <https://github.com/at-wat/mcl_3dl/issues/412>`_)
