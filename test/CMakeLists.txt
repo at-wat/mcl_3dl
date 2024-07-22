@@ -1,35 +1,68 @@
+set(UNIT_TEST_COMPILE_OPTIONS -g -O0 -D_GLIBCXX_DEBUG)
+
 catkin_add_gtest(test_chunked_kdtree src/test_chunked_kdtree.cpp)
 target_link_libraries(test_chunked_kdtree ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+target_compile_options(test_chunked_kdtree PRIVATE ${UNIT_TEST_COMPILE_OPTIONS})
+
 catkin_add_gtest(test_cloud_accum src/test_cloud_accum.cpp ../src/cloud_accum.cpp)
 target_link_libraries(test_cloud_accum ${catkin_LIBRARIES})
+target_compile_options(test_cloud_accum PRIVATE ${UNIT_TEST_COMPILE_OPTIONS})
+
 catkin_add_gtest(test_filter src/test_filter.cpp)
 target_link_libraries(test_filter ${catkin_LIBRARIES})
+target_compile_options(test_filter PRIVATE ${UNIT_TEST_COMPILE_OPTIONS})
+
 catkin_add_gtest(test_nd src/test_nd.cpp)
 target_link_libraries(test_nd ${catkin_LIBRARIES})
+target_compile_options(test_nd PRIVATE ${UNIT_TEST_COMPILE_OPTIONS})
+
 catkin_add_gtest(test_pf src/test_pf.cpp)
 target_link_libraries(test_pf ${catkin_LIBRARIES})
+target_compile_options(test_pf PRIVATE ${UNIT_TEST_COMPILE_OPTIONS})
+
 catkin_add_gtest(test_point_types src/test_point_types.cpp)
 target_link_libraries(test_point_types ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+target_compile_options(test_point_types PRIVATE ${UNIT_TEST_COMPILE_OPTIONS})
+
 catkin_add_gtest(test_point_cloud_random_sampler src/test_point_cloud_random_sampler.cpp)
 target_link_libraries(test_point_cloud_random_sampler ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+target_compile_options(test_point_cloud_random_sampler PRIVATE ${UNIT_TEST_COMPILE_OPTIONS})
+
 catkin_add_gtest(test_quat src/test_quat.cpp)
 target_link_libraries(test_quat ${catkin_LIBRARIES})
+target_compile_options(test_quat PRIVATE ${UNIT_TEST_COMPILE_OPTIONS})
+
 catkin_add_gtest(test_raycast src/test_raycast.cpp)
 target_link_libraries(test_raycast ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+target_compile_options(test_raycast PRIVATE ${UNIT_TEST_COMPILE_OPTIONS})
+
 catkin_add_gtest(test_raycast_dda src/test_raycast_dda.cpp)
 target_link_libraries(test_raycast_dda ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+target_compile_options(test_raycast_dda PRIVATE ${UNIT_TEST_COMPILE_OPTIONS})
+
 catkin_add_gtest(test_state_6dof src/test_state_6dof.cpp)
 target_link_libraries(test_state_6dof ${catkin_LIBRARIES})
+target_compile_options(test_state_6dof PRIVATE ${UNIT_TEST_COMPILE_OPTIONS})
+
 catkin_add_gtest(test_vec3 src/test_vec3.cpp)
 target_link_libraries(test_vec3 ${catkin_LIBRARIES})
+target_compile_options(test_vec3 PRIVATE ${UNIT_TEST_COMPILE_OPTIONS})
+
 catkin_add_gtest(test_imu_measurement_model_gravity src/test_imu_measurement_model_gravity.cpp)
 target_link_libraries(test_imu_measurement_model_gravity ${catkin_LIBRARIES})
+target_compile_options(test_imu_measurement_model_gravity PRIVATE ${UNIT_TEST_COMPILE_OPTIONS})
+
 catkin_add_gtest(test_motion_prediction_model_differential_drive src/test_motion_prediction_model_differential_drive.cpp)
 target_link_libraries(test_motion_prediction_model_differential_drive ${catkin_LIBRARIES})
+target_compile_options(test_motion_prediction_model_differential_drive PRIVATE ${UNIT_TEST_COMPILE_OPTIONS})
+
 catkin_add_gtest(test_noise_generator src/test_noise_generator.cpp)
 target_link_libraries(test_noise_generator ${catkin_LIBRARIES})
+target_compile_options(test_noise_generator PRIVATE ${UNIT_TEST_COMPILE_OPTIONS})
+
 catkin_add_gtest(test_point_cloud_random_sampler_with_normal src/test_point_cloud_random_sampler_with_normal.cpp)
 target_link_libraries(test_point_cloud_random_sampler_with_normal ${catkin_LIBRARIES})
+target_compile_options(test_point_cloud_random_sampler_with_normal PRIVATE ${UNIT_TEST_COMPILE_OPTIONS})
 
 add_executable(performance_raycast src/performance_raycast.cpp)
 target_link_libraries(performance_raycast ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${PCL_LIBRARIES})
