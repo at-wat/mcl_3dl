@@ -120,6 +120,22 @@ TEST(NoiseGenerator, DiagonalNoiseGenerator)
   testNoiseGeneratorResults(expected_mean, toCovarianceMatrix(expected_sigma), gen, 0.1);
 }
 
+TEST(NoiseGenerator, DiagonalNoiseGenerator_ZeroSigma)
+{
+  std::vector<float> expected_mean;
+  expected_mean.push_back(7.0);
+  expected_mean.push_back(8.0);
+  expected_mean.push_back(9.0);
+
+  std::vector<float> expected_sigma;
+  expected_sigma.push_back(0);
+  expected_sigma.push_back(0);
+  expected_sigma.push_back(0);
+
+  const DiagonalNoiseGenerator<float> gen(expected_mean, expected_sigma);
+  testNoiseGeneratorResults(expected_mean, toCovarianceMatrix(expected_sigma), gen, 1e-9);
+}
+
 TEST(NoiseGenerator, MultivariateNoiseGenerator)
 {
   const std::vector<float> expected_mean = {-1.0, 2.0, -3.0};
