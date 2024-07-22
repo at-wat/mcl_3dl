@@ -66,6 +66,11 @@ public:
     std::vector<FLT_TYPE> noise(sigma_.size());
     for (size_t i = 0; i < sigma_.size(); i++)
     {
+      if (sigma_[i] == 0)
+      {
+        noise[i] = Parent::mean_[i];
+        continue;
+      }
       std::normal_distribution<FLT_TYPE> nd(Parent::mean_[i], sigma_[i]);
       noise[i] = nd(engine);
     }
