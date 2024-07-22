@@ -27,6 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#define _GLIBCXX_DEBUG
+
 #include <gtest/gtest.h>
 
 #include <mcl_3dl/motion_prediction_models/motion_prediction_model_differential_drive.h>

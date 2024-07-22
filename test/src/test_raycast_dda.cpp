@@ -27,6 +27,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#define _GLIBCXX_DEBUG
+
 #include <cmath>
 #include <cstddef>
 #include <vector>
