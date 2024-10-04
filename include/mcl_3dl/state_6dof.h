@@ -159,6 +159,30 @@ public:
   {
     return 6;
   }
+  float covElement(const State6DOF& e, const size_t& j, const size_t& k)
+  {
+    const State6DOF exp = e;
+    const mcl_3dl::Vec3 exp_rpy = exp.isDiff() ? exp.rpy_.v_ : exp.rot_.getRPY();
+    const mcl_3dl::Vec3 rpy = isDiff() ? rpy_.v_ : rot_.getRPY();
+    float val = 1.0f, diff = 0.0f;
+    for (size_t i : {j, k})
+    {
+      if (i < 3)
+      {
+        diff = (*this)[i] - exp[i];
+      }
+      else
+      {
+        diff = rpy[i - 3] - exp_rpy[i - 3];
+        while (diff > M_PI)
+          diff -= 2 * M_PI;
+        while (diff < -M_PI)
+          diff += 2 * M_PI;
+      }
+      val *= diff;
+    }
+    return val;
+  }
   State6DOF()
   {
     diff_ = false;
