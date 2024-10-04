@@ -33,6 +33,7 @@
 
 #include <nav_msgs/Path.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
+#include <tf2/utils.h>
 
 #include <gtest/gtest.h>
 
@@ -61,10 +62,17 @@ TEST(ComparePose, Compare)
       const float x_error = path.poses[i_path].pose.position.x - msg->pose.pose.position.x;
       const float y_error = path.poses[i_path].pose.position.y - msg->pose.pose.position.y;
       const float z_error = path.poses[i_path].pose.position.z - msg->pose.pose.position.z;
+      float yaw_error =
+          tf2::getYaw(path.poses[i_path].pose.orientation) - tf2::getYaw(msg->pose.pose.orientation);
+      while (yaw_error > M_PI)
+        yaw_error -= 2 * M_PI;
+      while (yaw_error < -M_PI)
+        yaw_error += 2 * M_PI;
       const float error = std::sqrt(std::pow(x_error, 2) + std::pow(y_error, 2) + std::pow(z_error, 2));
       const float x_sigma = std::sqrt(msg->pose.covariance[0 * 6 + 0]);
       const float y_sigma = std::sqrt(msg->pose.covariance[1 * 6 + 1]);
       const float z_sigma = std::sqrt(msg->pose.covariance[2 * 6 + 2]);
+      const float yaw_sigma = std::sqrt(msg->pose.covariance[5 * 6 + 5]);
 
       fprintf(stderr, "compare_pose[%lu/%lu]:\n",
               i_path, path.poses.size());
@@ -72,6 +80,7 @@ TEST(ComparePose, Compare)
       fprintf(stderr, "  x error/3sigma=%0.3f/%0.3f\n", x_error, x_sigma * 3.0);
       fprintf(stderr, "  y error/3sigma=%0.3f/%0.3f\n", y_error, y_sigma * 3.0);
       fprintf(stderr, "  z error/3sigma=%0.3f/%0.3f\n", z_error, z_sigma * 3.0);
+      fprintf(stderr, "  yaw error/3sigma=%0.3f/%0.3f\n", yaw_error, yaw_sigma * 3.0);
 
       i_path++;
       if (i_path >= path.poses.size())
@@ -85,6 +94,8 @@ TEST(ComparePose, Compare)
           << "Estimated variance is too small to continue tracking. (y)";
       ASSERT_FALSE(fabs(z_error) > z_sigma * 3.0)
           << "Estimated variance is too small to continue tracking. (z)";
+      ASSERT_FALSE(fabs(yaw_error) > yaw_sigma * 3.0)
+          << "Estimated variance is too small to continue tracking. (yaw)";
     }
   };
 
