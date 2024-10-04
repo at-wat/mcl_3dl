@@ -727,9 +727,9 @@ protected:
 
     if (!global_localization_fix_cnt_)
     {
-      if (std::sqrt(cov[0][0] + cov[1][1]) > params_.std_warn_thresh_[0] ||
-          std::sqrt(cov[2][2]) > params_.std_warn_thresh_[1] ||
-          std::sqrt(cov[5][5]) > params_.std_warn_thresh_[2])
+      if (std::sqrt(pose.pose.covariance[0] + pose.pose.covariance[7]) > params_.std_warn_thresh_[0] ||
+          std::sqrt(pose.pose.covariance[14]) > params_.std_warn_thresh_[1] ||
+          std::sqrt(pose.pose.covariance[35]) > params_.std_warn_thresh_[2])
       {
         status_.convergence_status = mcl_3dl_msgs::Status::CONVERGENCE_STATUS_LARGE_STD_VALUE;
       }
@@ -738,8 +738,8 @@ protected:
     if (status_.convergence_status != mcl_3dl_msgs::Status::CONVERGENCE_STATUS_LARGE_STD_VALUE)
     {
       Vec3 fix_axis;
-      const float fix_ang = std::sqrt(cov[3][3] + cov[4][4] + cov[5][5]);
-      const float fix_dist = std::sqrt(cov[0][0] + cov[1][1] + cov[2][2]);
+      const float fix_ang = std::sqrt(pose.pose.covariance[21] + pose.pose.covariance[28] + pose.pose.covariance[35]);
+      const float fix_dist = std::sqrt(pose.pose.covariance[0] + pose.pose.covariance[7] + pose.pose.covariance[14]);
       ROS_DEBUG("cov: lin %0.3f ang %0.3f", fix_dist, fix_ang);
       if (fix_dist < params_.fix_dist_ &&
           fabs(fix_ang) < params_.fix_ang_)
