@@ -155,6 +155,10 @@ public:
   {
     rot_.normalize();
   }
+  size_t covDimension() const override
+  {
+    return 6;
+  }
   State6DOF()
   {
     diff_ = false;
