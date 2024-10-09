@@ -126,12 +126,24 @@ TEST(State6DOF, CovarianceMatrix)
   std::normal_distribution<float> z_dis(e.pos_.z_, 0.3);
   std::normal_distribution<float> yaw_dis(e.rot_.getRPY().z_, 0.4);
 
+  const auto generate_state = [&mt, &x_dis, &y_dis, &z_dis, &yaw_dis](const bool use_rpy) -> mcl_3dl::State6DOF
+  {
+    if (use_rpy)
+    {
+      return mcl_3dl::State6DOF(mcl_3dl::Vec3(x_dis(mt), y_dis(mt), z_dis(mt)),
+                                mcl_3dl::Vec3(0, 0, yaw_dis(mt)));
+    }
+    else
+    {
+      return mcl_3dl::State6DOF(mcl_3dl::Vec3(x_dis(mt), y_dis(mt), z_dis(mt)),
+                                mcl_3dl::Quat(mcl_3dl::Vec3(0.0, 0.0, 1.0), yaw_dis(mt)));
+    }
+  };
+
   const std::size_t N = 500;
   for (std::size_t n = 0; n < N; n++)
   {
-    mcl_3dl::State6DOF s(
-        mcl_3dl::Vec3(x_dis(mt), y_dis(mt), z_dis(mt)),
-        mcl_3dl::Quat(mcl_3dl::Vec3(0.0, 0.0, 1.0), yaw_dis(mt)));
+    mcl_3dl::State6DOF s = generate_state(n % 2 == 0);
     for (std::size_t j = 0; j < 6; j++)
     {
       for (std::size_t k = j; k < 6; k++)
