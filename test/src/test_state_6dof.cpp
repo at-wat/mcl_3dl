@@ -27,6 +27,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <array>
 #include <cstddef>
 #include <cmath>
 
@@ -109,6 +110,50 @@ TEST(State6DOF, Adder)
   ASSERT_FLOAT_EQ(sub.rot_.y_, sub_rot.y_);
   ASSERT_FLOAT_EQ(sub.rot_.z_, sub_rot.z_);
   ASSERT_FLOAT_EQ(sub.rot_.w_, sub_rot.w_);
+}
+
+TEST(State6DOF, CovarianceMatrix)
+{
+  const mcl_3dl::State6DOF e(
+      mcl_3dl::Vec3(1.0, 2.0, 3.0), mcl_3dl::Quat(mcl_3dl::Vec3(0.0, 0.0, 1.0), 0.1));
+
+  ASSERT_EQ(e.covDimension(), 6);
+  std::array<float, 36> cov{};
+
+  std::mt19937 mt(42);
+  std::normal_distribution<float> x_dis(e.pos_.x_, 0.1);
+  std::normal_distribution<float> y_dis(e.pos_.y_, 0.2);
+  std::normal_distribution<float> z_dis(e.pos_.z_, 0.3);
+  std::normal_distribution<float> yaw_dis(e.rot_.getRPY().z_, 0.4);
+
+  const std::size_t N = 500;
+  for (std::size_t n = 0; n < N; n++)
+  {
+    mcl_3dl::State6DOF s(
+        mcl_3dl::Vec3(x_dis(mt), y_dis(mt), z_dis(mt)),
+        mcl_3dl::Quat(mcl_3dl::Vec3(0.0, 0.0, 1.0), yaw_dis(mt)));
+    for (std::size_t j = 0; j < 6; j++)
+    {
+      for (std::size_t k = j; k < 6; k++)
+      {
+        cov[k * 6 + j] = cov[j * 6 + k] += s.covElement(e, j, k);
+      }
+    }
+  }
+
+  for (size_t j = 0; j < 6; j++)
+  {
+    for (size_t k = 0; k < 6; k++)
+    {
+      cov[k * 6 + j] /= (N - 1);
+    }
+  }
+
+  const float tolerance = 1e-2;
+  ASSERT_NEAR(std::sqrt(cov[0]), 0.1, tolerance);
+  ASSERT_NEAR(std::sqrt(cov[7]), 0.2, tolerance);
+  ASSERT_NEAR(std::sqrt(cov[14]), 0.3, tolerance);
+  ASSERT_NEAR(std::sqrt(cov[35]), 0.4, tolerance);
 }
 
 int main(int argc, char** argv)
