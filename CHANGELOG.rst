@@ -2,8 +2,8 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.4 (2024-10-10)
+------------------
 * Fix angular part of covariance matrix (`#417 <https://github.com/at-wat/mcl_3dl/issues/417>`_)
 * Contributors: f-fl0
 
