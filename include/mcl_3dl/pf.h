@@ -80,6 +80,10 @@ public:
     }
     return noise;
   }
+  virtual size_t covDimension() const
+  {
+    return size();
+  }
 };
 
 template <typename T, typename FLT_TYPE = float>
@@ -303,8 +307,6 @@ public:
   {
     T e = expectation(pass_ratio);
     FLT_TYPE p_sum = 0;
-    std::vector<T> cov;
-    cov.resize(e.size());
 
     size_t p_num = 0;
     for (auto& p : particles_)
@@ -330,22 +332,25 @@ public:
       indices.resize(sample_num);
     }
 
+    std::vector<T> cov;
+    cov.resize(ie_.covDimension());
+
     p_sum = 0.0;
     for (size_t i : indices)
     {
       auto& p = particles_[i];
       p_sum += p.probability_;
-      for (size_t j = 0; j < ie_.size(); j++)
+      for (size_t j = 0; j < ie_.covDimension(); j++)
       {
-        for (size_t k = j; k < ie_.size(); k++)
+        for (size_t k = j; k < ie_.covDimension(); k++)
         {
           cov[k][j] = cov[j][k] += p.state_.covElement(e, j, k) * p.probability_;
         }
       }
     }
-    for (size_t j = 0; j < ie_.size(); j++)
+    for (size_t j = 0; j < ie_.covDimension(); j++)
     {
-      for (size_t k = 0; k < ie_.size(); k++)
+      for (size_t k = 0; k < ie_.covDimension(); k++)
       {
         cov[k][j] /= p_sum;
       }
