@@ -89,6 +89,7 @@ jobs:
       - name: Compress logs
         if: always()
         run: |
+          ls -la ${ROS_LOG_DIR}
           cd $(dirname ${ROS_LOG_DIR})
           tar -cJf ${ROS_LOG_DIR}.tar.xz $(basename ${ROS_LOG_DIR})
       - name: Upload ROS logs
