@@ -19,11 +19,20 @@ jobs:
     env:
       BUILD_LOG_DIR: /tmp/build-logs
       ROS_LOG_DIR: /tmp/ros-logs
+      BUILD_CACHE_DIR: /tmp/ccache
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Set env
         run: echo "${{ matrix.env }}" | xargs -n1 echo | tee -a ${GITHUB_ENV}
+
+      - name: Cache cpp build
+        id: cache-cpp-build
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.BUILD_CACHE_DIR }}
+          key: cache-${{ inputs.env }}-${{ github.sha }}
+          restore-keys: cache-${{ inputs.env }}-
 
       - name: Install gh-pr-comment
         uses: at-wat/setup-gh-pr-comment@v0
@@ -37,14 +46,18 @@ jobs:
       - name: Test
         run: |
           touch .github/workflows/test.conf
-          mkdir -p ${BUILD_LOG_DIR} ${ROS_LOG_DIR} .packages/packages
-          chmod -R a+rw ${BUILD_LOG_DIR} ${ROS_LOG_DIR} .packages
+          mkdir -p ${BUILD_LOG_DIR} ${ROS_LOG_DIR} ${BUILD_CACHE_DIR} .packages/packages
+          chmod -R a+rw ${BUILD_LOG_DIR} ${ROS_LOG_DIR} ${BUILD_CACHE_DIR} .packages
           docker run --rm \
             -e JOBS=4 \
+            -e ENABLE_CCACHE="yes" \
+            -e CCACHE_DEPEND="true" \
+            -e CCACHE_MAXSIZE="500M" \
             --env-file .github/workflows/test.env \
             -v $(pwd):/src/$(basename $(pwd)):ro \
             -v ${BUILD_LOG_DIR}:/logs \
             -v ${ROS_LOG_DIR}:/home/builder/.ros/log \
+            -v ${BUILD_CACHE_DIR}:/ccache \
             -v $(pwd)/.packages/packages:/packages \
             ghcr.io/alpine-ros/ros-abuild:${ALPINE_VERSION}-${ROS_DISTRO}
       - name: Report test results
@@ -76,3 +89,10 @@ jobs:
           name: logs-${{ env.ROS_DISTRO }}-${{ env.ALPINE_VERSION }}.tar.xz
           path: ${ROS_LOG_DIR}.tar.xz
           retention-days: 1
+
+      - name: Always cache cpp build
+        uses: actions/cache/save@v4
+        if: always() && steps.cache-cpp-build.outputs.cache-hit != 'true'
+        with:
+          path: ${{ env.BUILD_CACHE_DIR }}
+          key: cache-${{ inputs.env }}-${{ github.sha }}
