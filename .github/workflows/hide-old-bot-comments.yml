@@ -13,4 +13,4 @@ jobs:
         uses: kamatama41/hide-pr-comments-action@v0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          message_regex: "## \\[[0-9]*\\] (PASSED|FAILED) on "
+          author: github-actions
