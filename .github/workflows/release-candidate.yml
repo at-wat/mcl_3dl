@@ -22,11 +22,11 @@ jobs:
           git_email: atsushi.w@ieee.org
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: open pull-request
-        uses: repo-sync/pull-request@v2
-        with:
-          source_branch: ${{ steps.create_release.outputs.created_branch }}
-          destination_branch: master
-          pr_title: Release ${{ steps.create_release.outputs.version}}
-          pr_body: close \#${{ github.event.issue.number }}
-          pr_assignee: ${{ github.actor }}
-          github_token: ${{ secrets.BLOOM_GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.BLOOM_GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --base master \
+            --head ${{ steps.create_release.outputs.created_branch }} \
+            --title "Release "${{ steps.create_release.outputs.version }} \
+            --assignee ${{ github.actor }}

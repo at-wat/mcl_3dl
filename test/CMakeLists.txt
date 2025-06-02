@@ -108,7 +108,7 @@ add_rostest_gtest(test_transform_failure tests/transform_rostest.test
 target_link_libraries(test_transform_failure ${catkin_LIBRARIES})
 add_dependencies(test_transform_failure mcl_3dl)
 
-if(MCL_3DL_EXTRA_TESTS)
+if(MCL_3DL_EXTRA_TESTS OR $ENV{MCL_3DL_EXTRA_TESTS})
 
   catkin_download_test_data(
       ${PROJECT_NAME}_short_test3.bag

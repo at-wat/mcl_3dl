@@ -4,8 +4,6 @@
 name: build
 on:
   pull_request:
-    branches:
-      - master
   push:
     branches:
       - master
@@ -17,77 +15,63 @@ jobs:
       fail-fast: false
       matrix:
         env:
-          - ROS_DISTRO=noetic
+          - ROS_DISTRO=noetic ALPINE_VERSION=3.20
+    env:
+      - BUILD_LOG_DIR=/tmp/build-logs
+      - ROS_LOG_DIR=/tmp/ros-logs
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Cache test data
-        uses: actions/cache@v4
-        with:
-          path: .cached-dataset
-          key: dataset-${{ hashFiles('test/CMakeLists.txt') }}
-          restore-keys: dataset-
-      - name: Cache docker layers
-        uses: actions/cache@v4
-        with:
-          path: /home/runner/layers.tar
-          key: docker-layers-${{ matrix.env }}-${{ github.sha }}
-          restore-keys: docker-layers-${{ matrix.env }}-
       - name: Set env
-        run: echo "${{ matrix.env }}" | tee ${GITHUB_ENV}
-
-      - name: Get dataset
-        run: if [ -x .github/get_dataset.sh ]; then .github/get_dataset.sh; fi
-      - name: Load docker layer cache
-        run: if [ -f /home/runner/layers.tar ]; then docker load -i /home/runner/layers.tar; fi
+        run: echo "${{ matrix.env }}" | xargs -n1 echo | tee -a ${GITHUB_ENV}
 
       - name: Install gh-pr-comment
         uses: at-wat/setup-gh-pr-comment@v0
-      - name: Copy gh-pr-comment for container
-        run: cp $(which gh-pr-comment) .github/
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Test
         run: |
-          eval export $(cat .github/test.conf)
-          echo "ROS_DISTRO=${ROS_DISTRO}" >> ${GITHUB_ENV}
+          touch .github/workflows/test.conf
+          docker run -it --rm \
+            -e JOBS=4 \
+            --env-file .github/workflows/test.env \
+            -v $(pwd):/src/$(basename $(pwd)):ro \
+            -v ${BUILD_LOG_DIR}:/logs \
+            -v ${ROS_LOG_DIR}:/home/builder/.ros/log \
+            -v $(pwd)/.packages/packages:/packages \
+            ghcr.io/alpine-ros/ros-abuild:${ALPINE_VERSION}-${ROS_DISTRO}
+      - name: Report success
+        run: |
+          gh-pr-comment "[${GITHUB_RUN_NUMBER}] :white_check_mark: Passed ${ROS_DISTRO} ${ALPINE_VERSION}" \
+            "<details><summary>Log summary</summary>
 
-          BUILD_LINK="[${GITHUB_RUN_NUMBER}]"
-          touch .rosinstall .rosinstall-isolated
-          echo '::group::docker build'
-          docker build \
-            -t tester \
-            -f .github/Dockerfile \
-            --build-arg ROS_DISTRO \
-            --pull=true . \
-            || (gh-pr-comment "${BUILD_LINK} FAILED on ${ROS_DISTRO}" "docker build failed"; false)
-          echo '::endgroup::'
+          $(cat ${BUILD_LOG_DIR}/summary.log)
+          </details>
+          "
+      - name: Report failure
+        if: failure()
+        run: |
+          gh-pr-comment "[${GITHUB_RUN_NUMBER}] :x: Failed ${ROS_DISTRO} ${ALPINE_VERSION}" \
+            "<details><summary>Log summary</summary>
 
-          mkdir -p /tmp/log
-          docker run --rm \
-            -e BUILD_LINK=${BUILD_LINK} \
-            $(gh-pr-comment-env.sh) \
-            -e GITHUB_ACTIONS \
-            -e CATKIN_MAKE_OPTIONS \
-            -v ${GITHUB_WORKSPACE}:/orig-src \
-            -v /tmp/log:/root/.ros/log \
-            tester \
-            /catkin_ws/src/self/.github/test.sh
+          $(cat ${BUILD_LOG_DIR}/summary.log)
+          </details>
+          "
+
       - name: Compress logs
         if: always()
-        run: cd /tmp; tar -cJf logs.tar.xz log
+        run: |
+          cd $(dirname ${ROS_LOG_DIR})
+          tar -cJf ${ROS_LOG_DIR}.tar.xz $(basename ${ROS_LOG_DIR})
       - name: Upload ROS logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: logs-${{ env.ROS_DISTRO }}.tar.xz
-          path: /tmp/logs.tar.xz
+          name: logs-${{ env.ROS_DISTRO }}-${{ env.ALPINE_VERSION }}.tar.xz
+          path: ${ROS_LOG_DIR}.tar.xz
           retention-days: 1
-      - uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-      - name: Save layer cache
-        run: |
-          LAYERS=$(docker history -q tester | grep -v missing)
-          echo "layers: $(echo ${LAYERS})"
-          docker save -o /home/runner/layers.tar ${LAYERS}
