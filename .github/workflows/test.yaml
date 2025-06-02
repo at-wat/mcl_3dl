@@ -44,6 +44,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Test
+        id: test
         run: |
           touch .github/workflows/test.conf
           mkdir -p ${BUILD_LOG_DIR} ${ROS_LOG_DIR} ${BUILD_CACHE_DIR} .packages/packages
@@ -66,10 +67,18 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           build_link="[${GITHUB_RUN_NUMBER}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/job/${GITHUB_RUN_ID})"
-          title=":x: Failed"
-          if [ "${{ success() }}" = "true" ]; then
-            title=":white_check_mark: Passed"
-          fi
+          title=
+          case "${{ steps.test.conclusion }}" in
+            success)
+              title=":white_check_mark: Passed"
+              ;;
+            cancelled)
+              exit 0
+              ;;
+            *)
+              title=":x: Failed"
+              ;;
+          esac
           gh-pr-comment "[${build_link}] ${title} ${ROS_DISTRO} ${ALPINE_VERSION}" \
             "<details><summary>Log summary</summary>
 
