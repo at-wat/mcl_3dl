@@ -54,7 +54,7 @@ jobs:
             -e ENABLE_CCACHE="yes" \
             -e CCACHE_DEPEND="true" \
             -e CCACHE_MAXSIZE="500M" \
-            -e ROS_LOG_DIR=${ROS_LOG_DIR_BUILDER} \
+            -e ROS_LOG_DIR=/home/builder/.ros/log \
             -e ROSCONSOLE_FORMAT='[${severity}] [${time}] [${node}]: ${message}' \
             -e ROS_HOSTNAME=localhost \
             --env-file .github/workflows/test.env \
