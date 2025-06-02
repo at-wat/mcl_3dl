@@ -46,6 +46,8 @@ jobs:
             -v $(pwd)/.packages/packages:/packages \
             ghcr.io/alpine-ros/ros-abuild:${ALPINE_VERSION}-${ROS_DISTRO}
       - name: Report success
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh-pr-comment "[${GITHUB_RUN_NUMBER}] :white_check_mark: Passed ${ROS_DISTRO} ${ALPINE_VERSION}" \
             "<details><summary>Log summary</summary>
@@ -55,6 +57,8 @@ jobs:
           "
       - name: Report failure
         if: failure()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh-pr-comment "[${GITHUB_RUN_NUMBER}] :x: Failed ${ROS_DISTRO} ${ALPINE_VERSION}" \
             "<details><summary>Log summary</summary>
