@@ -67,7 +67,7 @@ jobs:
         run: |
           build_link="[${GITHUB_RUN_NUMBER}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/job/${GITHUB_RUN_ID})"
           title=":x: Failed"
-          if [ "${{ success }}" = "true" ]; then
+          if [ "${{ success() }}" = "true" ]; then
             title=":white_check_mark: Passed"
           fi
           gh-pr-comment "[${build_link}] ${title} ${ROS_DISTRO} ${ALPINE_VERSION}" \
