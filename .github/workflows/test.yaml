@@ -37,7 +37,7 @@ jobs:
       - name: Test
         run: |
           touch .github/workflows/test.conf
-          docker run -it --rm \
+          docker run --rm \
             -e JOBS=4 \
             --env-file .github/workflows/test.env \
             -v $(pwd):/src/$(basename $(pwd)):ro \
