@@ -37,6 +37,8 @@ jobs:
       - name: Test
         run: |
           touch .github/workflows/test.conf
+          mkdir -p ${BUILD_LOG_DIR} ${ROS_LOG_DIR} .packages/packages
+          chmod -R a+rw ${BUILD_LOG_DIR} ${ROS_LOG_DIR} .packages
           docker run --rm \
             -e JOBS=4 \
             --env-file .github/workflows/test.env \
