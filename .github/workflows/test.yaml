@@ -47,22 +47,17 @@ jobs:
             -v ${ROS_LOG_DIR}:/home/builder/.ros/log \
             -v $(pwd)/.packages/packages:/packages \
             ghcr.io/alpine-ros/ros-abuild:${ALPINE_VERSION}-${ROS_DISTRO}
-      - name: Report success
+      - name: Report test results
+        if: always()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh-pr-comment "[${GITHUB_RUN_NUMBER}] :white_check_mark: Passed ${ROS_DISTRO} ${ALPINE_VERSION}" \
-            "<details><summary>Log summary</summary>
-
-          $(cat ${BUILD_LOG_DIR}/summary.log)
-          </details>
-          "
-      - name: Report failure
-        if: failure()
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh-pr-comment "[${GITHUB_RUN_NUMBER}] :x: Failed ${ROS_DISTRO} ${ALPINE_VERSION}" \
+          build_link="[${GITHUB_RUN_NUMBER}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/job/${GITHUB_RUN_ID})"
+          title=":x: Failed"
+          if [ "${{ success }}" = "true" ]; then
+            title=":white_check_mark: Passed"
+          fi
+          gh-pr-comment "[${build_link}] ${title} ${ROS_DISTRO} ${ALPINE_VERSION}" \
             "<details><summary>Log summary</summary>
 
           $(cat ${BUILD_LOG_DIR}/summary.log)
