@@ -146,7 +146,7 @@ jobs:
             gcov \
               -p ${file} \
               -s "/aports/${ROS_DISTRO}/${pkg}/abuild/src" \
-              >/dev/null 2>/dev/null
+              >/dev/null
           done
           echo "::endgroup::"
       - uses: codecov/codecov-action@v4
