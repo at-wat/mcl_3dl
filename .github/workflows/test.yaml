@@ -99,6 +99,8 @@ jobs:
           COVERAGE_PROCESSOR: |
             #!/bin/sh
 
+            set -eu
+
             REPORT_DIR=coverage
             GCOV_DIR=/tmp/gcov
             APORTS_DIR=/aports
@@ -170,9 +172,10 @@ jobs:
           docker run --rm \
             -e ROS_DISTRO \
             -v $(pwd):/self \
-            -v ${APORTS_DIR}:/aports \
-            -v ${GCOV_DIR}:/tmp/gcov \
+            -v ${APORTS_DIR}:/aports:ro \
+            -v ${GCOV_DIR}:/tmp/gcov:ro \
             --entrypoint /self/coverage.sh \
+            -w /self \
             ghcr.io/alpine-ros/ros-abuild:${ALPINE_VERSION}-${ROS_DISTRO}
       - name: Debug
         run: ls -la ./coverage
