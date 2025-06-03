@@ -94,67 +94,65 @@ jobs:
           </details>
           "
 
-      - name: Debug
-        run: tree ${APORTS_DIR}
       - name: Process coverage reports
+        env:
+          COVERAGE_PROCESSOR: |
+            REPORT_DIR=coverage
+            GCOV_DIR=/tmp/gcov
+            APORTS_DIR=/aports
+
+            mkdir -p ${REPORT_DIR}
+            cd ${REPORT_DIR}
+
+            echo "::group::rostest gcov files"
+            find ${GCOV_DIR} -name "*.gcda" | sed "s|^${GCOV_DIR}/||" | while read file; do
+              id=$(echo ${file} | cut -d'/' -f1)
+              rel_path=$(echo ${file} | sed 's|^.*/build_isolated/||')
+              pkg=$(echo ${rel_path} | cut -d'/' -f1)
+
+              gcda=${GCOV_DIR}/${file}
+              new_gcda=$(echo ${rel_path} | sed "s|/\(\S*\)\.gcda$|/\1.${id}.gcda|")
+              gcno=${APORTS_DIR}/${ROS_DISTRO}/${pkg}/abuild/build_isolated/${rel_path%.gcda}.gcno
+              new_gcno=${new_gcda%.gcda}.gcno
+
+              mkdir -p $(dirname ${new_gcda})
+              cp ${gcda} ${new_gcda}
+              cp ${gcno} ${new_gcno}
+              echo "  - ${rel_path}"
+            done
+            echo "::endgroup::"
+
+            echo "::group::gtest gcov files"
+            find ${APORTS_DIR} -name "*.gcda" | sed "s|^${APORTS_DIR}/||" | while read file; do
+              rel_path=$(echo ${file} | sed 's|^.*/build_isolated/||')
+              pkg=$(echo ${rel_path} | cut -d'/' -f1)
+
+              gcda=${APORTS_DIR}/${file}
+              new_gcda=${rel_path}
+              gcno=${gcda%.gcda}.gcno
+              new_gcno=${new_gcda%.gcda}.gcno
+
+              mkdir -p $(dirname ${new_gcda})
+              cp ${gcda} ${new_gcda}
+              cp ${gcno} ${new_gcno}
+              echo "  - ${rel_path}"
+            done
+            echo "::endgroup::"
+
+
+            echo "::group::processing gcov files"
+            find . -name "*.gcda" | while read file; do
+              echo "  - ${file}"
+              pkg=$(echo ${file} | cut -d'/' -f1)
+              gcov \
+                -s "/aports/${ROS_DISTRO}/${pkg}/abuild/src" \
+                -p ${file} \
+                -r \
+                >/dev/null
+            done
+            echo "::endgroup::"
         run: |
-          cat <<EOS >coverage.sh
-          REPORT_DIR=coverage
-          GCOV_DIR=/tmp/gcov
-          APORTS_DIR=/aports
-
-          mkdir -p ${REPORT_DIR}
-          cd ${REPORT_DIR}
-
-          echo "::group::rostest gcov files"
-          find ${GCOV_DIR} -name "*.gcda" | sed "s|^${GCOV_DIR}/||" | while read file; do
-            id=$(echo ${file} | cut -d'/' -f1)
-            rel_path=$(echo ${file} | sed 's|^.*/build_isolated/||')
-            pkg=$(echo ${rel_path} | cut -d'/' -f1)
-
-            gcda=${GCOV_DIR}/${file}
-            new_gcda=$(echo ${rel_path} | sed "s|/\(\S*\)\.gcda$|/\1.${id}.gcda|")
-            gcno=${APORTS_DIR}/${ROS_DISTRO}/${pkg}/abuild/build_isolated/${rel_path%.gcda}.gcno
-            new_gcno=${new_gcda%.gcda}.gcno
-
-            mkdir -p $(dirname ${new_gcda})
-            cp ${gcda} ${new_gcda}
-            cp ${gcno} ${new_gcno}
-            echo "  - ${rel_path}"
-          done
-          echo "::endgroup::"
-
-          echo "::group::gtest gcov files"
-          find ${APORTS_DIR} -name "*.gcda" | sed "s|^${APORTS_DIR}/||" | while read file; do
-            rel_path=$(echo ${file} | sed 's|^.*/build_isolated/||')
-            pkg=$(echo ${rel_path} | cut -d'/' -f1)
-
-            gcda=${APORTS_DIR}/${file}
-            new_gcda=${rel_path}
-            gcno=${gcda%.gcda}.gcno
-            new_gcno=${new_gcda%.gcda}.gcno
-
-            mkdir -p $(dirname ${new_gcda})
-            cp ${gcda} ${new_gcda}
-            cp ${gcno} ${new_gcno}
-            echo "  - ${rel_path}"
-          done
-          echo "::endgroup::"
-
-
-          echo "::group::processing gcov files"
-          find . -name "*.gcda" | while read file; do
-            echo "  - ${file}"
-            pkg=$(echo ${file} | cut -d'/' -f1)
-            gcov \
-              -s "/aports/${ROS_DISTRO}/${pkg}/abuild/src" \
-              -p ${file} \
-              -r \
-              >/dev/null
-          done
-          echo "::endgroup::"
-          EOS
-
+          echo "${COVERAGE_PROCESSOR}" >coverage.sh
           chmod a+x coverage.sh
 
           docker run --rm \
