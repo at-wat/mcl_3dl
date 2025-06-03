@@ -150,7 +150,7 @@ jobs:
             echo "::group::processing gcov files"
             find . -name "*.gcda" | while read file; do
               echo "- ${file}"
-              pkg=$(echo ${file} | cut -d'/' -f1)
+              pkg=$(echo ${file} | cut -d'/' -f2)
               gcov \
                 -s "/aports/${ROS_DISTRO}/${pkg}/abuild/src" \
                 -p ${file} \
