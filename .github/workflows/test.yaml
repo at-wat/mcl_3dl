@@ -97,7 +97,7 @@ jobs:
       - name: Process coverage reports
         env:
           COVERAGE_PROCESSOR: |
-            #!/bin/bash
+            #!/bin/sh
 
             REPORT_DIR=coverage
             GCOV_DIR=/tmp/gcov
