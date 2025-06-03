@@ -98,7 +98,10 @@ jobs:
         run: tree ${APORTS_DIR}
       - name: Process coverage reports
         run: |
+          cat <<EOS >coverage.sh
           REPORT_DIR=coverage
+          GCOV_DIR=/tmp/gcov
+          APORTS_DIR=/aports
 
           mkdir -p ${REPORT_DIR}
           cd ${REPORT_DIR}
@@ -144,11 +147,24 @@ jobs:
             echo "  - ${file}"
             pkg=$(echo ${file} | cut -d'/' -f1)
             gcov \
-              -p ${file} \
               -s "/aports/${ROS_DISTRO}/${pkg}/abuild/src" \
+              -p ${file} \
+              -r \
               >/dev/null
           done
           echo "::endgroup::"
+          EOS
+
+          chmod a+x coverage.sh
+
+          docker run --rm \
+            -e ROS_DISTRO \
+            -v $(pwd):/self \
+            -v ${APORTS_DIR}:/aports \
+            -v ${GCOV_DIR}:/tmp/gcov \
+            --entrypoint /self/coverage.sh \
+            ghcr.io/alpine-ros/ros-abuild:${ALPINE_VERSION}-${ROS_DISTRO}
+
       - uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
