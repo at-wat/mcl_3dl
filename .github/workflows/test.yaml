@@ -104,7 +104,6 @@ jobs:
             APORTS_DIR=/aports
 
             mkdir -p ${REPORT_DIR}
-            chmod a+rw ${REPORT_DIR}
             cd ${REPORT_DIR}
 
             echo "::group::rostest gcov files"
@@ -157,6 +156,8 @@ jobs:
         run: |
           echo "${COVERAGE_PROCESSOR}" >coverage.sh
           chmod a+x coverage.sh
+          mkdir -p coverage
+          chmod a+rw coverage
 
           docker run --rm \
             -e ROS_DISTRO \
