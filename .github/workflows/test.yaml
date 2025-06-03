@@ -149,8 +149,7 @@ jobs:
               gcov \
                 -s "/aports/${ROS_DISTRO}/${pkg}/abuild/src" \
                 -p ${file} \
-                -r \
-                >/dev/null
+                -r
             done
             echo "::endgroup::"
 
