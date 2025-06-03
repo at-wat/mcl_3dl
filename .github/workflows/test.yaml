@@ -143,18 +143,23 @@ jobs:
             done
             echo "::endgroup::"
 
-            echo "::group::debug"
-            tree .
-            echo "::endgroup::"
-
             echo "::group::processing gcov files"
+            mkdir -p tmp
             find . -name "*.gcda" | while read file; do
               echo "- ${file}"
               pkg=$(echo ${file} | cut -d'/' -f2)
-              gcov \
-                -s "/aports/${ROS_DISTRO}/${pkg}/abuild/src" \
-                -p ${file} \
-                -r
+              id=$(echo ${file} | md5sum | cut -d' ' -f1)
+              (
+                cd tmp
+                gcov \
+                  -s "/aports/${ROS_DISTRO}/${pkg}/abuild/src" \
+                  -p ../${file} \
+                  -r \
+                  >/dev/null
+                find . -name '*.gcov' | while read gcov_file; do
+                  mv ${gcov_file} ../${gcov_file%.gcov}.${id}.gcov
+                done
+              )
             done
             echo "::endgroup::"
 
