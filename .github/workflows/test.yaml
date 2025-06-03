@@ -49,10 +49,10 @@ jobs:
         id: test
         run: |
           touch .github/workflows/test.conf
-          mkdir -p ${APORTS_DIR} ${BUILD_LOG_DIR} ${ROS_LOG_DIR} ${BUILD_CACHE_DIR} ${GCOV_DIR} .packages/packages
-          chmod -R a+rw ${APORTS_DIR} ${BUILD_LOG_DIR} ${ROS_LOG_DIR} ${BUILD_CACHE_DIR} ${GCOV_DIR} .packages
+          mkdir -p ${APORTS_DIR} ${BUILD_LOG_DIR} ${ROS_LOG_DIR} ${BUILD_CACHE_DIR} ${GCOV_DIR}
+          chmod -R a+rw ${APORTS_DIR} ${BUILD_LOG_DIR} ${ROS_LOG_DIR} ${BUILD_CACHE_DIR} ${GCOV_DIR}
           docker run --rm \
-            -e JOBS=4 \
+            -e JOBS=$(nproc) \
             -e ENABLE_CCACHE="yes" \
             -e CCACHE_DEPEND="true" \
             -e CCACHE_MAXSIZE="500M" \
