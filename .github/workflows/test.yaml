@@ -182,8 +182,6 @@ jobs:
             --entrypoint /self/coverage.sh \
             -w /self \
             ghcr.io/alpine-ros/ros-abuild:${ALPINE_VERSION}-${ROS_DISTRO}
-      - name: Debug
-        run: ls -la ./coverage
 
       - uses: codecov/codecov-action@v4
         with:
