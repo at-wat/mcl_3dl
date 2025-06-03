@@ -104,6 +104,7 @@ jobs:
             APORTS_DIR=/aports
 
             mkdir -p ${REPORT_DIR}
+            chmod a+rw ${REPORT_DIR}
             cd ${REPORT_DIR}
 
             echo "::group::rostest gcov files"
