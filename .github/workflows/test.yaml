@@ -141,6 +141,9 @@ jobs:
             done
             echo "::endgroup::"
 
+            echo "::group::debug"
+            tree .
+            echo "::endgroup::"
 
             echo "::group::processing gcov files"
             find . -name "*.gcda" | while read file; do
