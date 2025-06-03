@@ -61,7 +61,6 @@ jobs:
             -e ROS_HOSTNAME=localhost \
             -e CFLAGS=-coverage \
             -e CXXFLAGS=-coverage \
-            -e GCOV_PREFIX=${GCOV_DIR} \
             --env-file .github/workflows/test.env \
             -v $(pwd):/src/$(basename $(pwd)):ro \
             -v ${APORTS_DIR}:/aports \
