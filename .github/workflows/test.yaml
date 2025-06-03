@@ -17,9 +17,11 @@ jobs:
         env:
           - ROS_DISTRO=noetic ALPINE_VERSION=3.20
     env:
-      BUILD_LOG_DIR: /tmp/build-logs
-      ROS_LOG_DIR: /tmp/ros-logs
-      BUILD_CACHE_DIR: /tmp/ccache
+      APORTS_DIR: /tmp/abuild/aports
+      BUILD_LOG_DIR: /tmp/abuild/build-logs
+      ROS_LOG_DIR: /tmp/abuild/ros-logs
+      BUILD_CACHE_DIR: /tmp/abuild/ccache
+      GCOV_DIR: /tmp/abuild/gcov
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -47,8 +49,8 @@ jobs:
         id: test
         run: |
           touch .github/workflows/test.conf
-          mkdir -p ${BUILD_LOG_DIR} ${ROS_LOG_DIR} ${BUILD_CACHE_DIR} .packages/packages
-          chmod -R a+rw ${BUILD_LOG_DIR} ${ROS_LOG_DIR} ${BUILD_CACHE_DIR} .packages
+          mkdir -p ${APORTS_DIR} ${BUILD_LOG_DIR} ${ROS_LOG_DIR} ${BUILD_CACHE_DIR} ${GCOV_DIR} .packages/packages
+          chmod -R a+rw ${APORTS_DIR} ${BUILD_LOG_DIR} ${ROS_LOG_DIR} ${BUILD_CACHE_DIR} ${GCOV_DIR} .packages
           docker run --rm \
             -e JOBS=4 \
             -e ENABLE_CCACHE="yes" \
@@ -57,12 +59,16 @@ jobs:
             -e ROS_LOG_DIR=/home/builder/.ros/log \
             -e ROSCONSOLE_FORMAT='[${severity}] [${time}] [${node}]: ${message}' \
             -e ROS_HOSTNAME=localhost \
+            -e CFLAGS=-coverage \
+            -e CXXFLAGS=-coverage \
+            -e GCOV_PREFIX=${GCOV_DIR} \
             --env-file .github/workflows/test.env \
             -v $(pwd):/src/$(basename $(pwd)):ro \
+            -v ${APORTS_DIR}:/aports \
             -v ${BUILD_LOG_DIR}:/logs \
             -v ${ROS_LOG_DIR}:/home/builder/.ros/log \
             -v ${BUILD_CACHE_DIR}:/ccache \
-            -v $(pwd)/.packages/packages:/packages \
+            -v ${GCOV_DIR}:/tmp/gcov \
             ghcr.io/alpine-ros/ros-abuild:${ALPINE_VERSION}-${ROS_DISTRO}
       - name: Report test results
         if: always()
@@ -89,9 +95,63 @@ jobs:
           </details>
           "
 
-      - name: Compress logs
-        if: always()
-        run: ls -la ${ROS_LOG_DIR}
+      - name: Process coverage reports
+        run: |
+          REPORT_DIR=coverage
+
+          mkdir -p ${REPORT_DIR}
+          cd ${REPORT_DIR}
+
+          echo "::group::rostest gcov files"
+          find ${GCOV_DIR} -name "*.gcda" | sed "s|^${GCOV_DIR}/||" | while read file; do
+            id=$(echo ${file} | cut -d'/' -f1)
+            rel_path=$(echo ${file} | sed 's|^.*/build_isolated/||')
+            pkg=$(echo ${rel_path} | cut -d'/' -f1)
+
+            gcda=${GCOV_DIR}/${file}
+            new_gcda=$(echo ${rel_path} | sed "s|/\(\S*\)\.gcda$|/\1.${id}.gcda|")
+            gcno=${APORTS_DIR}/${ROS_DISTRO}/${pkg}/abuild/build_isolated/${rel_path%.gcda}.gcno
+            new_gcno=${new_gcda%.gcda}.gcno
+
+            mkdir -p $(dirname ${new_gcda})
+            cp ${gcda} ${new_gcda}
+            cp ${gcno} ${new_gcno}
+            echo "  - ${rel_path}"
+          done
+          echo "::endgroup::"
+
+          echo "::group::gtest gcov files"
+          find ${APORTS_DIR} -name "*.gcda" | sed "s|^${APORTS_DIR}/||" | while read file; do
+            rel_path=$(echo ${file} | sed 's|^.*/build_isolated/||')
+            pkg=$(echo ${rel_path} | cut -d'/' -f1)
+
+            gcda=${APORTS_DIR}/${file}
+            new_gcda=${rel_path}
+            gcno=${gcda%.gcda}.gcno
+            new_gcno=${new_gcda%.gcda}.gcno
+
+            mkdir -p $(dirname ${new_gcda})
+            cp ${gcda} ${new_gcda}
+            cp ${gcno} ${new_gcno}
+            echo "  - ${rel_path}"
+          done
+          echo "::endgroup::"
+
+
+          echo "::group::processing gcov files"
+          find . -name "*.gcda" | while read file; do
+            echo "  - ${file}"
+            pkg=$(echo ${file} | cut -d'/' -f1)
+            gcov \
+              -p ${file} \
+              -s "/aports/${ROS_DISTRO}/${pkg}/abuild/src" \
+              >/dev/null 2>/dev/null
+          done
+          echo "::endgroup::"
+      - uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
       - name: Upload ROS logs
         if: always()
         uses: actions/upload-artifact@v4
