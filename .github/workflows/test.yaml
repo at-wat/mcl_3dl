@@ -120,7 +120,7 @@ jobs:
               mkdir -p $(dirname ${new_gcda})
               cp ${gcda} ${new_gcda}
               cp ${gcno} ${new_gcno}
-              echo "  - ${rel_path}"
+              echo "- ${rel_path}"
             done
             echo "::endgroup::"
 
@@ -137,20 +137,26 @@ jobs:
               mkdir -p $(dirname ${new_gcda})
               cp ${gcda} ${new_gcda}
               cp ${gcno} ${new_gcno}
-              echo "  - ${rel_path}"
+              echo "- ${rel_path}"
             done
             echo "::endgroup::"
 
 
             echo "::group::processing gcov files"
             find . -name "*.gcda" | while read file; do
-              echo "  - ${file}"
+              echo "- ${file}"
               pkg=$(echo ${file} | cut -d'/' -f1)
               gcov \
                 -s "/aports/${ROS_DISTRO}/${pkg}/abuild/src" \
                 -p ${file} \
                 -r \
                 >/dev/null
+            done
+            echo "::endgroup::"
+
+            echo "::group::generated gcov files"
+            find . -name "*.gcov" | while read file; do
+              echo "- ${file}"
             done
             echo "::endgroup::"
         run: |
@@ -167,7 +173,7 @@ jobs:
             --entrypoint /self/coverage.sh \
             ghcr.io/alpine-ros/ros-abuild:${ALPINE_VERSION}-${ROS_DISTRO}
       - name: Debug
-        run: tree coverage
+        run: ls -la ./coverage
 
       - uses: codecov/codecov-action@v4
         with:
