@@ -29,10 +29,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Set env
-        run: |
-          echo "${{ matrix.env }}" | xargs -n1 echo | tee -a ${GITHUB_ENV}
-          cat .github/workflows/test.env | tee -a ${GITHUB_ENV} || true
 
       - name: Cache cpp build
         id: cache-cpp-build
@@ -50,6 +46,11 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set env
+        run: |
+          echo "${{ matrix.env }}" | xargs -n1 echo | tee -a ${GITHUB_ENV}
+          cat .github/workflows/test.env | tee -a ${GITHUB_ENV} || true
 
       - name: Test
         id: test
