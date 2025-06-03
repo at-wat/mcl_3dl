@@ -8,6 +8,10 @@ on:
     branches:
       - master
 
+permissions:
+  contents: read
+  packages: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -26,7 +30,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Set env
-        run: echo "${{ matrix.env }}" | xargs -n1 echo | tee -a ${GITHUB_ENV}
+        run: |
+          echo "${{ matrix.env }}" | xargs -n1 echo | tee -a ${GITHUB_ENV}
+          cat .github/workflows/test.env | tee -a ${GITHUB_ENV} || true
 
       - name: Cache cpp build
         id: cache-cpp-build
@@ -48,7 +54,7 @@ jobs:
       - name: Test
         id: test
         run: |
-          touch .github/workflows/test.conf
+          touch .github/workflows/abuild.env
           mkdir -p ${APORTS_DIR} ${BUILD_LOG_DIR} ${ROS_LOG_DIR} ${BUILD_CACHE_DIR} ${GCOV_DIR}
           chmod -R a+rw ${APORTS_DIR} ${BUILD_LOG_DIR} ${ROS_LOG_DIR} ${BUILD_CACHE_DIR} ${GCOV_DIR}
           docker run --rm \
@@ -61,7 +67,7 @@ jobs:
             -e ROS_HOSTNAME=localhost \
             -e CFLAGS=-coverage \
             -e CXXFLAGS=-coverage \
-            --env-file .github/workflows/test.env \
+            --env-file .github/workflows/abuild.env \
             -v $(pwd):/src/$(basename $(pwd)):ro \
             -v ${APORTS_DIR}:/aports \
             -v ${BUILD_LOG_DIR}:/logs \
