@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   test:
-    uses: alpine-ros/alpine-ros1-test-action/.github/workflows/test.yaml@implement-workflow
+    uses: alpine-ros/alpine-ros1-test-workflow/.github/workflows/test.yaml@implement-workflow
     with:
       enable-bot-comment: true
       bot-comment-api-base: "https://ghbot-api.at-wat.tokyo"
