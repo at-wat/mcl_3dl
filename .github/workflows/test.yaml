@@ -9,6 +9,7 @@ permissions:
   contents: read
   packages: read
   issues: write
+  pull-requests: read
 
 jobs:
   test:
