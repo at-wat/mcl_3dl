@@ -18,6 +18,8 @@ jobs:
       enable-bot-comment: true
       bot-comment-api-base: "https://ghbot-api.at-wat.tokyo"
       enable-codecov: true
+      abuild-env: |
+        MCL_3DL_EXTRA_TESTS=ON
     secrets:
       bot-comment-token: "d50e89aa-016e-450b-a140-931fa5daa484"
       codecov-upload-token: ${{ secrets.CODECOV_TOKEN }}
