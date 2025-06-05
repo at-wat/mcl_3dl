@@ -1,4 +1,0 @@
-PRERELEASE_TARGETS="
-  repo1__custom-2:git:https://github.com/owner/repo1.git:${HEAD_REF}
-  repo2__custom-2:git:https://github.com/owner/repo2.git:master
-"

@@ -1,93 +1,25 @@
-# This file is automatically deployed from https://github.com/at-wat/.rospkg-assets.
-# Please don't directly edit; update at-wat/.rospkg-assets instead.
-
-name: build
+name: ci
 on:
   pull_request:
-    branches:
-      - master
   push:
     branches:
       - master
 
+permissions:
+  contents: read
+  packages: read
+  issues: write         # hiding bot comments
+  pull-requests: write  # hiding bot comments
+
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        env:
-          - ROS_DISTRO=noetic
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Cache test data
-        uses: actions/cache@v4
-        with:
-          path: .cached-dataset
-          key: dataset-${{ hashFiles('test/CMakeLists.txt') }}
-          restore-keys: dataset-
-      - name: Cache docker layers
-        uses: actions/cache@v4
-        with:
-          path: /home/runner/layers.tar
-          key: docker-layers-${{ matrix.env }}-${{ github.sha }}
-          restore-keys: docker-layers-${{ matrix.env }}-
-      - name: Set env
-        run: echo "${{ matrix.env }}" | tee ${GITHUB_ENV}
-
-      - name: Get dataset
-        run: if [ -x .github/get_dataset.sh ]; then .github/get_dataset.sh; fi
-      - name: Load docker layer cache
-        run: if [ -f /home/runner/layers.tar ]; then docker load -i /home/runner/layers.tar; fi
-
-      - name: Install gh-pr-comment
-        uses: at-wat/setup-gh-pr-comment@v0
-      - name: Copy gh-pr-comment for container
-        run: cp $(which gh-pr-comment) .github/
-
-      - name: Test
-        run: |
-          eval export $(cat .github/test.conf)
-          echo "ROS_DISTRO=${ROS_DISTRO}" >> ${GITHUB_ENV}
-
-          BUILD_LINK="[${GITHUB_RUN_NUMBER}]"
-          touch .rosinstall .rosinstall-isolated
-          echo '::group::docker build'
-          docker build \
-            -t tester \
-            -f .github/Dockerfile \
-            --build-arg ROS_DISTRO \
-            --pull=true . \
-            || (gh-pr-comment "${BUILD_LINK} FAILED on ${ROS_DISTRO}" "docker build failed"; false)
-          echo '::endgroup::'
-
-          mkdir -p /tmp/log
-          docker run --rm \
-            -e BUILD_LINK=${BUILD_LINK} \
-            $(gh-pr-comment-env.sh) \
-            -e GITHUB_ACTIONS \
-            -e CATKIN_MAKE_OPTIONS \
-            -v ${GITHUB_WORKSPACE}:/orig-src \
-            -v /tmp/log:/root/.ros/log \
-            tester \
-            /catkin_ws/src/self/.github/test.sh
-      - name: Compress logs
-        if: always()
-        run: cd /tmp; tar -cJf logs.tar.xz log
-      - name: Upload ROS logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: logs-${{ env.ROS_DISTRO }}.tar.xz
-          path: /tmp/logs.tar.xz
-          retention-days: 1
-      - uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-      - name: Save layer cache
-        run: |
-          LAYERS=$(docker history -q tester | grep -v missing)
-          echo "layers: $(echo ${LAYERS})"
-          docker save -o /home/runner/layers.tar ${LAYERS}
+  test:
+    uses: alpine-ros/alpine-ros-ci-workflows/.github/workflows/ros1.yaml@main
+    with:
+      enable-bot-comment: true
+      bot-comment-api-base: "https://ghbot-api.at-wat.tokyo"
+      enable-codecov: true
+      abuild-env: |
+        MCL_3DL_EXTRA_TESTS=ON
+    secrets:
+      bot-comment-token: "d50e89aa-016e-450b-a140-931fa5daa484"
+      codecov-upload-token: ${{ secrets.CODECOV_TOKEN }}

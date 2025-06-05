@@ -1,0 +1,21 @@
+name: release-candidate
+on:
+  issues:
+    types: [opened, reopened, edited]
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    if: startsWith(github.event.issue.title, 'Release ')
+    uses: alpine-ros/alpine-ros-ci-workflows/.github/workflows/ros1-release-candidate.yaml@main
+    with:
+      release-title: ${{ github.event.issue.title }}
+      branch: master
+      git-user: Atsushi Watanabe
+      git-email: 8390204+at-wat@users.noreply.github.com
+      pr-body: "close #${{ github.event.issue.number }}"
+      pr-assignee: ${{ github.actor }}
+    secrets:
+      token: ${{ secrets.BLOOM_GITHUB_TOKEN }}
