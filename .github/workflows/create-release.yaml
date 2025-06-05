@@ -1,0 +1,14 @@
+name: auto-release
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    uses: alpine-ros/alpine-ros-ci-workflows/.github/workflows/auto-release.yaml@main
+    secrets:
+      token: ${{ secrets.BLOOM_GITHUB_TOKEN }}

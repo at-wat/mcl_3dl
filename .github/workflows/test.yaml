@@ -8,12 +8,12 @@ on:
 permissions:
   contents: read
   packages: read
-  issues: write
-  pull-requests: write
+  issues: write         # hiding bot comments
+  pull-requests: write  # hiding bot comments
 
 jobs:
   test:
-    uses: alpine-ros/alpine-ros-test-workflow/.github/workflows/ros1.yaml@main
+    uses: alpine-ros/alpine-ros-ci-workflows/.github/workflows/ros1.yaml@main
     with:
       enable-bot-comment: true
       bot-comment-api-base: "https://ghbot-api.at-wat.tokyo"
