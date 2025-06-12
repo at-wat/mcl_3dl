@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  auto-release:
     uses: alpine-ros/alpine-ros-ci-workflows/.github/workflows/auto-release.yaml@main
     secrets:
       token: ${{ secrets.BLOOM_GITHUB_TOKEN }}
