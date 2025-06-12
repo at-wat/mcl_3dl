@@ -7,7 +7,7 @@ permissions:
   contents: write
 
 jobs:
-  test:
+  release-candidate:
     if: startsWith(github.event.issue.title, 'Release ')
     uses: alpine-ros/alpine-ros-ci-workflows/.github/workflows/ros1-release-candidate.yaml@main
     with:

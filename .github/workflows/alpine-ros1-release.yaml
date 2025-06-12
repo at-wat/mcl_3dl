@@ -7,7 +7,7 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  release:
     uses: alpine-ros/alpine-ros-ci-workflows/.github/workflows/alpine-ros1-release.yaml@main
     with:
       release-ref: ${{ github.event.release.tag_name }}
