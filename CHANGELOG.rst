@@ -2,6 +2,15 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Subscribe latency sensitive topics by tcpNoDelay (`#430 <https://github.com/at-wat/mcl_3dl/issues/430>`_)
+* Fix MCL_3DL_EXTRA_TESTS environment variable check in if condition (`#429 <https://github.com/at-wat/mcl_3dl/issues/429>`_)
+* Fix CI job names (`#428 <https://github.com/at-wat/mcl_3dl/issues/428>`_)
+* Remove old post-release script (`#427 <https://github.com/at-wat/mcl_3dl/issues/427>`_)
+* Migrate to Alpine ROS 1 (`#426 <https://github.com/at-wat/mcl_3dl/issues/426>`_)
+* Contributors: Atsushi Watanabe, f-fl0
+
 0.6.4 (2024-10-10)
 ------------------
 * Fix angular part of covariance matrix (`#417 <https://github.com/at-wat/mcl_3dl/issues/417>`_)
