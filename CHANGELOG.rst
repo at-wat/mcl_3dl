@@ -2,8 +2,8 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.6.5 (2025-07-04)
+------------------
 * Subscribe latency sensitive topics by tcpNoDelay (`#430 <https://github.com/at-wat/mcl_3dl/issues/430>`_)
 * Fix MCL_3DL_EXTRA_TESTS environment variable check in if condition (`#429 <https://github.com/at-wat/mcl_3dl/issues/429>`_)
 * Fix CI job names (`#428 <https://github.com/at-wat/mcl_3dl/issues/428>`_)
