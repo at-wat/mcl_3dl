@@ -187,7 +187,7 @@ protected:
     pf_->initUsingNoiseGenerator(noise_gen);
 
     pc_update_.reset();
-    auto integ_reset_func = [](State6DOF& s)
+    const auto integ_reset_func = [](State6DOF& s)
     {
       s.odom_err_integ_lin_ = Vec3();
       s.odom_err_integ_ang_ = Vec3();
@@ -225,7 +225,7 @@ protected:
     else if (dt > 0.05)
     {
       motion_prediction_model_->setOdoms(odom_prev_, odom_, dt);
-      auto prediction_func = [this](State6DOF& s)
+      const auto prediction_func = [this](State6DOF& s)
       {
         motion_prediction_model_->predict(s);
       };
@@ -427,7 +427,7 @@ protected:
 
     if (static_cast<int>(pf_->getParticleSize()) > params_.num_particles_)
     {
-      auto bias_func = [](const State6DOF& s, float& p_bias) -> void
+      const auto bias_func = [](const State6DOF& s, float& p_bias) -> void
       {
         p_bias = 1.0;
       };
@@ -437,7 +437,7 @@ protected:
     {
       NormalLikelihood<float> nl_lin(params_.bias_var_dist_);
       NormalLikelihood<float> nl_ang(params_.bias_var_ang_);
-      auto bias_func = [this, &nl_lin, &nl_ang](const State6DOF& s, float& p_bias) -> void
+      const auto bias_func = [this, &nl_lin, &nl_ang](const State6DOF& s, float& p_bias) -> void
       {
         const float lin_diff = (s.pos_ - state_prev_.pos_).norm();
         Vec3 axis;
