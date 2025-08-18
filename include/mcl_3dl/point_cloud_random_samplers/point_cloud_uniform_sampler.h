@@ -32,6 +32,7 @@
 
 #include <memory>
 #include <random>
+#include <vector>
 
 #include <pcl/point_cloud.h>
 
