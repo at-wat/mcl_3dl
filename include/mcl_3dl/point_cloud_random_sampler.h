@@ -33,6 +33,7 @@
 #include <pcl/point_cloud.h>
 
 #include <mcl_3dl/chunked_kdtree.h>
+#include <mcl_3dl/state_6dof.h>
 
 namespace mcl_3dl
 {
@@ -40,8 +41,12 @@ template <class POINT_TYPE>
 class PointCloudRandomSampler
 {
 public:
+  virtual void loadConfig(const ros::NodeHandle& nh) = 0;
   virtual typename pcl::PointCloud<POINT_TYPE>::Ptr sample(
       const typename pcl::PointCloud<POINT_TYPE>::ConstPtr& pc, const size_t num) const = 0;
+  virtual void setParticleStatistics(
+    const State6DOF& mean, const std::vector<State6DOF>& covariances) = 0;
+
 };
 
 }  // namespace mcl_3dl

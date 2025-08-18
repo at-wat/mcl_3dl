@@ -75,7 +75,7 @@ public:
   {
   }
 
-  void loadConfig(const ros::NodeHandle& nh)
+  void loadConfig(const ros::NodeHandle& nh) final
   {
     ros::NodeHandle pnh(nh, "random_sampler_with_normal");
     pnh.param("perform_weighting_ratio", perform_weighting_ratio_, 2.0);
@@ -93,7 +93,7 @@ public:
     normal_search_range_ = normal_search_range;
   }
 
-  void setParticleStatistics(const State6DOF& mean, const std::vector<State6DOF>& covariances)
+  void setParticleStatistics(const State6DOF& mean, const std::vector<State6DOF>& covariances) final
   {
     mean_ = mean;
     Matrix pos_cov(3, 3);
