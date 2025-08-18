@@ -143,7 +143,8 @@ void LidarMeasurementModelBeam::setGlobalLocalizationStatus(
 
 typename pcl::PointCloud<LidarMeasurementModelBase::PointType>::Ptr
 LidarMeasurementModelBeam::filter(
-    const typename pcl::PointCloud<LidarMeasurementModelBase::PointType>::ConstPtr& pc) const
+    const typename pcl::PointCloud<LidarMeasurementModelBase::PointType>::ConstPtr& pc,
+    const PointCloudRandomSampler<PointType>& sampler) const
 {
   const auto local_points_filter = [this](const LidarMeasurementModelBase::PointType& p)
   {
@@ -163,7 +164,7 @@ LidarMeasurementModelBeam::filter(
   pc_filtered->width = 1;
   pc_filtered->height = pc_filtered->points.size();
 
-  return sampler_->sample(pc_filtered, num_points_);
+  return sampler.sample(pc_filtered, num_points_);
 }
 
 LidarMeasurementResult LidarMeasurementModelBeam::measure(

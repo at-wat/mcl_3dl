@@ -10,8 +10,8 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the copyright holder nor the names of its 
- *       contributors may be used to endorse or promote products derived from 
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -98,7 +98,8 @@ void LidarMeasurementModelLikelihood::setGlobalLocalizationStatus(
 
 typename pcl::PointCloud<LidarMeasurementModelBase::PointType>::Ptr
 LidarMeasurementModelLikelihood::filter(
-    const typename pcl::PointCloud<LidarMeasurementModelBase::PointType>::ConstPtr& pc) const
+    const typename pcl::PointCloud<LidarMeasurementModelBase::PointType>::ConstPtr& pc,
+    const PointCloudRandomSampler<PointType>& sampler) const
 {
   const auto local_points_filter = [this](const LidarMeasurementModelBase::PointType& p)
   {
@@ -118,7 +119,7 @@ LidarMeasurementModelLikelihood::filter(
   pc_filtered->width = 1;
   pc_filtered->height = pc_filtered->points.size();
 
-  return sampler_->sample(pc_filtered, num_points_);
+  return sampler.sample(pc_filtered, num_points_);
 }
 
 LidarMeasurementResult LidarMeasurementModelLikelihood::measure(

@@ -10,8 +10,8 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the copyright holder nor the names of its 
- *       contributors may be used to endorse or promote products derived from 
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -42,7 +42,6 @@
 
 #include <mcl_3dl/chunked_kdtree.h>
 #include <mcl_3dl/point_cloud_random_sampler.h>
-#include <mcl_3dl/point_cloud_random_samplers/point_cloud_uniform_sampler.h>
 #include <mcl_3dl/point_types.h>
 #include <mcl_3dl/state_6dof.h>
 #include <mcl_3dl/vec3.h>
@@ -66,10 +65,8 @@ class LidarMeasurementModelBase
 public:
   using Ptr = std::shared_ptr<LidarMeasurementModelBase>;
   using PointType = mcl_3dl::PointXYZIL;
-  using SamplerType = PointCloudRandomSampler<PointType>;
 
   LidarMeasurementModelBase()
-    : sampler_(new PointCloudUniformSampler<PointType>())
   {
   }
 
@@ -79,27 +76,15 @@ public:
   virtual void setGlobalLocalizationStatus(
       const size_t, const size_t) = 0;
   virtual float getMaxSearchRange() const = 0;
-
   virtual pcl::PointCloud<PointType>::Ptr filter(
-      const pcl::PointCloud<PointType>::ConstPtr&) const = 0;
+      const pcl::PointCloud<PointType>::ConstPtr&,
+      const PointCloudRandomSampler<PointType>&) const = 0;
 
   virtual LidarMeasurementResult measure(
       ChunkedKdtree<PointType>::Ptr&,
       const pcl::PointCloud<PointType>::ConstPtr&,
       const std::vector<Vec3>&,
       const State6DOF&) const = 0;
-
-  void setRandomSampler(const std::shared_ptr<SamplerType>& sampler)
-  {
-    sampler_ = sampler;
-  }
-  std::shared_ptr<SamplerType> getRandomSampler()
-  {
-    return sampler_;
-  }
-
-protected:
-  std::shared_ptr<SamplerType> sampler_;
 };
 }  // namespace mcl_3dl
 
