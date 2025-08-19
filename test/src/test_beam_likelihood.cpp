@@ -37,11 +37,46 @@
 
 #include <mcl_3dl/chunked_kdtree.h>
 #include <mcl_3dl/lidar_measurement_models/lidar_measurement_model_beam.h>
+#include <mcl_3dl/point_cloud_random_sampler.h>
 #include <mcl_3dl/vec3.h>
+
+namespace mcl_3dl
+{
+template <class POINT_TYPE>
+class DummySampler : public PointCloudRandomSampler<POINT_TYPE>
+{
+public:
+  DummySampler()
+  {
+  }
+
+  typename pcl::PointCloud<POINT_TYPE>::Ptr sample(
+      const typename pcl::PointCloud<POINT_TYPE>::ConstPtr& pc,
+      const size_t num) const final
+  {
+    typename pcl::PointCloud<POINT_TYPE>::Ptr output(
+        new pcl::PointCloud<POINT_TYPE>);
+    output->header = pc->header;
+
+    if (pc->points.size() == 0)
+    {
+      return output;
+    }
+
+    output->points.reserve(pc->points.size());
+    for (size_t i = 0; i < pc->points.size(); i++)
+    {
+      output->push_back(pc->points[i]);
+    }
+
+    return output;
+  }
+};
+}  // namespace mcl_3dl
 
 TEST(BeamModel, LikelihoodFunc)
 {
-  pcl::PointCloud<mcl_3dl::LidarMeasurementModelBase::PointType> pc;
+  pcl::PointCloud<mcl_3dl::LidarMeasurementModelBase::PointType> raw_pc;
   for (float y = -0.2; y <= 0.2; y += 0.1)
   {
     for (float z = -0.2; z <= 0.2; z += 0.1)
@@ -50,10 +85,17 @@ TEST(BeamModel, LikelihoodFunc)
       p.x = 2;
       p.y = y;
       p.z = z;
-      pc.push_back(p);
+      raw_pc.push_back(p);
     }
   }
-  pcl::PointCloud<mcl_3dl::LidarMeasurementModelBase::PointType> pc_map = pc;
+  // Add points that should get filtered out
+  mcl_3dl::LidarMeasurementModelBase::PointType p;
+  p.z = 5;
+  raw_pc.push_back(p);
+  p.z = -5;
+  raw_pc.push_back(p);
+
+  pcl::PointCloud<mcl_3dl::LidarMeasurementModelBase::PointType> pc_map = raw_pc;
   {
     // Add dummy points to expand DDA grid size.
     mcl_3dl::LidarMeasurementModelBase::PointType p;
@@ -71,6 +113,8 @@ TEST(BeamModel, LikelihoodFunc)
       new mcl_3dl::ChunkedKdtree<mcl_3dl::LidarMeasurementModelBase::PointType>(10.0, 1.0));
   kdtree->setInputCloud(pc_map.makeShared());
 
+  // A dummy point sampler that returns all the points from the input cloud
+  const mcl_3dl::DummySampler<mcl_3dl::LidarMeasurementModelBase::PointType> sampler;
   for (int method = 0; method < 2; ++method)
   {
     for (int mode = 0; mode < 2; ++mode)
@@ -78,15 +122,24 @@ TEST(BeamModel, LikelihoodFunc)
       for (double hr = 0.0; hr <= 1.0; hr += 0.2)
       {
         ros::NodeHandle pnh("~");
-        pnh.setParam("beam/num_points", static_cast<int>(pc.size()));
+        pnh.setParam("beam/num_points", static_cast<int>(raw_pc.size()));
         pnh.setParam("beam/beam_likelihood", 0.2);
         pnh.setParam("beam/hit_range", hr);
         pnh.setParam("beam/use_raycast_using_dda", method == 1);
         pnh.setParam("beam/add_penalty_short_only_mode", mode == 1);
         pnh.setParam("beam/dda_grid_size", 0.1);
+        pnh.setParam("beam/clip_z_min", -0.3);
+        pnh.setParam("beam/clip_z_max", 4.1);
 
         mcl_3dl::LidarMeasurementModelBeam model(0.1, 0.1, 0.1);
         model.loadConfig(pnh, "beam");
+        const auto pc = model.filter(raw_pc.makeShared(), sampler);
+        ASSERT_EQ(pc->points.size(), raw_pc.points.size() - 2);
+        for (const auto& p : pc->points)
+        {
+          ASSERT_LT(p.z, 4.1);
+          ASSERT_GT(p.z, -0.3);
+        }
 
         std::cerr << "use_raycast_using_dda: " << (method == 1) << ", ";
         std::cerr << "add_penalty_short_only_mode: " << (mode == 1) << ", ";
@@ -107,7 +160,7 @@ TEST(BeamModel, LikelihoodFunc)
           const mcl_3dl::Vec3 pos(x, 0, 0);
           const std::vector<mcl_3dl::Vec3> origins = {pos};
           const mcl_3dl::LidarMeasurementResult v = model.measure(
-              kdtree, pc.makeShared(), origins,
+              kdtree, pc, origins,
               mcl_3dl::State6DOF(pos, mcl_3dl::Quat()));
           if (v.likelihood < 1.0 / 8)
             std::cerr << "_";
