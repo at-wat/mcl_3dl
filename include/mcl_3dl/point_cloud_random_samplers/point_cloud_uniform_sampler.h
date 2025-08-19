@@ -53,14 +53,6 @@ public:
   {
   }
 
-  void loadConfig(const ros::NodeHandle& nh) final
-  {
-  }
-
-  void setParticleStatistics(const State6DOF& mean, const std::vector<State6DOF>& covariances) final
-  {
-  }
-
   typename pcl::PointCloud<POINT_TYPE>::Ptr sample(
       const typename pcl::PointCloud<POINT_TYPE>::ConstPtr& pc,
       const size_t num) const final
