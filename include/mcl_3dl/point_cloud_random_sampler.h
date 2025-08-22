@@ -33,6 +33,7 @@
 #include <vector>
 
 #include <pcl/point_cloud.h>
+#include <ros/ros.h>
 
 #include <mcl_3dl/chunked_kdtree.h>
 #include <mcl_3dl/state_6dof.h>
