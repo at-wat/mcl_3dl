@@ -100,7 +100,8 @@ public:
       const size_t num_particles,
       const size_t current_num_particles);
   pcl::PointCloud<PointType>::Ptr filter(
-      const pcl::PointCloud<PointType>::ConstPtr& pc) const;
+      const pcl::PointCloud<PointType>::ConstPtr& pc,
+      const PointCloudRandomSampler<PointType>& sampler) const;
   LidarMeasurementResult measure(
       ChunkedKdtree<PointType>::Ptr& kdtree,
       const pcl::PointCloud<PointType>::ConstPtr& pc,

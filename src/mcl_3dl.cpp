@@ -366,21 +366,20 @@ protected:
     ds.setLeafSize(params_.downsample_x_, params_.downsample_y_, params_.downsample_z_);
     ds.filter(*pc_local_full);
 
+    if (params_.use_random_sampler_with_normal_)
+    {
+      const State6DOF prev_mean = pf_->expectation();
+      const float cov_ratio = std::max(0.1f, static_cast<float>(params_.num_particles_) / pf_->getParticleSize());
+      const std::vector<State6DOF> prev_cov = pf_->covariance(1.0, cov_ratio);
+      sampler_->setParticleStatistics(prev_mean, prev_cov);
+    }
+
     std::map<std::string, pcl::PointCloud<PointType>::Ptr> pc_locals;
     for (auto& lm : lidar_measurements_)
     {
       lm.second->setGlobalLocalizationStatus(
           params_.num_particles_, pf_->getParticleSize());
-
-      if (params_.use_random_sampler_with_normal_)
-      {
-        const State6DOF prev_mean = pf_->expectation();
-        const float cov_ratio = std::max(0.1f, static_cast<float>(params_.num_particles_) / pf_->getParticleSize());
-        const std::vector<State6DOF> prev_cov = pf_->covariance(1.0, cov_ratio);
-        auto sampler = std::dynamic_pointer_cast<PointCloudSamplerWithNormal<PointType>>(lm.second->getRandomSampler());
-        sampler->setParticleStatistics(prev_mean, prev_cov);
-      }
-      pc_locals[lm.first] = lm.second->filter(pc_local_full);
+      pc_locals[lm.first] = lm.second->filter(pc_local_full, *sampler_);
     }
 
     if (pc_locals["likelihood"]->size() == 0)
@@ -1312,23 +1311,21 @@ public:
         new MotionPredictionModelDifferentialDrive(params_.odom_err_integ_lin_tc_,
                                                    params_.odom_err_integ_ang_tc_));
 
+    if (params_.use_random_sampler_with_normal_)
+    {
+      sampler_ = std::make_unique<PointCloudSamplerWithNormal<PointType>>();
+    }
+    else
+    {
+      sampler_ = std::make_unique<PointCloudUniformSampler<PointType>>();
+    }
+    sampler_->loadConfig(pnh_);
+
     float max_search_radius = 0;
     for (auto& lm : lidar_measurements_)
     {
       lm.second->loadConfig(pnh_, lm.first);
       max_search_radius = std::max(max_search_radius, lm.second->getMaxSearchRange());
-
-      if (params_.use_random_sampler_with_normal_)
-      {
-        auto sampler = std::make_shared<PointCloudSamplerWithNormal<PointType>>();
-        sampler->loadConfig(pnh_);
-        lm.second->setRandomSampler(sampler);
-      }
-      else
-      {
-        auto sampler = std::make_shared<PointCloudUniformSampler<PointType>>();
-        lm.second->setRandomSampler(sampler);
-      }
     }
 
     ROS_DEBUG("max_search_radius: %0.3f", max_search_radius);
@@ -1453,6 +1450,7 @@ protected:
       std::string,
       LidarMeasurementModelBase::Ptr>
       lidar_measurements_;
+  std::unique_ptr<PointCloudRandomSampler<PointType>> sampler_;
   ImuMeasurementModelBase::Ptr imu_measurement_model_;
   MotionPredictionModelBase::Ptr motion_prediction_model_;
 

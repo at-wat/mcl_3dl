@@ -10,8 +10,8 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the copyright holder nor the names of its 
- *       contributors may be used to endorse or promote products derived from 
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -30,9 +30,13 @@
 #ifndef MCL_3DL_POINT_CLOUD_RANDOM_SAMPLER_H
 #define MCL_3DL_POINT_CLOUD_RANDOM_SAMPLER_H
 
+#include <vector>
+
 #include <pcl/point_cloud.h>
+#include <ros/ros.h>
 
 #include <mcl_3dl/chunked_kdtree.h>
+#include <mcl_3dl/state_6dof.h>
 
 namespace mcl_3dl
 {
@@ -40,8 +44,15 @@ template <class POINT_TYPE>
 class PointCloudRandomSampler
 {
 public:
+  virtual void loadConfig(const ros::NodeHandle& nh)
+  {
+  }
   virtual typename pcl::PointCloud<POINT_TYPE>::Ptr sample(
       const typename pcl::PointCloud<POINT_TYPE>::ConstPtr& pc, const size_t num) const = 0;
+  virtual void setParticleStatistics(
+      const State6DOF& mean, const std::vector<State6DOF>& covariances)
+  {
+  }
 };
 
 }  // namespace mcl_3dl
