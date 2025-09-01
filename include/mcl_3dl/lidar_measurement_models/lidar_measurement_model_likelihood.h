@@ -10,8 +10,8 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the copyright holder nor the names of its 
- *       contributors may be used to endorse or promote products derived from 
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -41,6 +41,7 @@
 
 #include <mcl_3dl/chunked_kdtree.h>
 #include <mcl_3dl/lidar_measurement_model_base.h>
+#include <mcl_3dl/parameters.h>
 #include <mcl_3dl/pf.h>
 #include <mcl_3dl/point_cloud_random_sampler.h>
 #include <mcl_3dl/vec3.h>
@@ -50,26 +51,20 @@ namespace mcl_3dl
 class LidarMeasurementModelLikelihood : public LidarMeasurementModelBase
 {
 private:
+  std::shared_ptr<LidarMeasurementModelLikelihoodParameters> params_;
   size_t num_points_;
-  size_t num_points_default_;
-  size_t num_points_global_;
   float clip_far_sq_;
   float clip_near_sq_;
-  float clip_z_min_;
-  float clip_z_max_;
-  float match_weight_;
-  float match_dist_min_;
-  float match_dist_flat_;
 
 public:
+  explicit LidarMeasurementModelLikelihood(
+      const std::shared_ptr<LidarMeasurementModelLikelihoodParameters>& params);
+
   inline float getMaxSearchRange() const
   {
-    return match_dist_min_;
+    return params_->match_dist_min_;
   }
-
-  void loadConfig(
-      const ros::NodeHandle& nh,
-      const std::string& name);
+  void refreshParameters() final;
   void setGlobalLocalizationStatus(
       const size_t num_particles,
       const size_t current_num_particles);
