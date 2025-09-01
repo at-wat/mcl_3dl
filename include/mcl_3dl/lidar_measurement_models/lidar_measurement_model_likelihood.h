@@ -34,8 +34,6 @@
 #include <string>
 #include <vector>
 
-#include <ros/ros.h>
-
 #include <pcl/point_types.h>
 #include <pcl_ros/point_cloud.h>
 
