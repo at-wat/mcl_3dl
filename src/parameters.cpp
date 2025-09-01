@@ -40,6 +40,10 @@
 
 namespace mcl_3dl
 {
+Parameters::Parameters()
+  : random_sampler_with_normal_params_(std::make_shared<PointCloudSamplerWithNormalParameters>())
+{
+}
 bool Parameters::load(ros::NodeHandle& pnh)
 {
   pnh.param("fake_imu", fake_imu_, false);
@@ -194,6 +198,14 @@ bool Parameters::load(ros::NodeHandle& pnh)
 
   pnh.param("use_random_sampler_with_normal", use_random_sampler_with_normal_, false);
 
+  if (use_random_sampler_with_normal_)
+  {
+    ros::NodeHandle rs_pnh(pnh, "random_sampler_with_normal");
+    rs_pnh.param("perform_weighting_ratio", random_sampler_with_normal_params_->perform_weighting_ratio_, 2.0);
+    rs_pnh.param("max_weight_ratio", random_sampler_with_normal_params_->max_weight_ratio_, 5.0);
+    rs_pnh.param("max_weight", random_sampler_with_normal_params_->max_weight_, 5.0);
+    rs_pnh.param("normal_search_range", random_sampler_with_normal_params_->normal_search_range_, 0.4);
+  }
   return true;
 }
 }  // namespace mcl_3dl

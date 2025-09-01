@@ -41,9 +41,26 @@
 
 namespace mcl_3dl
 {
+class PointCloudSamplerWithNormalParameters
+{
+public:
+  PointCloudSamplerWithNormalParameters()
+    : perform_weighting_ratio_(2.0)
+    , max_weight_ratio_(5.0)
+    , max_weight_(5.0)
+    , normal_search_range_(0.4)
+  {
+  }
+
+  double perform_weighting_ratio_;
+  double max_weight_ratio_;
+  double max_weight_;
+  double normal_search_range_;
+};
 class Parameters
 {
 public:
+  Parameters();
   bool load(ros::NodeHandle& nh);
 
   bool fake_imu_, fake_odom_;
@@ -108,6 +125,7 @@ public:
   State6DOF initial_pose_;
   State6DOF initial_pose_std_;
   bool use_random_sampler_with_normal_;
+  std::shared_ptr<PointCloudSamplerWithNormalParameters> random_sampler_with_normal_params_;
 };
 }  // namespace mcl_3dl
 
