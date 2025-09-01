@@ -10,8 +10,8 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the copyright holder nor the names of its 
- *       contributors may be used to endorse or promote products derived from 
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -45,6 +45,7 @@
 #include <ros/ros.h>
 
 #include <mcl_3dl/point_cloud_random_sampler.h>
+#include <mcl_3dl/parameters.h>
 #include <mcl_3dl/state_6dof.h>
 
 namespace mcl_3dl
@@ -57,40 +58,18 @@ private:
   using Vector = Eigen::Matrix<double, Eigen::Dynamic, 1>;
 
   std::shared_ptr<std::default_random_engine> engine_;
+  std::shared_ptr<PointCloudSamplerWithNormalParameters> params_;
   State6DOF mean_;
   Matrix eigen_vectors_;
   Vector eigen_values_;
-  double perform_weighting_ratio_;
-  double max_weight_ratio_;
-  double max_weight_;
-  double normal_search_range_;
 
 public:
-  explicit PointCloudSamplerWithNormal(const unsigned int random_seed = std::random_device()())
+  PointCloudSamplerWithNormal(
+      const std::shared_ptr<PointCloudSamplerWithNormalParameters>& params,
+      const unsigned int random_seed = std::random_device()())
     : engine_(std::make_shared<std::default_random_engine>(random_seed))
-    , perform_weighting_ratio_(2.0)
-    , max_weight_ratio_(5.0)
-    , max_weight_(10.0)
-    , normal_search_range_(0.4)
+    , params_(params)
   {
-  }
-
-  void loadConfig(const ros::NodeHandle& nh) final
-  {
-    ros::NodeHandle pnh(nh, "random_sampler_with_normal");
-    pnh.param("perform_weighting_ratio", perform_weighting_ratio_, 2.0);
-    pnh.param("max_weight_ratio", max_weight_ratio_, 5.0);
-    pnh.param("max_weight", max_weight_, 5.0);
-    pnh.param("normal_search_range", normal_search_range_, 0.4);
-  }
-
-  void setParameters(const double perform_weighting_ratio, const double max_weight_ratio,
-                     const double max_weight, const double normal_search_range)
-  {
-    perform_weighting_ratio_ = perform_weighting_ratio;
-    max_weight_ratio_ = max_weight_ratio;
-    max_weight_ = max_weight;
-    normal_search_range_ = normal_search_range;
   }
 
   void setParticleStatistics(const State6DOF& mean, const std::vector<State6DOF>& covariances) final
@@ -131,19 +110,20 @@ public:
     const double eigen_value_ratio = std::sqrt(eigen_values_[2] / eigen_values_[1]);
 
     double max_weight = 1.0;
-    if (eigen_value_ratio < perform_weighting_ratio_)
+    if (eigen_value_ratio < params_->perform_weighting_ratio_)
     {
       max_weight = 1.0;
     }
-    else if (eigen_value_ratio > max_weight_ratio_)
+    else if (eigen_value_ratio > params_->max_weight_ratio_)
     {
-      max_weight = max_weight_;
+      max_weight = params_->max_weight_;
     }
     else
     {
       const double weight_ratio =
-          (eigen_value_ratio - perform_weighting_ratio_) / (max_weight_ratio_ - perform_weighting_ratio_);
-      max_weight = 1.0 + (max_weight_ - 1.0) * weight_ratio;
+          (eigen_value_ratio - params_->perform_weighting_ratio_) /
+          (params_->max_weight_ratio_ - params_->perform_weighting_ratio_);
+      max_weight = 1.0 + (params_->max_weight_ - 1.0) * weight_ratio;
     }
     const mcl_3dl::Vec3 fpc_global(eigen_vectors_(0, 2), eigen_vectors_(1, 2), eigen_vectors_(2, 2));
     const mcl_3dl::Vec3 fpc_local = mean_.rot_.inv() * fpc_global;
@@ -152,7 +132,7 @@ public:
     typename pcl::search::KdTree<POINT_TYPE>::Ptr tree(new pcl::search::KdTree<POINT_TYPE>());
     ne.setInputCloud(pc);
     ne.setSearchMethod(tree);
-    ne.setRadiusSearch(normal_search_range_);
+    ne.setRadiusSearch(params_->normal_search_range_);
     ne.compute(*cloud_normals);
 
     const ros::WallTime compute_normal_timestamp = ros::WallTime::now();

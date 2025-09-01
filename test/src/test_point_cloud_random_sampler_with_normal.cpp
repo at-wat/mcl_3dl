@@ -10,8 +10,8 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the copyright holder nor the names of its 
- *       contributors may be used to endorse or promote products derived from 
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -30,10 +30,12 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <memory>
 #include <vector>
 
 #include <pcl/point_types.h>
 
+#include <mcl_3dl/parameters.h>
 #include <mcl_3dl/point_cloud_random_samplers/point_cloud_sampler_with_normal.h>
 #include <mcl_3dl/point_types.h>
 
@@ -136,12 +138,18 @@ TEST(PointCloudSamplerWithNormal, Sampling)
 
   for (const unsigned int seed : seeds)
   {
-    PointCloudSamplerWithNormal<PointXYZIL> sampler(seed);
+    auto sampler_params = std::make_shared<PointCloudSamplerWithNormalParameters>();
+    sampler_params->normal_search_range_ = 0.4;
+    PointCloudSamplerWithNormal<PointXYZIL> sampler(sampler_params, seed);
     sampler.setParticleStatistics(mean, cov_matrix);
     const int sample_num = 100;
     for (const ParameterSet& parameter : parameters)
     {
-      sampler.setParameters(parameter.perform_weighting_ratio, parameter.max_weight_ratio, parameter.max_weight, 0.4);
+      sampler_params->perform_weighting_ratio_ = parameter.perform_weighting_ratio;
+      sampler_params->max_weight_ratio_ = parameter.max_weight_ratio;
+      sampler_params->max_weight_ = parameter.max_weight;
+      sampler.refreshParameters();
+
       const pcl::PointCloud<PointXYZIL>::Ptr extracted_cloud = sampler.sample(pc, sample_num);
       EXPECT_EQ(sample_num, static_cast<int>(extracted_cloud->size()));
       // count[0] : numbers of points chosen from the wall at right angles
@@ -162,7 +170,7 @@ TEST(PointCloudSamplerWithNormal, Sampling)
     }
   }
 
-  PointCloudSamplerWithNormal<PointXYZIL> sampler;
+  PointCloudSamplerWithNormal<PointXYZIL> sampler(std::make_shared<PointCloudSamplerWithNormalParameters>());
   sampler.setParticleStatistics(mean, cov_matrix);
   pcl::PointCloud<PointXYZIL>::Ptr invalid_cloud(new pcl::PointCloud<PointXYZIL>());
   // Empty cloud
