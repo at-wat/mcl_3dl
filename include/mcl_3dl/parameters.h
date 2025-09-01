@@ -29,6 +29,7 @@
 #ifndef MCL_3DL_PARAMETERS_H
 #define MCL_3DL_PARAMETERS_H
 
+#include <cmath>
 #include <map>
 #include <memory>
 #include <string>
@@ -57,6 +58,77 @@ public:
   double max_weight_;
   double normal_search_range_;
 };
+
+class LidarMeasurementModelLikelihoodParameters
+{
+public:
+  LidarMeasurementModelLikelihoodParameters()
+    : num_points_default_(96)
+    , num_points_global_(8)
+    , clip_far_(10.0)
+    , clip_near_(0.5)
+    , clip_z_min_(-2.0)
+    , clip_z_max_(2.0)
+    , match_weight_(5.0)
+    , match_dist_min_(0.2)
+    , match_dist_flat_(0.05)
+  {
+  }
+
+  size_t num_points_default_;
+  size_t num_points_global_;
+  float clip_far_;
+  float clip_near_;
+  float clip_z_min_;
+  float clip_z_max_;
+  float match_weight_;
+  float match_dist_min_;
+  float match_dist_flat_;
+};
+
+class LidarMeasurementModelBeamParameters
+{
+public:
+  LidarMeasurementModelBeamParameters()
+    : map_grid_x_(0.1)
+    , map_grid_y_(0.1)
+    , map_grid_z_(0.1)
+    , num_points_default_(3)
+    , num_points_global_(0)
+    , clip_far_(4.0)
+    , clip_near_(0.5)
+    , clip_z_min_(-2.0)
+    , clip_z_max_(2.0)
+    , beam_likelihood_min_(0.2)
+    , ang_total_ref_(M_PI / 6.0)
+    , filter_label_max_(static_cast<int>(0xFFFFFFFF))
+    , hit_range_(0.3)
+    , add_penalty_short_only_mode_(true)
+    , use_raycast_using_dda_(false)
+    , ray_angle_half_(0.25 * M_PI / 180.0)
+    , dda_grid_size_(0.2)
+  {
+  }
+
+  float map_grid_x_;
+  float map_grid_y_;
+  float map_grid_z_;
+  size_t num_points_default_;
+  size_t num_points_global_;
+  float clip_far_;
+  float clip_near_;
+  float clip_z_min_;
+  float clip_z_max_;
+  float beam_likelihood_min_;
+  float ang_total_ref_;
+  uint32_t filter_label_max_;
+  float hit_range_;
+  bool add_penalty_short_only_mode_;
+  bool use_raycast_using_dda_;
+  float ray_angle_half_;
+  float dda_grid_size_;
+};
+
 class Parameters
 {
 public:
@@ -126,6 +198,8 @@ public:
   State6DOF initial_pose_std_;
   bool use_random_sampler_with_normal_;
   std::shared_ptr<PointCloudSamplerWithNormalParameters> random_sampler_with_normal_params_;
+  std::shared_ptr<LidarMeasurementModelLikelihoodParameters> lidar_measurement_likelihood_params_;
+  std::shared_ptr<LidarMeasurementModelBeamParameters> lidar_measurement_beam_params_;
 };
 }  // namespace mcl_3dl
 
