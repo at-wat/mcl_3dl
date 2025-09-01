@@ -33,8 +33,6 @@
 #include <string>
 #include <vector>
 
-#include <ros/ros.h>
-
 #include <pcl/point_types.h>
 #include <pcl_ros/point_cloud.h>
 
@@ -51,77 +49,33 @@
 namespace mcl_3dl
 {
 LidarMeasurementModelBeam::LidarMeasurementModelBeam(
-    const float map_grid_x, const float map_grid_y, const float map_grid_z)
-  : map_grid_x_(map_grid_x)
-  , map_grid_y_(map_grid_y)
-  , map_grid_z_(map_grid_z)
+    const std::shared_ptr<LidarMeasurementModelBeamParameters>& params)
+  : params_(params)
 {
-  search_range_ = std::max({map_grid_x_, map_grid_y_, map_grid_z_}) * 4;
+  refreshParameters();
 }
 
-void LidarMeasurementModelBeam::loadConfig(
-    const ros::NodeHandle& nh,
-    const std::string& name)
+void LidarMeasurementModelBeam::refreshParameters()
 {
-  ros::NodeHandle pnh(nh, name);
+  search_range_ = std::max({params_->map_grid_x_, params_->map_grid_y_, params_->map_grid_z_}) * 4;
+  num_points_ = params_->num_points_default_;
+  clip_near_sq_ = params_->clip_near_ * params_->clip_near_;
+  clip_far_sq_ = params_->clip_far_ * params_->clip_far_;
 
-  int num_points, num_points_global;
-  pnh.param("num_points", num_points, 3);
-  pnh.param("num_points_global", num_points_global, 0);
-  num_points_default_ = num_points_ = num_points;
-  num_points_global_ = num_points_global;
+  hit_range_sq_ = std::pow(params_->hit_range_, 2);
+  beam_likelihood_ = std::pow(params_->beam_likelihood_min_, 1.0 / static_cast<float>(num_points_));
+  sin_total_ref_ = sinf(params_->ang_total_ref_);
 
-  double clip_near, clip_far;
-  pnh.param("clip_near", clip_near, 0.5);
-  pnh.param("clip_far", clip_far, 4.0);
-  clip_near_sq_ = clip_near * clip_near;
-  clip_far_sq_ = clip_far * clip_far;
-
-  double clip_z_min, clip_z_max;
-  pnh.param("clip_z_min", clip_z_min, -2.0);
-  pnh.param("clip_z_max", clip_z_max, 2.0);
-  clip_z_min_ = clip_z_min;
-  clip_z_max_ = clip_z_max;
-
-  double beam_likelihood_min;
-  pnh.param("beam_likelihood", beam_likelihood_min, 0.2);
-  beam_likelihood_min_ = beam_likelihood_min;
-  beam_likelihood_ = std::pow(beam_likelihood_min, 1.0 / static_cast<float>(num_points));
-
-  double ang_total_ref;
-  pnh.param("ang_total_ref", ang_total_ref, M_PI / 6.0);
-  sin_total_ref_ = sinf(ang_total_ref);
-
-  int filter_label_max;
-  pnh.param("filter_label_max", filter_label_max, static_cast<int>(0xFFFFFFFF));
-  filter_label_max_ = filter_label_max;
-
-  pnh.param("add_penalty_short_only_mode", add_penalty_short_only_mode_, true);
-  double hit_range;
-  pnh.param("hit_range", hit_range, 0.3);
-  hit_range_sq_ = std::pow(hit_range, 2);
-  bool use_raycast_using_dda;
-  pnh.param("use_raycast_using_dda", use_raycast_using_dda, false);
-  if (use_raycast_using_dda)
+  if (params_->use_raycast_using_dda_)
   {
-    double ray_angle_half;
-    pnh.param("ray_angle_half", ray_angle_half, 0.25 * M_PI / 180.0);
-    double dda_grid_size;
-    pnh.param("dda_grid_size", dda_grid_size, 0.2);
-    const double grid_size_max = std::max({map_grid_x_, map_grid_y_, map_grid_z_});
-    if (dda_grid_size < grid_size_max)
-    {
-      ROS_WARN("dda_grid_size must be larger than grid size. New value: %f", grid_size_max);
-      dda_grid_size = grid_size_max;
-    }
-
     raycaster_ = std::make_shared<RaycastUsingDDA<PointType>>(
-        map_grid_x_, map_grid_y_, map_grid_z_, dda_grid_size, ray_angle_half, hit_range);
+        params_->map_grid_x_, params_->map_grid_y_, params_->map_grid_z_,
+        params_->dda_grid_size_, params_->ray_angle_half_, params_->hit_range_);
   }
   else
   {
     raycaster_ = std::make_shared<RaycastUsingKDTree<PointType>>(
-        map_grid_x_, map_grid_y_, map_grid_z_, hit_range);
+        params_->map_grid_x_, params_->map_grid_y_, params_->map_grid_z_, params_->hit_range_);
   }
 }
 
@@ -131,12 +85,12 @@ void LidarMeasurementModelBeam::setGlobalLocalizationStatus(
 {
   if (current_num_particles <= num_particles)
   {
-    num_points_ = num_points_default_;
+    num_points_ = params_->num_points_default_;
     return;
   }
-  size_t num = num_points_default_ * num_particles / current_num_particles;
-  if (num < num_points_global_)
-    num = num_points_global_;
+  size_t num = params_->num_points_default_ * num_particles / current_num_particles;
+  if (num < params_->num_points_global_)
+    num = params_->num_points_global_;
 
   num_points_ = num;
 }
@@ -152,7 +106,7 @@ LidarMeasurementModelBeam::filter(
       return true;
     if (p.x * p.x + p.y * p.y < clip_near_sq_)
       return true;
-    if (p.z < clip_z_min_ || clip_z_max_ < p.z)
+    if (p.z < params_->clip_z_min_ || params_->clip_z_max_ < p.z)
       return true;
     return false;
   };
@@ -189,13 +143,13 @@ LidarMeasurementResult LidarMeasurementModelBeam::measure(
     typename mcl_3dl::Raycast<PointType>::CastResult point;
     const BeamStatus status =
         getBeamStatus(kdtree, s.pos_ + s.rot_ * origins[beam_header_id], Vec3(p.x, p.y, p.z), point);
-    if ((status == BeamStatus::SHORT) || (!add_penalty_short_only_mode_ && (status == BeamStatus::LONG)))
+    if ((status == BeamStatus::SHORT) || (!params_->add_penalty_short_only_mode_ && (status == BeamStatus::LONG)))
     {
       score_beam *= beam_likelihood_;
     }
   }
-  if (score_beam < beam_likelihood_min_)
-    score_beam = beam_likelihood_min_;
+  if (score_beam < params_->beam_likelihood_min_)
+    score_beam = params_->beam_likelihood_min_;
 
   return LidarMeasurementResult(score_beam, 1.0);
 }
@@ -211,7 +165,7 @@ LidarMeasurementModelBeam::BeamStatus LidarMeasurementModelBeam::getBeamStatus(
   {
     if (!result.collision_)
       continue;
-    if (result.point_->label > filter_label_max_)
+    if (result.point_->label > params_->filter_label_max_)
       continue;
     // reject total reflection
     if (result.sin_angle_ > sin_total_ref_)

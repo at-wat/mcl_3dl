@@ -35,8 +35,6 @@
 #include <utility>
 #include <vector>
 
-#include <ros/ros.h>
-
 #include <pcl/point_types.h>
 #include <pcl_ros/point_cloud.h>
 
@@ -70,9 +68,7 @@ public:
   {
   }
 
-  virtual void loadConfig(
-      const ros::NodeHandle& nh,
-      const std::string& name) = 0;
+  virtual void refreshParameters() = 0;
   virtual void setGlobalLocalizationStatus(
       const size_t, const size_t) = 0;
   virtual float getMaxSearchRange() const = 0;

@@ -29,6 +29,7 @@
 
 #include <cmath>
 #include <cstddef>
+#include <memory>
 #include <vector>
 
 #include <gtest/gtest.h>
@@ -37,6 +38,7 @@
 
 #include <mcl_3dl/chunked_kdtree.h>
 #include <mcl_3dl/lidar_measurement_models/lidar_measurement_model_beam.h>
+#include <mcl_3dl/parameters.h>
 #include <mcl_3dl/point_cloud_random_sampler.h>
 #include <mcl_3dl/vec3.h>
 
@@ -121,18 +123,20 @@ TEST(BeamModel, LikelihoodFunc)
     {
       for (double hr = 0.0; hr <= 1.0; hr += 0.2)
       {
-        ros::NodeHandle pnh("~");
-        pnh.setParam("beam/num_points", static_cast<int>(raw_pc.size()));
-        pnh.setParam("beam/beam_likelihood", 0.2);
-        pnh.setParam("beam/hit_range", hr);
-        pnh.setParam("beam/use_raycast_using_dda", method == 1);
-        pnh.setParam("beam/add_penalty_short_only_mode", mode == 1);
-        pnh.setParam("beam/dda_grid_size", 0.1);
-        pnh.setParam("beam/clip_z_min", -0.3);
-        pnh.setParam("beam/clip_z_max", 4.1);
+        auto params = std::make_shared<mcl_3dl::LidarMeasurementModelBeamParameters>();
+        params->map_grid_x_ = 0.1;
+        params->map_grid_y_ = 0.1;
+        params->map_grid_z_ = 0.1;
+        params->num_points_default_ = static_cast<int>(raw_pc.size());
+        params->beam_likelihood_min_ = 0.2;
+        params->hit_range_ = hr;
+        params->use_raycast_using_dda_ = method == 1;
+        params->add_penalty_short_only_mode_ = mode == 1;
+        params->dda_grid_size_ = 0.1;
+        params->clip_z_min_ = -0.3;
+        params->clip_z_max_ = 4.1;
 
-        mcl_3dl::LidarMeasurementModelBeam model(0.1, 0.1, 0.1);
-        model.loadConfig(pnh, "beam");
+        mcl_3dl::LidarMeasurementModelBeam model(params);
         const auto pc = model.filter(raw_pc.makeShared(), sampler);
         ASSERT_EQ(pc->points.size(), raw_pc.points.size() - 2);
         for (const auto& p : pc->points)
