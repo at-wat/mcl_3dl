@@ -68,8 +68,8 @@ public:
       const std::shared_ptr<PointCloudSamplerWithNormalParameters>& params,
       const unsigned int random_seed = std::random_device()())
     : engine_(std::make_shared<std::default_random_engine>(random_seed))
-    , params_(params)
   {
+    params_ = params ? params : std::make_shared<PointCloudSamplerWithNormalParameters>();
   }
 
   void setParticleStatistics(const State6DOF& mean, const std::vector<State6DOF>& covariances) final

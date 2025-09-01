@@ -50,8 +50,8 @@ namespace mcl_3dl
 {
 LidarMeasurementModelBeam::LidarMeasurementModelBeam(
     const std::shared_ptr<LidarMeasurementModelBeamParameters>& params)
-  : params_(params)
 {
+  params_ = params ? params : std::make_shared<LidarMeasurementModelBeamParameters>();
   refreshParameters();
 }
 

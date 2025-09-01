@@ -48,8 +48,8 @@ namespace mcl_3dl
 
 LidarMeasurementModelLikelihood::LidarMeasurementModelLikelihood(
     const std::shared_ptr<LidarMeasurementModelLikelihoodParameters>& params)
-  : params_(params)
 {
+  params_ = params ? params : std::make_shared<LidarMeasurementModelLikelihoodParameters>();
   refreshParameters();
 }
 
