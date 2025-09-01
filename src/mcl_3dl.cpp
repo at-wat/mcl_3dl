@@ -1191,6 +1191,87 @@ protected:
     return true;
   }
 
+  void configureFilter()
+  {
+    point_rep_->setRescaleValues(params_.dist_weight_.data());
+
+    pf_.reset(new pf::ParticleFilter<State6DOF,
+                                     float,
+                                     ParticleWeightedMeanQuat,
+                                     std::default_random_engine>(params_.num_particles_));
+    pf_->init(params_.initial_pose_, params_.initial_pose_std_);
+
+    f_pos_.reset(new FilterVec3(
+        Filter::FILTER_LPF,
+        Vec3(params_.lpf_step_, params_.lpf_step_, params_.lpf_step_),
+        Vec3()));
+    f_ang_.reset(new FilterVec3(
+        Filter::FILTER_LPF,
+        Vec3(params_.lpf_step_, params_.lpf_step_, params_.lpf_step_),
+        Vec3(), true));
+    f_acc_.reset(new FilterVec3(
+        Filter::FILTER_LPF,
+        Vec3(params_.acc_lpf_step_, params_.acc_lpf_step_, params_.acc_lpf_step_),
+        Vec3()));
+
+    if (params_.accum_cloud_ == 0)
+      accum_.reset(new CloudAccumulationLogicPassThrough());
+    else
+      accum_.reset(
+          new CloudAccumulationLogic(params_.accum_cloud_, params_.total_accum_cloud_max_));
+
+    imu_quat_ = Quat(0.0, 0.0, 0.0, 1.0);
+
+    has_odom_ = has_map_ = has_imu_ = false;
+    localize_rate_.reset(new Filter(Filter::FILTER_LPF, 5.0, 0.0));
+
+    if (!lidar_measurements_["likelihood"])
+    {
+      lidar_measurements_["likelihood"] = LidarMeasurementModelBase::Ptr(
+          new LidarMeasurementModelLikelihood(params_.lidar_measurement_likelihood_params_));
+    }
+
+    if (!lidar_measurements_["beam"])
+    {
+      lidar_measurements_["beam"] = LidarMeasurementModelBase::Ptr(
+          new LidarMeasurementModelBeam(params_.lidar_measurement_beam_params_));
+    }
+
+    for (auto& lm : lidar_measurements_)
+    {
+      lm.second->refreshParameters();
+    }
+
+    imu_measurement_model_ = ImuMeasurementModelBase::Ptr(new ImuMeasurementModelGravity(params_.acc_var_));
+    motion_prediction_model_ = MotionPredictionModelBase::Ptr(
+        new MotionPredictionModelDifferentialDrive(params_.odom_err_integ_lin_tc_,
+                                                   params_.odom_err_integ_ang_tc_));
+
+    if (!sampler_)
+    {
+      if (params_.use_random_sampler_with_normal_)
+      {
+        sampler_ = std::make_unique<PointCloudSamplerWithNormal<PointType>>(params_.random_sampler_with_normal_params_);
+      }
+      else
+      {
+        sampler_ = std::make_unique<PointCloudUniformSampler<PointType>>();
+      }
+    }
+    sampler_->refreshParameters();
+
+    float max_search_radius = 0;
+    for (auto& lm : lidar_measurements_)
+    {
+      max_search_radius = std::max(max_search_radius, lm.second->getMaxSearchRange());
+    }
+
+    ROS_DEBUG("max_search_radius: %0.3f", max_search_radius);
+    kdtree_.reset(new ChunkedKdtree<PointType>(params_.map_chunk_, max_search_radius));
+    kdtree_->setEpsilon(params_.map_grid_min_ / 16);
+    kdtree_->setPointRepresentation(point_rep_);
+  }
+
 public:
   MCL3dlNode()
     : pnh_("~")
@@ -1267,71 +1348,7 @@ public:
         pnh_, "expansion_resetting", &MCL3dlNode::cbExpansionReset, this);
     srv_load_pcd_ = nh_.advertiseService("load_pcd", &MCL3dlNode::cbLoadPCD, this);
 
-    point_rep_->setRescaleValues(params_.dist_weight_.data());
-
-    pf_.reset(new pf::ParticleFilter<State6DOF,
-                                     float,
-                                     ParticleWeightedMeanQuat,
-                                     std::default_random_engine>(params_.num_particles_));
-    pf_->init(params_.initial_pose_, params_.initial_pose_std_);
-
-    f_pos_.reset(new FilterVec3(
-        Filter::FILTER_LPF,
-        Vec3(params_.lpf_step_, params_.lpf_step_, params_.lpf_step_),
-        Vec3()));
-    f_ang_.reset(new FilterVec3(
-        Filter::FILTER_LPF,
-        Vec3(params_.lpf_step_, params_.lpf_step_, params_.lpf_step_),
-        Vec3(), true));
-    f_acc_.reset(new FilterVec3(
-        Filter::FILTER_LPF,
-        Vec3(params_.acc_lpf_step_, params_.acc_lpf_step_, params_.acc_lpf_step_),
-        Vec3()));
-
-    if (params_.accum_cloud_ == 0)
-      accum_.reset(new CloudAccumulationLogicPassThrough());
-    else
-      accum_.reset(
-          new CloudAccumulationLogic(params_.accum_cloud_, params_.total_accum_cloud_max_));
-
-    imu_quat_ = Quat(0.0, 0.0, 0.0, 1.0);
-
-    has_odom_ = has_map_ = has_imu_ = false;
-    localize_rate_.reset(new Filter(Filter::FILTER_LPF, 5.0, 0.0));
-
-    lidar_measurements_["likelihood"] =
-        LidarMeasurementModelBase::Ptr(
-            new LidarMeasurementModelLikelihood());
-    lidar_measurements_["beam"] =
-        LidarMeasurementModelBase::Ptr(
-            new LidarMeasurementModelBeam(
-                params_.map_downsample_x_, params_.map_downsample_y_, params_.map_downsample_z_));
-    imu_measurement_model_ = ImuMeasurementModelBase::Ptr(new ImuMeasurementModelGravity(params_.acc_var_));
-    motion_prediction_model_ = MotionPredictionModelBase::Ptr(
-        new MotionPredictionModelDifferentialDrive(params_.odom_err_integ_lin_tc_,
-                                                   params_.odom_err_integ_ang_tc_));
-
-    if (params_.use_random_sampler_with_normal_)
-    {
-      sampler_ = std::make_unique<PointCloudSamplerWithNormal<PointType>>();
-    }
-    else
-    {
-      sampler_ = std::make_unique<PointCloudUniformSampler<PointType>>();
-    }
-    sampler_->loadConfig(pnh_);
-
-    float max_search_radius = 0;
-    for (auto& lm : lidar_measurements_)
-    {
-      lm.second->loadConfig(pnh_, lm.first);
-      max_search_radius = std::max(max_search_radius, lm.second->getMaxSearchRange());
-    }
-
-    ROS_DEBUG("max_search_radius: %0.3f", max_search_radius);
-    kdtree_.reset(new ChunkedKdtree<PointType>(params_.map_chunk_, max_search_radius));
-    kdtree_->setEpsilon(params_.map_grid_min_ / 16);
-    kdtree_->setPointRepresentation(point_rep_);
+    configureFilter();
 
     map_update_timer_ = nh_.createTimer(
         *params_.map_update_interval_,
