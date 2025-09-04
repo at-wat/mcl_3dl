@@ -1191,8 +1191,82 @@ protected:
     return true;
   }
 
-  void configureFilter()
+public:
+  MCL3dlNode()
+    : pnh_("~")
+    , tfl_(tfbuf_, true, ros::TransportHints().tcpNoDelay(true))
+    , cnt_measure_(0)
+    , global_localization_fix_cnt_(0)
+    , point_rep_(new MyPointRepresentation)
+    , engine_(seed_gen_())
   {
+  }
+  bool configure()
+  {
+    mcl_3dl_compat::checkCompatMode();
+
+    if (!params_.load(pnh_))
+    {
+      ROS_ERROR("Failed to load parameters");
+      return false;
+    }
+
+    if (!params_.fake_odom_)
+    {
+      int odom_queue_size;
+      pnh_.param("odom_queue_size", odom_queue_size, 200);
+      sub_odom_ = mcl_3dl_compat::subscribe(
+          nh_, "odom",
+          pnh_, "odom", odom_queue_size, &MCL3dlNode::cbOdom, this,
+          ros::TransportHints().tcpNoDelay(true));
+    }
+    if (!params_.fake_imu_)
+    {
+      int imu_queue_size;
+      pnh_.param("imu_queue_size", imu_queue_size, 200);
+      sub_imu_ = mcl_3dl_compat::subscribe(
+          nh_, "imu/data",
+          pnh_, "imu", imu_queue_size, &MCL3dlNode::cbImu, this,
+          ros::TransportHints().tcpNoDelay(true));
+    }
+
+    int cloud_queue_size;
+    pnh_.param("cloud_queue_size", cloud_queue_size, 100);
+    sub_cloud_ = mcl_3dl_compat::subscribe(
+        nh_, "cloud",
+        pnh_, "cloud", cloud_queue_size, &MCL3dlNode::cbCloud, this);
+    sub_mapcloud_ = mcl_3dl_compat::subscribe(
+        nh_, "mapcloud",
+        pnh_, "mapcloud", 1, &MCL3dlNode::cbMapcloud, this);
+    sub_mapcloud_update_ = mcl_3dl_compat::subscribe(
+        nh_, "mapcloud_update",
+        pnh_, "mapcloud_update", 1, &MCL3dlNode::cbMapcloudUpdate, this);
+    sub_position_ = mcl_3dl_compat::subscribe(
+        nh_, "initialpose",
+        pnh_, "initialpose", 1, &MCL3dlNode::cbPosition, this);
+    sub_landmark_ = mcl_3dl_compat::subscribe(
+        nh_, "mcl_measurement",
+        pnh_, "landmark", 1, &MCL3dlNode::cbLandmark, this);
+
+    pub_pose_ = nh_.advertise<geometry_msgs::PoseWithCovarianceStamped>("amcl_pose", 5, false);
+    pub_particle_ = pnh_.advertise<geometry_msgs::PoseArray>("particles", 1, true);
+    pub_mapcloud_ = pnh_.advertise<sensor_msgs::PointCloud2>("updated_map", 1, true);
+    pub_debug_marker_ = pnh_.advertise<visualization_msgs::MarkerArray>("debug_marker", 1, true);
+    pub_status_ = pnh_.advertise<mcl_3dl_msgs::Status>("status", 1, true);
+    pub_matched_ = pnh_.advertise<sensor_msgs::PointCloud2>("matched", 2, true);
+    pub_unmatched_ = pnh_.advertise<sensor_msgs::PointCloud2>("unmatched", 2, true);
+
+    srv_particle_size_ = mcl_3dl_compat::advertiseService(
+        nh_, "resize_mcl_particle",
+        pnh_, "resize_particle", &MCL3dlNode::cbResizeParticle, this);
+    srv_global_localization_ = mcl_3dl_compat::advertiseService(
+        nh_, "global_localization",
+        pnh_, "global_localization", &MCL3dlNode::cbGlobalLocalization, this);
+    srv_expansion_reset_ = mcl_3dl_compat::advertiseService(
+        nh_, "expansion_resetting",
+        pnh_, "expansion_resetting", &MCL3dlNode::cbExpansionReset, this);
+    srv_load_pcd_ = nh_.advertiseService("load_pcd", &MCL3dlNode::cbLoadPCD, this);
+
     point_rep_->setRescaleValues(params_.dist_weight_.data());
 
     pf_.reset(new pf::ParticleFilter<State6DOF,
@@ -1270,85 +1344,6 @@ protected:
     kdtree_.reset(new ChunkedKdtree<PointType>(params_.map_chunk_, max_search_radius));
     kdtree_->setEpsilon(params_.map_grid_min_ / 16);
     kdtree_->setPointRepresentation(point_rep_);
-  }
-
-public:
-  MCL3dlNode()
-    : pnh_("~")
-    , tfl_(tfbuf_, true, ros::TransportHints().tcpNoDelay(true))
-    , cnt_measure_(0)
-    , global_localization_fix_cnt_(0)
-    , point_rep_(new MyPointRepresentation)
-    , engine_(seed_gen_())
-  {
-  }
-  bool configure()
-  {
-    mcl_3dl_compat::checkCompatMode();
-
-    if (!params_.load(pnh_))
-    {
-      ROS_ERROR("Failed to load parameters");
-      return false;
-    }
-
-    if (!params_.fake_odom_)
-    {
-      int odom_queue_size;
-      pnh_.param("odom_queue_size", odom_queue_size, 200);
-      sub_odom_ = mcl_3dl_compat::subscribe(
-          nh_, "odom",
-          pnh_, "odom", odom_queue_size, &MCL3dlNode::cbOdom, this,
-          ros::TransportHints().tcpNoDelay(true));
-    }
-    if (!params_.fake_imu_)
-    {
-      int imu_queue_size;
-      pnh_.param("imu_queue_size", imu_queue_size, 200);
-      sub_imu_ = mcl_3dl_compat::subscribe(
-          nh_, "imu/data",
-          pnh_, "imu", imu_queue_size, &MCL3dlNode::cbImu, this,
-          ros::TransportHints().tcpNoDelay(true));
-    }
-
-    int cloud_queue_size;
-    pnh_.param("cloud_queue_size", cloud_queue_size, 100);
-    sub_cloud_ = mcl_3dl_compat::subscribe(
-        nh_, "cloud",
-        pnh_, "cloud", cloud_queue_size, &MCL3dlNode::cbCloud, this);
-    sub_mapcloud_ = mcl_3dl_compat::subscribe(
-        nh_, "mapcloud",
-        pnh_, "mapcloud", 1, &MCL3dlNode::cbMapcloud, this);
-    sub_mapcloud_update_ = mcl_3dl_compat::subscribe(
-        nh_, "mapcloud_update",
-        pnh_, "mapcloud_update", 1, &MCL3dlNode::cbMapcloudUpdate, this);
-    sub_position_ = mcl_3dl_compat::subscribe(
-        nh_, "initialpose",
-        pnh_, "initialpose", 1, &MCL3dlNode::cbPosition, this);
-    sub_landmark_ = mcl_3dl_compat::subscribe(
-        nh_, "mcl_measurement",
-        pnh_, "landmark", 1, &MCL3dlNode::cbLandmark, this);
-
-    pub_pose_ = nh_.advertise<geometry_msgs::PoseWithCovarianceStamped>("amcl_pose", 5, false);
-    pub_particle_ = pnh_.advertise<geometry_msgs::PoseArray>("particles", 1, true);
-    pub_mapcloud_ = pnh_.advertise<sensor_msgs::PointCloud2>("updated_map", 1, true);
-    pub_debug_marker_ = pnh_.advertise<visualization_msgs::MarkerArray>("debug_marker", 1, true);
-    pub_status_ = pnh_.advertise<mcl_3dl_msgs::Status>("status", 1, true);
-    pub_matched_ = pnh_.advertise<sensor_msgs::PointCloud2>("matched", 2, true);
-    pub_unmatched_ = pnh_.advertise<sensor_msgs::PointCloud2>("unmatched", 2, true);
-
-    srv_particle_size_ = mcl_3dl_compat::advertiseService(
-        nh_, "resize_mcl_particle",
-        pnh_, "resize_particle", &MCL3dlNode::cbResizeParticle, this);
-    srv_global_localization_ = mcl_3dl_compat::advertiseService(
-        nh_, "global_localization",
-        pnh_, "global_localization", &MCL3dlNode::cbGlobalLocalization, this);
-    srv_expansion_reset_ = mcl_3dl_compat::advertiseService(
-        nh_, "expansion_resetting",
-        pnh_, "expansion_resetting", &MCL3dlNode::cbExpansionReset, this);
-    srv_load_pcd_ = nh_.advertiseService("load_pcd", &MCL3dlNode::cbLoadPCD, this);
-
-    configureFilter();
 
     map_update_timer_ = nh_.createTimer(
         *params_.map_update_interval_,
