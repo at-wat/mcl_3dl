@@ -28,6 +28,7 @@
  */
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 #include <memory>
 #include <string>
@@ -40,6 +41,13 @@
 
 namespace mcl_3dl
 {
+Parameters::Parameters()
+  : random_sampler_with_normal_params_(std::make_shared<PointCloudSamplerWithNormalParameters>())
+  , lidar_measurement_likelihood_params_(std::make_shared<LidarMeasurementModelLikelihoodParameters>())
+  , lidar_measurement_beam_params_(std::make_shared<LidarMeasurementModelBeamParameters>())
+{
+}
+
 bool Parameters::load(ros::NodeHandle& pnh)
 {
   pnh.param("fake_imu", fake_imu_, false);
@@ -194,6 +202,112 @@ bool Parameters::load(ros::NodeHandle& pnh)
 
   pnh.param("use_random_sampler_with_normal", use_random_sampler_with_normal_, false);
 
+  if (use_random_sampler_with_normal_)
+  {
+    ros::NodeHandle rs_pnh(pnh, "random_sampler_with_normal");
+    rs_pnh.param("perform_weighting_ratio", random_sampler_with_normal_params_->perform_weighting_ratio_, 2.0);
+    rs_pnh.param("max_weight_ratio", random_sampler_with_normal_params_->max_weight_ratio_, 5.0);
+    rs_pnh.param("max_weight", random_sampler_with_normal_params_->max_weight_, 5.0);
+    rs_pnh.param("normal_search_range", random_sampler_with_normal_params_->normal_search_range_, 0.4);
+  }
+
+  {
+    ros::NodeHandle lml_pnh(pnh, "likelihood");
+
+    int num_points, num_points_global;
+    lml_pnh.param("num_points", num_points, 96);
+    lml_pnh.param("num_points_global", num_points_global, 8);
+    lidar_measurement_likelihood_params_->num_points_default_ = num_points;
+    lidar_measurement_likelihood_params_->num_points_global_ = num_points_global;
+
+    double clip_near, clip_far;
+    lml_pnh.param("clip_near", clip_near, 0.5);
+    lml_pnh.param("clip_far", clip_far, 10.0);
+    lidar_measurement_likelihood_params_->clip_near_ = clip_near;
+    lidar_measurement_likelihood_params_->clip_far_ = clip_far;
+
+    double clip_z_min, clip_z_max;
+    lml_pnh.param("clip_z_min", clip_z_min, -2.0);
+    lml_pnh.param("clip_z_max", clip_z_max, 2.0);
+    lidar_measurement_likelihood_params_->clip_z_min_ = clip_z_min;
+    lidar_measurement_likelihood_params_->clip_z_max_ = clip_z_max;
+
+    double match_weight;
+    lml_pnh.param("match_weight", match_weight, 5.0);
+    lidar_measurement_likelihood_params_->match_weight_ = match_weight;
+
+    double match_dist_min, match_dist_flat;
+    lml_pnh.param("match_dist_min", match_dist_min, 0.2);
+    lml_pnh.param("match_dist_flat", match_dist_flat, 0.05);
+    lidar_measurement_likelihood_params_->match_dist_min_ = match_dist_min;
+    lidar_measurement_likelihood_params_->match_dist_flat_ = match_dist_flat;
+  }
+
+  {
+    ros::NodeHandle lmb_pnh(pnh, "beam");
+
+    lidar_measurement_beam_params_->map_grid_x_ = map_downsample_x_;
+    lidar_measurement_beam_params_->map_grid_y_ = map_downsample_y_;
+    lidar_measurement_beam_params_->map_grid_z_ = map_downsample_z_;
+
+    int num_points, num_points_global;
+    lmb_pnh.param("num_points", num_points, 3);
+    lmb_pnh.param("num_points_global", num_points_global, 0);
+    lidar_measurement_beam_params_->num_points_default_ = num_points;
+    lidar_measurement_beam_params_->num_points_global_ = num_points_global;
+
+    double clip_near, clip_far;
+    lmb_pnh.param("clip_near", clip_near, 0.5);
+    lmb_pnh.param("clip_far", clip_far, 4.0);
+    lidar_measurement_beam_params_->clip_near_ = clip_near;
+    lidar_measurement_beam_params_->clip_far_ = clip_far;
+
+    double clip_z_min, clip_z_max;
+    lmb_pnh.param("clip_z_min", clip_z_min, -2.0);
+    lmb_pnh.param("clip_z_max", clip_z_max, 2.0);
+    lidar_measurement_beam_params_->clip_z_min_ = clip_z_min;
+    lidar_measurement_beam_params_->clip_z_max_ = clip_z_max;
+
+    double beam_likelihood;
+    lmb_pnh.param("beam_likelihood", beam_likelihood, 0.2);
+    lidar_measurement_beam_params_->beam_likelihood_min_ = beam_likelihood;
+
+    double ang_total_ref;
+    lmb_pnh.param("ang_total_ref", ang_total_ref, M_PI / 6.0);
+    lidar_measurement_beam_params_->ang_total_ref_ = ang_total_ref;
+
+    int filter_label_max;
+    lmb_pnh.param("filter_label_max", filter_label_max, static_cast<int>(0xFFFFFFFF));
+    lidar_measurement_beam_params_->filter_label_max_ = filter_label_max;
+
+    lmb_pnh.param("add_penalty_short_only_mode", lidar_measurement_beam_params_->add_penalty_short_only_mode_, true);
+    double hit_range;
+    lmb_pnh.param("hit_range", hit_range, 0.3);
+    lidar_measurement_beam_params_->hit_range_ = hit_range;
+
+    lmb_pnh.param("use_raycast_using_dda", lidar_measurement_beam_params_->use_raycast_using_dda_, false);
+    if (lidar_measurement_beam_params_->use_raycast_using_dda_)
+    {
+      double ray_angle_half;
+      lmb_pnh.param("ray_angle_half", ray_angle_half, 0.25 * M_PI / 180.0);
+      lidar_measurement_beam_params_->ray_angle_half_ = ray_angle_half;
+
+      double dda_grid_size;
+      lmb_pnh.param("dda_grid_size", dda_grid_size, 0.2);
+      const double grid_size_max = std::max(
+          {
+              lidar_measurement_beam_params_->map_grid_x_,
+              lidar_measurement_beam_params_->map_grid_y_,
+              lidar_measurement_beam_params_->map_grid_z_,
+          });  // NOLINT(whitespace/braces)
+      if (dda_grid_size < grid_size_max)
+      {
+        ROS_WARN("dda_grid_size must be larger than grid size. New value: %f", grid_size_max);
+        dda_grid_size = grid_size_max;
+      }
+      lidar_measurement_beam_params_->dda_grid_size_ = dda_grid_size;
+    }
+  }
   return true;
 }
 }  // namespace mcl_3dl

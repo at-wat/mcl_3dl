@@ -29,10 +29,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <memory>
 #include <string>
 #include <vector>
-
-#include <ros/ros.h>
 
 #include <pcl/point_types.h>
 #include <pcl_ros/point_cloud.h>
@@ -46,52 +45,33 @@
 
 namespace mcl_3dl
 {
-void LidarMeasurementModelLikelihood::loadConfig(
-    const ros::NodeHandle& nh,
-    const std::string& name)
+
+LidarMeasurementModelLikelihood::LidarMeasurementModelLikelihood(
+    const std::shared_ptr<LidarMeasurementModelLikelihoodParameters>& params)
 {
-  ros::NodeHandle pnh(nh, name);
-
-  int num_points, num_points_global;
-  pnh.param("num_points", num_points, 96);
-  pnh.param("num_points_global", num_points_global, 8);
-  num_points_default_ = num_points_ = num_points;
-  num_points_global_ = num_points_global;
-
-  double clip_near, clip_far;
-  pnh.param("clip_near", clip_near, 0.5);
-  pnh.param("clip_far", clip_far, 10.0);
-  clip_near_sq_ = clip_near * clip_near;
-  clip_far_sq_ = clip_far * clip_far;
-
-  double clip_z_min, clip_z_max;
-  pnh.param("clip_z_min", clip_z_min, -2.0);
-  pnh.param("clip_z_max", clip_z_max, 2.0);
-  clip_z_min_ = clip_z_min;
-  clip_z_max_ = clip_z_max;
-
-  double match_weight;
-  pnh.param("match_weight", match_weight, 5.0);
-  match_weight_ = match_weight;
-
-  double match_dist_min, match_dist_flat;
-  pnh.param("match_dist_min", match_dist_min, 0.2);
-  pnh.param("match_dist_flat", match_dist_flat, 0.05);
-  match_dist_min_ = match_dist_min;
-  match_dist_flat_ = match_dist_flat;
+  params_ = params ? params : std::make_shared<LidarMeasurementModelLikelihoodParameters>();
+  refreshParameters();
 }
+
+void LidarMeasurementModelLikelihood::refreshParameters()
+{
+  num_points_ = params_->num_points_default_;
+  clip_near_sq_ = params_->clip_near_ * params_->clip_near_;
+  clip_far_sq_ = params_->clip_far_ * params_->clip_far_;
+}
+
 void LidarMeasurementModelLikelihood::setGlobalLocalizationStatus(
     const size_t num_particles,
     const size_t current_num_particles)
 {
   if (current_num_particles <= num_particles)
   {
-    num_points_ = num_points_default_;
+    num_points_ = params_->num_points_default_;
     return;
   }
-  size_t num = num_points_default_ * num_particles / current_num_particles;
-  if (num < num_points_global_)
-    num = num_points_global_;
+  size_t num = params_->num_points_default_ * num_particles / current_num_particles;
+  if (num < params_->num_points_global_)
+    num = params_->num_points_global_;
 
   num_points_ = num;
 }
@@ -107,7 +87,7 @@ LidarMeasurementModelLikelihood::filter(
       return true;
     if (p.x * p.x + p.y * p.y < clip_near_sq_)
       return true;
-    if (p.z < clip_z_min_ || clip_z_max_ < p.z)
+    if (p.z < params_->clip_z_min_ || params_->clip_z_max_ < p.z)
       return true;
     return false;
   };
@@ -143,13 +123,13 @@ LidarMeasurementResult LidarMeasurementModelLikelihood::measure(
   size_t num = 0;
   for (auto& p : pc_particle->points)
   {
-    if (kdtree->radiusSearch(p, match_dist_min_, id, sqdist, 1))
+    if (kdtree->radiusSearch(p, params_->match_dist_min_, id, sqdist, 1))
     {
-      const float dist = match_dist_min_ - std::max(std::sqrt(sqdist[0]), match_dist_flat_);
+      const float dist = params_->match_dist_min_ - std::max(std::sqrt(sqdist[0]), params_->match_dist_flat_);
       if (dist < 0.0)
         continue;
 
-      score_like += dist * match_weight_;
+      score_like += dist * params_->match_weight_;
       num++;
     }
   }

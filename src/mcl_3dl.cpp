@@ -1299,32 +1299,27 @@ public:
     has_odom_ = has_map_ = has_imu_ = false;
     localize_rate_.reset(new Filter(Filter::FILTER_LPF, 5.0, 0.0));
 
-    lidar_measurements_["likelihood"] =
-        LidarMeasurementModelBase::Ptr(
-            new LidarMeasurementModelLikelihood());
-    lidar_measurements_["beam"] =
-        LidarMeasurementModelBase::Ptr(
-            new LidarMeasurementModelBeam(
-                params_.map_downsample_x_, params_.map_downsample_y_, params_.map_downsample_z_));
-    imu_measurement_model_ = ImuMeasurementModelBase::Ptr(new ImuMeasurementModelGravity(params_.acc_var_));
-    motion_prediction_model_ = MotionPredictionModelBase::Ptr(
-        new MotionPredictionModelDifferentialDrive(params_.odom_err_integ_lin_tc_,
-                                                   params_.odom_err_integ_ang_tc_));
-
     if (params_.use_random_sampler_with_normal_)
     {
-      sampler_ = std::make_unique<PointCloudSamplerWithNormal<PointType>>();
+      sampler_ = std::make_unique<PointCloudSamplerWithNormal<PointType>>(params_.random_sampler_with_normal_params_);
     }
     else
     {
       sampler_ = std::make_unique<PointCloudUniformSampler<PointType>>();
     }
-    sampler_->loadConfig(pnh_);
+    imu_measurement_model_ = ImuMeasurementModelBase::Ptr(new ImuMeasurementModelGravity(params_.acc_var_));
+    motion_prediction_model_ = MotionPredictionModelBase::Ptr(
+        new MotionPredictionModelDifferentialDrive(params_.odom_err_integ_lin_tc_,
+                                                   params_.odom_err_integ_ang_tc_));
+
+    lidar_measurements_["likelihood"] = LidarMeasurementModelBase::Ptr(
+        new LidarMeasurementModelLikelihood(params_.lidar_measurement_likelihood_params_));
+    lidar_measurements_["beam"] = LidarMeasurementModelBase::Ptr(
+        new LidarMeasurementModelBeam(params_.lidar_measurement_beam_params_));
 
     float max_search_radius = 0;
     for (auto& lm : lidar_measurements_)
     {
-      lm.second->loadConfig(pnh_, lm.first);
       max_search_radius = std::max(max_search_radius, lm.second->getMaxSearchRange());
     }
 

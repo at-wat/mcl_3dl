@@ -10,8 +10,8 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the copyright holder nor the names of its 
- *       contributors may be used to endorse or promote products derived from 
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -34,13 +34,12 @@
 #include <string>
 #include <vector>
 
-#include <ros/ros.h>
-
 #include <pcl/point_types.h>
 #include <pcl_ros/point_cloud.h>
 
 #include <mcl_3dl/chunked_kdtree.h>
 #include <mcl_3dl/lidar_measurement_model_base.h>
+#include <mcl_3dl/parameters.h>
 #include <mcl_3dl/pf.h>
 #include <mcl_3dl/point_cloud_random_sampler.h>
 #include <mcl_3dl/raycast.h>
@@ -52,24 +51,14 @@ class LidarMeasurementModelBeam : public LidarMeasurementModelBase
 {
 private:
   std::shared_ptr<Raycast<LidarMeasurementModelBase::PointType>> raycaster_;
+  std::shared_ptr<LidarMeasurementModelBeamParameters> params_;
   size_t num_points_;
-  size_t num_points_default_;
-  size_t num_points_global_;
   float clip_far_sq_;
   float clip_near_sq_;
-  float clip_z_min_;
-  float clip_z_max_;
-  float beam_likelihood_min_;
   float beam_likelihood_;
-  float sin_total_ref_;
-  float map_grid_x_;
-  float map_grid_y_;
-  float map_grid_z_;
   float search_range_;
-  uint32_t filter_label_max_;
-  float additional_search_range_;
+  float sin_total_ref_;
   float hit_range_sq_;
-  bool add_penalty_short_only_mode_;
 
 public:
   enum class BeamStatus
@@ -79,7 +68,8 @@ public:
     LONG,
     TOTAL_REFLECTION
   };
-  LidarMeasurementModelBeam(const float grid_size_x, const float grid_size_y, const float grid_size_z);
+  explicit LidarMeasurementModelBeam(
+      const std::shared_ptr<LidarMeasurementModelBeamParameters>& params);
 
   inline float getMaxSearchRange() const
   {
@@ -91,11 +81,9 @@ public:
   }
   inline uint32_t getFilterLabelMax() const
   {
-    return filter_label_max_;
+    return params_->filter_label_max_;
   }
-  void loadConfig(
-      const ros::NodeHandle& nh,
-      const std::string& name);
+  void refreshParameters() final;
   void setGlobalLocalizationStatus(
       const size_t num_particles,
       const size_t current_num_particles);
