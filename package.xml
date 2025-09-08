@@ -16,6 +16,7 @@
   <test_depend>rosunit</test_depend>
 
   <depend>diagnostic_updater</depend>
+  <depend>dynamic_reconfigure</depend>
   <depend>geometry_msgs</depend>
   <depend>nav_msgs</depend>
   <depend>pcl_ros</depend>
