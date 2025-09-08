@@ -27,7 +27,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <thread>
+#include <thread>  // NOLINT(build/c++11)
 
 #include <gtest/gtest.h>
 
