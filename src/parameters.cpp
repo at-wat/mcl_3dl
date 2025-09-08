@@ -319,6 +319,9 @@ bool Parameters::load(ros::NodeHandle& pnh)
 
 void Parameters::cbParameter(const MCL3DLParamsConfig& config, const uint32_t /* level */)
 {
+  std_warn_thresh_[0] = config.std_warn_thresh_xy;
+  std_warn_thresh_[1] = config.std_warn_thresh_z;
+  std_warn_thresh_[2] = config.std_warn_thresh_yaw;
 }
 
 }  // namespace mcl_3dl
