@@ -68,7 +68,6 @@ TEST(Parameters, DynamicParameters)
           {
             break;
           }
-          ros::spinOnce();
         }
         if (!dynamic_reconfigure_client.setConfiguration(config))
         {
