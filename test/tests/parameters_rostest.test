@@ -2,5 +2,5 @@
 <launch>
   <env name="GCOV_PREFIX" value="/tmp/gcov/parameters" />
 
-  <test test-name="test_parameters" pkg="mcl_3dl" type="test_parameters" />
+  <test test-name="test_parameters" pkg="mcl_3dl" type="test_parameters" time-limit="10"/>
 </launch>
