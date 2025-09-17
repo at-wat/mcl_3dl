@@ -51,24 +51,30 @@ TEST(Parameters, DynamicParameters)
   ASSERT_FLOAT_EQ(mcl_3dl_params.std_warn_thresh_[1], 0.2);
   ASSERT_FLOAT_EQ(mcl_3dl_params.std_warn_thresh_[2], 0.3);
 
+  const ros::Duration wait(0.1);
+  dynamic_reconfigure::Client<mcl_3dl::MCL3DLParamsConfig> dynamic_reconfigure_client("/mcl_3dl");
+  bool param_server_ready = false;
+  while (ros::ok())
+  {
+    // Wait until parameter server becomes ready
+    mcl_3dl::MCL3DLParamsConfig dummy;
+    if (dynamic_reconfigure_client.getCurrentConfiguration(dummy, ros::Duration(0.1)))
+    {
+      param_server_ready = true;
+      break;
+    }
+    ros::spinOnce();
+    wait.sleep();
+  }
+  ASSERT_TRUE(param_server_ready);
+
   std::thread t(
-      []()
+      [&dynamic_reconfigure_client]()
       {
-        dynamic_reconfigure::Client<mcl_3dl::MCL3DLParamsConfig> dynamic_reconfigure_client("/mcl_3dl");
         mcl_3dl::MCL3DLParamsConfig config;
         config.std_warn_thresh_xy = 0.5;
         config.std_warn_thresh_z = 0.6;
         config.std_warn_thresh_yaw = 0.7;
-
-        while (ros::ok())
-        {
-          // Wait until parameter server becomes ready
-          mcl_3dl::MCL3DLParamsConfig dummy;
-          if (dynamic_reconfigure_client.getCurrentConfiguration(dummy, ros::Duration(0.1)))
-          {
-            break;
-          }
-        }
         if (!dynamic_reconfigure_client.setConfiguration(config))
         {
           FAIL();
@@ -76,7 +82,6 @@ TEST(Parameters, DynamicParameters)
       });  // NOLINT(whitespace/braces)
 
   const ros::Time deadline = ros::Time::now() + ros::Duration(0.5);
-  const ros::Duration wait(0.1);
   while (ros::ok() && ros::Time::now() < deadline)
   {
     ros::spinOnce();
