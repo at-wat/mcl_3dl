@@ -2,8 +2,8 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.0 (2025-09-18)
+------------------
 * Minor changes (`#439 <https://github.com/at-wat/mcl_3dl/issues/439>`_)
 * Standard deviation warning thresholds as dynamic parameters (`#436 <https://github.com/at-wat/mcl_3dl/issues/436>`_)
 * Refactor parameters (`#435 <https://github.com/at-wat/mcl_3dl/issues/435>`_)
