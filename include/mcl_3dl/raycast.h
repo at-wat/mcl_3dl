@@ -58,7 +58,7 @@ public:
     {
     }
 
-    CastResult(const Vec3& pos, bool collision, float sin_angle, const POINT_TYPE* point)
+    CastResult(const Vec3& pos, const bool collision, const float sin_angle, const POINT_TYPE* point)
       : pos_(pos)
       , collision_(collision)
       , sin_angle_(sin_angle)
@@ -70,7 +70,7 @@ public:
   Raycast()
   {
   }
-  virtual void setRay(typename ChunkedKdtree<POINT_TYPE>::Ptr kdtree, const Vec3 ray_begin, const Vec3 ray_end) = 0;
+  virtual void setRay(typename ChunkedKdtree<POINT_TYPE>::Ptr kdtree, const Vec3& ray_begin, const Vec3& ray_end) = 0;
   virtual bool getNextCastResult(CastResult& result) = 0;
 };
 }  // namespace mcl_3dl

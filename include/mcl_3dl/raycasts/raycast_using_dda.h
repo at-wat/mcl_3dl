@@ -63,7 +63,7 @@ public:
   {
   }
 
-  void setRay(typename ChunkedKdtree<POINT_TYPE>::Ptr kdtree, const Vec3 ray_begin, const Vec3 ray_end_org) final
+  void setRay(typename ChunkedKdtree<POINT_TYPE>::Ptr kdtree, const Vec3& ray_begin, const Vec3& ray_end_org) final
   {
     kdtree_ = kdtree;
     updatePointCloud();

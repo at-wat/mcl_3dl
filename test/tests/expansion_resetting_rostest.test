@@ -3,7 +3,6 @@
   <env name="GCOV_PREFIX" value="/tmp/gcov/expansion_resetting" />
 
   <test test-name="test_expansion_resetting" pkg="mcl_3dl" type="test_expansion_resetting" time-limit="90" />
-  <!--node name="test_expansion_resetting" pkg="mcl_3dl" type="test_expansion_resetting" /-->
 
   <node pkg="mcl_3dl" type="mcl_3dl" name="mcl_3dl" output="screen">
     <param name="compatible" value="1" />

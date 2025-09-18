@@ -64,7 +64,7 @@ public:
   using Matrix = Eigen::Matrix<FLT_TYPE, DIMENSION, DIMENSION>;
   using Vector = Eigen::Matrix<FLT_TYPE, DIMENSION, 1>;
 
-  explicit NormalLikelihoodNd(const Matrix sigma)
+  explicit NormalLikelihoodNd(const Matrix& sigma)
   {
     a_ = 1.0 / (std::pow(2.0 * M_PI, 0.5 * DIMENSION) * std::sqrt(sigma.determinant()));
     sigma_inv_ = sigma.inverse();

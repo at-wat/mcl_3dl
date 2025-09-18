@@ -63,7 +63,7 @@ public:
   }
   template <typename T>
   FLT_TYPE covElement(
-      const T& e, const size_t& j, const size_t& k)
+      const T& e, const size_t j, const size_t k)
   {
     T exp = e;
     return ((*this)[k] - exp[k]) * ((*this)[j] - exp[j]);
@@ -123,7 +123,7 @@ public:
   {
   }
 
-  void add(const T& s, const FLT_TYPE& prob)
+  void add(const T& s, const FLT_TYPE prob)
   {
     p_sum_ += prob;
 

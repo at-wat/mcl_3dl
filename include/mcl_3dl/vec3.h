@@ -126,12 +126,12 @@ public:
     *this = *this - q;
     return *this;
   }
-  inline Vec3& operator*=(const float& s)
+  inline Vec3& operator*=(const float s)
   {
     *this = *this * s;
     return *this;
   }
-  inline Vec3& operator/=(const float& s)
+  inline Vec3& operator/=(const float s)
   {
     *this = *this / s;
     return *this;

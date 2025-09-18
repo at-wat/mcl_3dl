@@ -10,8 +10,8 @@
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the copyright holder nor the names of its 
- *       contributors may be used to endorse or promote products derived from 
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived from
  *       this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -78,16 +78,16 @@ public:
     x_ = (1 - k_[2]) * out0 / k_[3];
     out_ = out0;
   }
-  inline float in(float in)
+  inline float in(const float in)
   {
     assert(std::isfinite(in));
-
+    float tmp_in = in;
     if (angle_)
     {
-      in = out_ + remainder(in - out_, M_PI * 2.0);
+      tmp_in = out_ + remainder(in - out_, M_PI * 2.0);
     }
-    x_ = k_[0] * in + k_[1] * x_;
-    out_ = k_[2] * in + k_[3] * x_;
+    x_ = k_[0] * tmp_in + k_[1] * x_;
+    out_ = k_[2] * tmp_in + k_[3] * x_;
 
     assert(std::isfinite(out_));
     return out_;

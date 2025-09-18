@@ -159,7 +159,7 @@ public:
   {
     return 6;
   }
-  float covElement(const State6DOF& e, const size_t& j, const size_t& k)
+  float covElement(const State6DOF& e, const size_t j, const size_t k)
   {
     const mcl_3dl::Vec3 exp_rpy = e.isDiff() ? e.rpy_.v_ : e.rot_.getRPY();
     const mcl_3dl::Vec3 rpy = isDiff() ? rpy_.v_ : rot_.getRPY();
@@ -189,7 +189,7 @@ public:
     odom_err_integ_lin_ = mcl_3dl::Vec3(0.0, 0.0, 0.0);
     odom_err_integ_ang_ = mcl_3dl::Vec3(0.0, 0.0, 0.0);
   }
-  State6DOF(const mcl_3dl::Vec3 pos, const mcl_3dl::Quat rot)
+  State6DOF(const mcl_3dl::Vec3& pos, const mcl_3dl::Quat& rot)
   {
     pos_ = pos;
     rot_ = rot;
@@ -198,7 +198,7 @@ public:
     odom_err_integ_ang_ = mcl_3dl::Vec3(0.0, 0.0, 0.0);
     diff_ = false;
   }
-  State6DOF(const mcl_3dl::Vec3 pos, const mcl_3dl::Vec3 rpy)
+  State6DOF(const mcl_3dl::Vec3& pos, const mcl_3dl::Vec3& rpy)
   {
     pos_ = pos;
     rpy_ = RPYVec(rpy);
@@ -327,7 +327,7 @@ public:
   {
   }
 
-  void add(const State6DOF& s, const float& prob)
+  void add(const State6DOF& s, const float prob)
   {
     p_sum_ += prob;
 
