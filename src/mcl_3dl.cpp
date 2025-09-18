@@ -341,7 +341,7 @@ protected:
       return;
     }
     std::vector<Vec3> origins;
-    for (auto& h : pc_accum_header_)
+    for (const auto& h : pc_accum_header_)
     {
       try
       {
@@ -375,7 +375,7 @@ protected:
     }
 
     std::map<std::string, pcl::PointCloud<PointType>::Ptr> pc_locals;
-    for (auto& lm : lidar_measurements_)
+    for (const auto& lm : lidar_measurements_)
     {
       lm.second->setGlobalLocalizationStatus(
           params_.num_particles_, pf_->getParticleSize());
@@ -399,14 +399,14 @@ protected:
     float match_ratio_max = 0.0;
     NormalLikelihood<float> odom_error_lin_nd(params_.odom_err_integ_lin_sigma_);
     NormalLikelihood<float> odom_error_ang_nd(params_.odom_err_integ_ang_sigma_);
-    auto measure_func = [this, &pc_locals,
-                         &origins,
-                         &odom_error_lin_nd,
-                         &match_ratio_min, &match_ratio_max](const State6DOF& s) -> float
+    const auto measure_func = [this, &pc_locals,
+                               &origins,
+                               &odom_error_lin_nd,
+                               &match_ratio_min, &match_ratio_max](const State6DOF& s) -> float
     {
       float likelihood = 1;
       std::map<std::string, float> qualities;
-      for (auto& lm : lidar_measurements_)
+      for (const auto& lm : lidar_measurements_)
       {
         const LidarMeasurementResult result = lm.second->measure(
             kdtree_, pc_locals[lm.first], origins, s);
@@ -469,7 +469,7 @@ protected:
       *pc_particle_beam = *pc_locals["beam"];
       e.transform(*pc_particle_beam);
       const auto beam_model = std::dynamic_pointer_cast<LidarMeasurementModelBeam>(lidar_measurements_["beam"]);
-      for (auto& p : pc_particle_beam->points)
+      for (const auto& p : pc_particle_beam->points)
       {
         const int beam_header_id = p.label;
         const Vec3 pos = e.pos_ + e.rot_ * origins[beam_header_id];
@@ -597,7 +597,7 @@ protected:
       pcl::PointCloud<PointType>::Ptr pc_particle(new pcl::PointCloud<PointType>);
       *pc_particle = *pc_locals["likelihood"];
       e.transform(*pc_particle);
-      for (auto& p : pc_particle->points)
+      for (const auto& p : pc_particle->points)
       {
         visualization_msgs::Marker marker;
         marker.header.frame_id = params_.frame_ids_["map"];
@@ -650,7 +650,7 @@ protected:
         ROS_INFO("Pose jumped pos:%0.3f, ang:%0.3f", jump_dist, jump_ang);
         jump = true;
 
-        auto integ_reset_func = [](State6DOF& s)
+        const auto integ_reset_func = [](State6DOF& s)
         {
           s.odom_err_integ_lin_ = Vec3();
           s.odom_err_integ_ang_ = Vec3();
@@ -775,7 +775,7 @@ protected:
       std::vector<int> id(1);
       std::vector<float> sqdist(1);
       const double match_dist_sq = params_.match_output_dist_ * params_.match_output_dist_;
-      for (auto& p : pc_local->points)
+      for (const auto& p : pc_local->points)
       {
         if (!kdtree_->radiusSearch(p, params_.unmatch_output_dist_, id, sqdist, 1))
         {
@@ -815,7 +815,7 @@ protected:
              params_.resample_var_yaw_)));
 
     std::normal_distribution<float> noise(0.0, 1.0);
-    auto update_noise_func = [this, &noise](State6DOF& s)
+    const auto update_noise_func = [this, &noise](State6DOF& s)
     {
       s.noise_ll_ = noise(engine_) * params_.odom_err_lin_lin_;
       s.noise_la_ = noise(engine_) * params_.odom_err_lin_ang_;
@@ -910,7 +910,7 @@ protected:
              msg->pose.pose.orientation.y,
              msg->pose.pose.orientation.z,
              msg->pose.pose.orientation.w));
-    auto measure_func = [this, &measured, &nd](const State6DOF& s) -> float
+    const auto measure_func = [this, &measured, &nd](const State6DOF& s) -> float
     {
       State6DOF diff = s - measured;
       const Vec3 rot_rpy = diff.rot_.getRPY();
@@ -953,7 +953,7 @@ protected:
       return;
     }
 
-    float dt = (msg->header.stamp - imu_last_).toSec();
+    const float dt = (msg->header.stamp - imu_last_).toSec();
     if (dt < 0.0 || dt > 5.0)
     {
       ROS_WARN("Detected time jump in imu. Resetting.");
@@ -1059,7 +1059,7 @@ protected:
     kdtree->setPointRepresentation(point_rep_);
     kdtree->setInputCloud(points);
 
-    auto pc_filter = [this, kdtree](const PointType& p)
+    const auto pc_filter = [this, &kdtree](const PointType& p)
     {
       std::vector<int> id(1);
       std::vector<float> sqdist(1);
@@ -1318,7 +1318,7 @@ public:
         new LidarMeasurementModelBeam(params_.lidar_measurement_beam_params_));
 
     float max_search_radius = 0;
-    for (auto& lm : lidar_measurements_)
+    for (const auto& lm : lidar_measurements_)
     {
       max_search_radius = std::max(max_search_radius, lm.second->getMaxSearchRange());
     }
