@@ -2,6 +2,14 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Minor changes (`#439 <https://github.com/at-wat/mcl_3dl/issues/439>`_)
+* Standard deviation warning thresholds as dynamic parameters (`#436 <https://github.com/at-wat/mcl_3dl/issues/436>`_)
+* Refactor parameters (`#435 <https://github.com/at-wat/mcl_3dl/issues/435>`_)
+* Share sampler between lidar measurement methods (`#434 <https://github.com/at-wat/mcl_3dl/issues/434>`_)
+* Contributors: f-fl0
+
 0.6.5 (2025-07-04)
 ------------------
 * Subscribe latency sensitive topics by tcpNoDelay (`#430 <https://github.com/at-wat/mcl_3dl/issues/430>`_)
