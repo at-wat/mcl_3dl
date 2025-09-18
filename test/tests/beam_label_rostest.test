@@ -3,7 +3,6 @@
   <env name="GCOV_PREFIX" value="/tmp/gcov/beam_label" />
 
   <test test-name="test_beam_label" pkg="mcl_3dl" type="test_beam_label" />
-  <!--node name="test_beam_label" pkg="mcl_3dl" type="test_beam_label" /-->
 
   <node pkg="mcl_3dl" type="mcl_3dl" name="mcl_3dl" output="screen">
     <param name="compatible" value="1" />
