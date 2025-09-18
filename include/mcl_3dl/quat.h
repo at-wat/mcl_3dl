@@ -45,14 +45,14 @@ public:
   float z_;
   float w_;
 
-  inline constexpr Quat(const float& x, const float& y, const float& z, const float& w)
+  inline constexpr Quat(const float x, const float y, const float z, const float w)
     : x_(x)
     , y_(y)
     , z_(z)
     , w_(w)
   {
   }
-  inline Quat(const Vec3& axis, const float& ang)
+  inline Quat(const Vec3& axis, const float ang)
   {
     setAxisAng(axis, ang);
   }
@@ -141,15 +141,15 @@ public:
     const Quat ret = *this * Quat(v.x_, v.y_, v.z_, 0.0) * conj();
     return Vec3(ret.x_, ret.y_, ret.z_);
   }
-  inline constexpr Quat operator*(const float& s) const
+  inline constexpr Quat operator*(const float s) const
   {
     return Quat(x_ * s, y_ * s, z_ * s, w_ * s);
   }
-  inline constexpr Quat operator/(const float& s) const
+  inline constexpr Quat operator/(const float s) const
   {
     return operator*(1.0 / s);
   }
-  inline Quat operator*=(const float& s)
+  inline Quat operator*=(const float s)
   {
     x_ *= s;
     y_ *= s;
@@ -157,7 +157,7 @@ public:
     w_ *= s;
     return *this;
   }
-  inline Quat operator/=(const float& s)
+  inline Quat operator/=(const float s)
   {
     x_ /= s;
     y_ /= s;
@@ -165,7 +165,7 @@ public:
     w_ /= s;
     return *this;
   }
-  inline Quat weighted(const float& s) const
+  inline Quat weighted(const float s) const
   {
     Vec3 axis;
     float ang;
@@ -213,7 +213,7 @@ public:
     z_ = t1 * t2 * t4 - t0 * t3 * t5;
     w_ = t0 * t2 * t4 + t1 * t3 * t5;
   }
-  inline void setAxisAng(const Vec3& axis, const float& ang)
+  inline void setAxisAng(const Vec3& axis, const float ang)
   {
     const Vec3 a = axis / axis.norm();
     const float s = std::sin(ang / 2);

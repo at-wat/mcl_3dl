@@ -78,16 +78,16 @@ public:
     x_ = (1 - k_[2]) * out0 / k_[3];
     out_ = out0;
   }
-  inline float in(float in)
+  inline float in(const float in)
   {
     assert(std::isfinite(in));
-
+    float tmp_in = in;
     if (angle_)
     {
-      in = out_ + remainder(in - out_, M_PI * 2.0);
+      tmp_in = out_ + remainder(in - out_, M_PI * 2.0);
     }
-    x_ = k_[0] * in + k_[1] * x_;
-    out_ = k_[2] * in + k_[3] * x_;
+    x_ = k_[0] * tmp_in + k_[1] * x_;
+    out_ = k_[2] * tmp_in + k_[3] * x_;
 
     assert(std::isfinite(out_));
     return out_;

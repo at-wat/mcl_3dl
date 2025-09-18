@@ -201,7 +201,7 @@ public:
       }
       ++i;
     }
-    for (auto& cloud : clouds)
+    for (const auto& cloud : clouds)
     {
       if (point_rep_)
         chunks_[cloud.first].kdtree_->setPointRepresentation(point_rep_);
@@ -216,10 +216,10 @@ public:
   }
   int radiusSearch(
       const POINT_TYPE& p,
-      const float& radius,
+      const float radius,
       std::vector<int>& id,
       std::vector<float>& dist_sq,
-      const size_t& num)
+      const size_t num)
   {
     if (radius > chunk_length_)
       throw std::runtime_error("ChunkedKdtree: radius must be <chunk_length");
