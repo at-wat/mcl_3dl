@@ -11,6 +11,7 @@ set(CATKIN_DEPENDS
   tf2_sensor_msgs
 
   diagnostic_updater
+  dynamic_reconfigure
   geometry_msgs
   mcl_3dl_msgs
   nav_msgs
@@ -29,6 +30,11 @@ find_package(PCL 1.8.0 REQUIRED
     kdtree
 )
 find_package(Boost REQUIRED COMPONENTS chrono)
+
+generate_dynamic_reconfigure_options(
+  cfg/MCL3DLParams.cfg
+)
+
 catkin_package(
   INCLUDE_DIRS include
   CATKIN_DEPENDS ${CATKIN_DEPENDS}

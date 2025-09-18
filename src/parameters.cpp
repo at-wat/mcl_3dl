@@ -33,10 +33,11 @@
 #include <memory>
 #include <string>
 
+#include <dynamic_reconfigure/server.h>
 #include <ros/ros.h>
 
+#include <mcl_3dl/MCL3DLParamsConfig.h>
 #include <mcl_3dl/parameters.h>
-
 #include <mcl_3dl_compat/compatibility.h>
 
 namespace mcl_3dl
@@ -308,6 +309,19 @@ bool Parameters::load(ros::NodeHandle& pnh)
       lidar_measurement_beam_params_->dda_grid_size_ = dda_grid_size;
     }
   }
+
+  parameter_server_.reset(new dynamic_reconfigure::Server<MCL3DLParamsConfig>(pnh));
+  parameter_server_->setCallback(
+      boost::bind(&Parameters::cbParameter, this, boost::placeholders::_1, boost::placeholders::_2));
+
   return true;
 }
+
+void Parameters::cbParameter(const MCL3DLParamsConfig& config, const uint32_t /* level */)
+{
+  std_warn_thresh_[0] = config.std_warn_thresh_xy;
+  std_warn_thresh_[1] = config.std_warn_thresh_z;
+  std_warn_thresh_[2] = config.std_warn_thresh_yaw;
+}
+
 }  // namespace mcl_3dl

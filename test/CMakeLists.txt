@@ -108,6 +108,12 @@ add_rostest_gtest(test_transform_failure tests/transform_rostest.test
 target_link_libraries(test_transform_failure ${catkin_LIBRARIES})
 add_dependencies(test_transform_failure mcl_3dl)
 
+add_rostest_gtest(test_parameters tests/parameters_rostest.test
+    src/test_parameters.cpp
+    ../src/parameters.cpp
+)
+target_link_libraries(test_parameters ${catkin_LIBRARIES})
+
 if(MCL_3DL_EXTRA_TESTS OR "$ENV{MCL_3DL_EXTRA_TESTS}" STREQUAL "ON")
 
   catkin_download_test_data(

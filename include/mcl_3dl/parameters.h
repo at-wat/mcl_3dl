@@ -34,8 +34,10 @@
 #include <memory>
 #include <string>
 
+#include <dynamic_reconfigure/server.h>
 #include <ros/ros.h>
 
+#include <mcl_3dl/MCL3DLParamsConfig.h>
 #include <mcl_3dl/quat.h>
 #include <mcl_3dl/state_6dof.h>
 #include <mcl_3dl/vec3.h>
@@ -200,6 +202,10 @@ public:
   std::shared_ptr<PointCloudSamplerWithNormalParameters> random_sampler_with_normal_params_;
   std::shared_ptr<LidarMeasurementModelLikelihoodParameters> lidar_measurement_likelihood_params_;
   std::shared_ptr<LidarMeasurementModelBeamParameters> lidar_measurement_beam_params_;
+
+private:
+  std::unique_ptr<dynamic_reconfigure::Server<MCL3DLParamsConfig>> parameter_server_;
+  void cbParameter(const MCL3DLParamsConfig& config, const uint32_t /* level */);
 };
 }  // namespace mcl_3dl
 
