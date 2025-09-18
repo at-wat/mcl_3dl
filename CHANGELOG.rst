@@ -2,8 +2,8 @@
 Changelog for package mcl_3dl
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.7.0 (2025-09-18)
+------------------
 * Standard deviation warning thresholds as dynamic parameters (`#436 <https://github.com/at-wat/mcl_3dl/issues/436>`_)
 * Refactor parameters (`#435 <https://github.com/at-wat/mcl_3dl/issues/435>`_)
 * Share sampler between lidar measurement methods (`#434 <https://github.com/at-wat/mcl_3dl/issues/434>`_)
