@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1.3...3.26)
+cmake_minimum_required(VERSION 3.1...3.26)
 project(mcl_3dl)
 
 set(CATKIN_DEPENDS
