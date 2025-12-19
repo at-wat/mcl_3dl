@@ -27,7 +27,6 @@ target_compile_options(test_point_types PRIVATE ${UNIT_TEST_COMPILE_OPTIONS})
 catkin_add_gtest(test_point_cloud_random_sampler src/test_point_cloud_random_sampler.cpp)
 target_link_libraries(test_point_cloud_random_sampler ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 target_compile_options(test_point_cloud_random_sampler PRIVATE ${UNIT_TEST_COMPILE_OPTIONS})
-add_dependencies(test_point_cloud_random_sampler ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_gencfg)
 
 catkin_add_gtest(test_quat src/test_quat.cpp)
 target_link_libraries(test_quat ${catkin_LIBRARIES})
@@ -64,6 +63,7 @@ target_compile_options(test_noise_generator PRIVATE ${UNIT_TEST_COMPILE_OPTIONS}
 catkin_add_gtest(test_point_cloud_random_sampler_with_normal src/test_point_cloud_random_sampler_with_normal.cpp)
 target_link_libraries(test_point_cloud_random_sampler_with_normal ${catkin_LIBRARIES})
 target_compile_options(test_point_cloud_random_sampler_with_normal PRIVATE ${UNIT_TEST_COMPILE_OPTIONS})
+add_dependencies(test_point_cloud_random_sampler_with_normal ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_gencfg)
 
 add_executable(performance_raycast src/performance_raycast.cpp)
 target_link_libraries(performance_raycast ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${PCL_LIBRARIES})
