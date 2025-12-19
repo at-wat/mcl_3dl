@@ -63,7 +63,7 @@ target_compile_options(test_noise_generator PRIVATE ${UNIT_TEST_COMPILE_OPTIONS}
 catkin_add_gtest(test_point_cloud_random_sampler_with_normal src/test_point_cloud_random_sampler_with_normal.cpp)
 target_link_libraries(test_point_cloud_random_sampler_with_normal ${catkin_LIBRARIES})
 target_compile_options(test_point_cloud_random_sampler_with_normal PRIVATE ${UNIT_TEST_COMPILE_OPTIONS})
-add_dependencies(test_point_cloud_random_sampler_with_normal ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_gencfg)
+add_dependencies(test_point_cloud_random_sampler_with_normal ${PROJECT_NAME}_gencfg)
 
 add_executable(performance_raycast src/performance_raycast.cpp)
 target_link_libraries(performance_raycast ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${PCL_LIBRARIES})
@@ -89,7 +89,7 @@ add_rostest_gtest(test_beam_likelihood tests/beam_likelihood_rostest.test
     ../src/point_types.cpp
 )
 target_link_libraries(test_beam_likelihood ${catkin_LIBRARIES} ${PCL_LIBRARIES})
-add_dependencies(test_beam_likelihood ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_gencfg)
+add_dependencies(test_beam_likelihood ${PROJECT_NAME}_gencfg)
 
 add_rostest_gtest(test_global_localization tests/global_localization_rostest.test
     src/test_global_localization.cpp)
@@ -115,7 +115,7 @@ add_rostest_gtest(test_parameters tests/parameters_rostest.test
     ../src/parameters.cpp
 )
 target_link_libraries(test_parameters ${catkin_LIBRARIES})
-add_dependencies(test_parameters ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_gencfg)
+add_dependencies(test_parameters ${PROJECT_NAME}_gencfg)
 
 if(MCL_3DL_EXTRA_TESTS OR "$ENV{MCL_3DL_EXTRA_TESTS}" STREQUAL "ON")
 
